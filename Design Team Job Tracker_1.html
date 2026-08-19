@@ -1,0 +1,2311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Builders (Services) Ltd, Job Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Open+Sans:wght@400;600;700&display=swap');
+
+:root{
+  --paper:#F4F5F3;
+  --paper-line: rgba(1,0,58,0.06);
+  --panel:#FFFFFF;
+  --ink:#01003A;
+  --ink-soft:#5B6673;
+  --ink-faint:#8A93A0;
+  --line:#E6E6E6;
+  --line-strong:#C7CCD1;
+  --blue:#006699;
+  --blue-deep:#01003A;
+  --blue-mid:#408CB2;
+  --blue-soft:#C1DCEA;
+  --amber:#B9791F;
+  --amber-soft:#FBEEDB;
+  --green:#3E7C5A;
+  --green-soft:#E4F1EA;
+  --red:#AA3E3E;
+  --red-soft:#F7E8E8;
+  --radius:6px;
+  --shadow: 0 1px 2px rgba(1,0,58,0.06), 0 1px 0 rgba(1,0,58,0.04);
+  --shadow-lift: 0 8px 24px rgba(1,0,58,0.14);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/40px 40px,
+    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/40px 40px,
+    var(--paper);
+  color:var(--ink);
+  font-family:'Open Sans',system-ui,sans-serif;
+  font-size:14px;
+  line-height:1.45;
+  min-height:100vh;
+}
+::selection{background:#8FC4E6;color:#01003A;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;font-size:14px;}
+a{color:var(--blue);}
+
+.app{width:100%;min-width:1400px;padding:24px 28px 60px;}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;margin-bottom:22px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-mark{
+  background:var(--blue-deep);border-radius:4px;padding:9px 13px;
+  font-family:'Open Sans',sans-serif;font-weight:700;font-size:12px;letter-spacing:.04em;color:#fff;
+  white-space:nowrap;box-shadow:var(--shadow);
+}
+.brand h1{
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:29px;margin:0;
+}
+.brand p{margin:2px 0 0;color:var(--ink-soft);font-size:12.5px;}
+
+.sync{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-faint);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none;}
+.sync-dot.busy{background:var(--amber);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.btn-refresh{
+  border:1px solid var(--line-strong);background:var(--panel);color:var(--ink-soft);
+  border-radius:5px;padding:6px 10px;font-size:12px;display:flex;align-items:center;gap:6px;
+}
+.btn-refresh:hover{border-color:var(--blue);color:var(--blue);}
+
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+.tab{
+  padding:14px 10px;margin-right:26px;font-family:'DM Serif Display',serif;font-style:italic;font-weight:600;
+  font-size:23px;color:var(--ink-faint);border-bottom:2px solid transparent;cursor:pointer;
+  background:none;border-top:none;border-left:none;border-right:none;
+}
+.tab.active{color:var(--blue-deep);border-bottom-color:var(--blue-deep);}
+
+.view{display:none;}
+.view.active{display:block;}
+
+.toolbar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:10px 12px;box-shadow:var(--shadow);
+}
+.toolbar .grow{flex:1 1 180px;}
+.field{position:relative;}
+.search-input{
+  width:100%;padding:7px 10px 7px 30px;border:1px solid var(--line);border-radius:5px;
+  background:var(--paper);color:var(--ink);
+}
+.search-input:focus{outline:2px solid var(--blue-soft);border-color:var(--blue);}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--ink-faint);font-size:13px;pointer-events:none;}
+select.select, .toolbar select{
+  padding:7px 26px 7px 10px;border:1px solid var(--line);border-radius:5px;background:var(--paper);
+  color:var(--ink);appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0 L5 6 L10 0' fill='none' stroke='%235B6673' stroke-width='1.4'/></svg>");
+  background-repeat:no-repeat;background-position:right 9px center;
+}
+.toggle-group{display:flex;border:1px solid var(--line);border-radius:5px;overflow:hidden;}
+.toggle-group button{
+  border:none;background:var(--panel);padding:7px 12px;font-size:12.5px;font-weight:600;
+  color:var(--ink-soft);border-right:1px solid var(--line);
+}
+.toggle-group button:last-child{border-right:none;}
+.toggle-group button.active{background:var(--blue-deep);color:#fff;}
+.chk-label{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);white-space:nowrap;}
+.btn-primary{
+  background:var(--blue-deep);color:#fff;border:none;border-radius:5px;padding:8px 14px;
+  font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.btn-primary:hover{background:var(--blue);}
+.btn-ghost{
+  border:1px solid var(--line-strong);background:var(--panel);color:var(--ink-soft);
+  border-radius:5px;padding:8px 12px;font-size:12.5px;font-weight:600;white-space:nowrap;
+}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
+.hint{font-size:11.5px;color:var(--ink-faint);margin:-6px 0 14px 2px;}
+.stage-summary-row{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
+.stage-summary-card{
+  flex:1 1 200px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow);
+}
+.stage-summary-label{font-family:'DM Serif Display',serif;font-style:italic;font-size:16px;color:var(--ink);margin-bottom:6px;}
+.stage-summary-value{font-size:20px;font-weight:700;color:var(--blue-deep);}
+.stage-summary-value.over{color:var(--red);}
+.stage-summary-target{font-size:11.5px;color:var(--ink-faint);margin-top:4px;}
+
+.stamp{
+  font-family:'Open Sans',sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.03em;
+  border:1.3px solid currentColor;border-radius:3px;padding:2px 6px;display:inline-block;
+}
+.stage-SP{color:#01003A;} .stage-PD{color:#180F5E;} .stage-WD{color:#006699;} .stage-OnSite{color:#408CB2;}
+.pill{
+  font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-block;white-space:nowrap;
+}
+.pill-InProgress{background:#FBF0C7;color:#8A6D00;}
+.pill-Completed{background:#E9E9E7;color:#54524C;}
+.pill-OnHold{background:none;color:var(--ink-soft);padding:2px 0;}
+.pill-state-onSiteChanges{background:#FBE1C7;color:#95530A;}
+.pill-state-rfi{background:#FAD9D4;color:#A13B2A;}
+.pill-state-consent{background:#E8E7D2;color:#6B6830;}
+.pill-state-vetting{background:#E5DCF4;color:#5B3A96;}
+.pill-state-onSite{background:#DCEFD6;color:#3A6B2A;}
+.pill-state-default{background:#D2EEE9;color:#0F6B5C;}
+
+.board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
+.col{
+  flex:1 1 0;min-width:0;background:rgba(255,255,255,0.55);border:1px solid var(--line);border-radius:8px;
+  display:flex;flex-direction:column;
+}
+.col-head{
+  padding:11px 13px;display:flex;align-items:center;justify-content:space-between;
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:18px;
+  position:sticky;top:0;border-radius:8px 8px 0 0;
+}
+.col-count{
+  font-family:'Open Sans',sans-serif;font-size:11px;font-weight:700;color:#fff;
+  background:rgba(255,255,255,0.22);border-radius:10px;padding:1px 8px;
+}
+.col-body{padding:8px;display:flex;flex-direction:column;gap:6px;}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;
+  box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .12s, transform .12s;
+}
+.card:hover{box-shadow:var(--shadow-lift);transform:translateY(-1px);border-color:var(--line-strong);}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+.card-job{font-family:'Open Sans',sans-serif;font-size:14px;font-weight:700;color:var(--ink-soft);}
+.card-title{font-weight:600;font-size:15px;margin:0 0 2px;color:var(--ink);}
+.card-meta{font-size:12.5px;color:var(--ink-soft);}
+.card-meta .card-region{color:var(--blue);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+.card-date{font-size:13px;font-weight:600;color:var(--ink-faint);font-family:'Open Sans',sans-serif;}
+.card-date.date-soon{color:var(--amber);font-weight:600;}
+.card-date.date-overdue{color:var(--red);font-weight:700;}
+td.date-soon{color:var(--amber);font-weight:600;}
+td.date-overdue{color:var(--red);font-weight:700;}
+.empty-col{padding:20px 10px;text-align:center;color:var(--ink-faint);font-size:12px;}
+
+.table-wrap{
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto;
+  box-shadow:var(--shadow);
+}
+table.jobs-table{width:auto;border-collapse:collapse;min-width:900px;table-layout:fixed;}
+table.jobs-table th{position:relative;user-select:none;}
+.col-resize-handle{position:absolute;right:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:2;}
+.col-resize-handle:hover{background:var(--blue-soft);}
+table.jobs-table th{
+  text-align:left;font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:15px;
+  color:var(--ink);text-transform:uppercase;letter-spacing:.03em;padding:10px 12px;
+  border-bottom:1.5px solid var(--line-strong);border-right:1px solid var(--line);background:var(--paper);position:sticky;top:0;cursor:pointer;
+  white-space:nowrap;user-select:none;
+}
+table.jobs-table th:hover{color:var(--blue);}
+table.jobs-table td{padding:10px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:top;font-size:13px;}
+table.jobs-table tbody tr{cursor:pointer;}
+table.jobs-table tbody tr:hover{background:var(--blue-soft);}
+.td-notes{white-space:normal;word-break:break-word;color:var(--ink-soft);}
+.divider-right{border-right:1px solid var(--line);}
+.td-editable{padding:0 !important;}
+.cell-text{width:100%;min-height:38px;border:none;background:none;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);resize:none;overflow:hidden;display:block;}
+.cell-text:focus{outline:none;background:var(--blue-soft);}
+.cell-date{width:100%;border:none;background:none;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink);display:block;}
+.cell-date:focus{outline:none;background:var(--blue-soft);}
+.sort-arrow{font-size:9px;margin-left:3px;color:var(--blue);}
+
+.overlay{
+  position:fixed;inset:0;background:rgba(27,36,48,0.42);display:none;align-items:flex-start;justify-content:center;
+  z-index:50;padding:40px 16px;overflow-y:auto;
+}
+.overlay.open{display:flex;}
+.modal{
+  background:var(--panel);border-radius:10px;width:100%;max-width:920px;box-shadow:var(--shadow-lift);
+  border:1px solid var(--line);
+}
+.modal-head{
+  padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+}
+.modal-head h2{font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:17px;margin:0;}
+.modal-close{background:none;border:none;font-size:18px;color:var(--ink-faint);line-height:1;padding:4px;}
+.modal-close:hover{color:var(--ink);}
+.modal-body{padding:18px 22px;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.modal-body .full{grid-column:1/-1;}
+.f-label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;text-transform:uppercase;letter-spacing:.02em;}
+.f-input, .f-select, .f-textarea{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:5px;background:var(--paper);color:var(--ink);
+}
+.f-input:focus,.f-select:focus,.f-textarea:focus{outline:2px solid var(--blue-soft);border-color:var(--blue);}
+.f-textarea{resize:vertical;min-height:64px;}
+.modal-foot{
+  padding:16px 22px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.btn-danger{background:none;border:1px solid var(--red);color:var(--red);border-radius:5px;padding:8px 12px;font-size:12.5px;font-weight:600;}
+.btn-danger:hover{background:var(--red-soft);}
+.foot-right{display:flex;gap:8px;}
+.foot-left{display:flex;gap:8px;}
+
+.week-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.week-nav button{
+  border:1px solid var(--line-strong);background:var(--panel);border-radius:5px;padding:6px 11px;font-size:13px;color:var(--ink-soft);
+}
+.week-nav button:hover{border-color:var(--blue);color:var(--blue);}
+.week-label{font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:15px;color:var(--blue-deep);}
+.workload-wrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto;box-shadow:var(--shadow);}
+table.wl-table{border-collapse:collapse;width:100%;min-width:1100px;}
+table.wl-table th{
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;
+  color:var(--ink-soft);text-align:left;padding:10px 12px;border-bottom:1.5px solid var(--line-strong);
+  background:var(--paper);position:sticky;top:0;white-space:nowrap;
+}
+table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var(--paper-line);vertical-align:top;padding:0;}
+.wl-name{
+  padding:12px;font-weight:600;font-size:13px;color:var(--ink);white-space:nowrap;background:var(--panel);
+  position:sticky;left:0;border-right:1px solid var(--line);
+}
+.wl-name .rm{float:right;color:var(--ink-faint);background:none;border:none;font-size:12px;padding:0 2px;}
+.wl-name .rm:hover{color:var(--red);}
+.wl-cell{min-width:150px;}
+.wl-cell textarea{
+  width:100%;height:100%;min-height:78px;border:none;background:none;padding:10px;resize:vertical;
+  font-size:12.5px;color:var(--ink);line-height:1.4;
+}
+.wl-cell textarea:focus{outline:none;background:var(--blue-soft);}
+.wl-cell.today{background:var(--amber-soft);}
+.staff-add{display:flex;gap:8px;margin-bottom:14px;}
+.staff-add input{flex:0 0 220px;padding:8px 10px;border:1px solid var(--line);border-radius:5px;}
+
+.toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--blue-deep);color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;
+  box-shadow:var(--shadow-lift);opacity:0;transition:opacity .2s, transform .2s;z-index:100;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.storage-warning{
+  background:var(--amber-soft);border:1px solid var(--amber);color:#7A5313;
+  border-radius:6px;padding:10px 14px;font-size:12.5px;margin-bottom:16px;line-height:1.5;
+}
+.readonly-banner{
+  background:var(--blue-soft);border:1px solid var(--blue);color:var(--blue-deep);
+  border-radius:6px;padding:10px 14px;font-size:12.5px;margin-bottom:16px;line-height:1.5;font-weight:600;
+}
+.region-link-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:8px;
+}
+.region-link-name{font-weight:600;color:var(--ink);font-size:13.5px;}
+.region-link-url{font-size:11px;color:var(--ink-faint);word-break:break-all;margin-top:2px;}
+.empty-state{
+  text-align:center;padding:60px 20px;color:var(--ink-faint);border:1.5px dashed var(--line-strong);
+  border-radius:8px;background:rgba(255,255,255,0.4);
+}
+.empty-state h3{font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;color:var(--ink-soft);margin-bottom:6px;}
+
+@media (max-width:640px){
+  .app{padding:16px;}
+  .modal-body{grid-template-columns:1fr;}
+  .col{flex:0 0 250px;}
+}
+
+@media print{
+  .topbar .sync, .btn-refresh, .toolbar, .tabs, .hint{display:none !important;}
+  body{background:#fff;}
+  .col{max-height:none;}
+  .board{overflow:visible;flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">DESIGN BUILDERS</div>
+      <div>
+        <h1>Design Builders (Services) Ltd, Job Tracker</h1>
+        <p>Design team job board &amp; weekly workload</p>
+      </div>
+    </div>
+    <div class="sync">
+      <span id="syncDot" class="sync-dot"></span>
+      <span id="syncText">synced</span>
+      <button class="btn-refresh" onclick="manualRefresh()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div id="storageWarning" class="storage-warning" style="display:none;">
+    ⚠ <strong>Can't reach the shared database right now.</strong> Changes you make may not save or sync with your team until this reconnects. Retrying automatically.
+  </div>
+  <div id="readOnlyBanner" class="readonly-banner" style="display:none;"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="jobs" onclick="switchTab('jobs')">Job Board</button>
+    <button class="tab" data-tab="workload" onclick="switchTab('workload')">Staff Workload</button>
+    <button class="tab" data-tab="stagetimes" onclick="switchTab('stagetimes')">Stage Times</button>
+  </div>
+
+  <div class="view active" id="view-jobs">
+    <div class="toolbar">
+      <div class="field grow">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" id="searchInput" placeholder="Search job, client, notes…" oninput="renderJobs()">
+      </div>
+      <select class="select" id="regionFilter" onchange="renderJobs()"><option value="">All regions</option></select>
+      <select class="select" id="stageFilter" onchange="renderJobs()">
+        <option value="">All stages</option>
+        <option value="SP">SP — Concept</option>
+        <option value="PD">PD — Preliminary</option>
+        <option value="WD">WD — Working Dwgs</option>
+        <option value="On Site">On Site</option>
+      </select>
+      <label class="chk-label"><input type="checkbox" id="showCompleted" checked onchange="renderJobs()"> Show completed</label>
+      <label class="chk-label"><input type="checkbox" id="showArchived" onchange="renderJobs()"> Show archived</label>
+      <div class="toggle-group" id="viewToggle">
+        <button data-v="board" onclick="setJobView('board')">Board</button>
+        <button class="active" data-v="table" onclick="setJobView('table')">Table</button>
+      </div>
+      <select class="select" id="groupBy" onchange="renderJobs()">
+        <option value="stage">Group by stage</option>
+        <option value="region">Group by region</option>
+      </select>
+      <button class="btn-ghost" id="turnaroundGuideBtn" onclick="openGuideModal()">⏱ Turnaround guide</button>
+      <button class="btn-ghost" id="regionLinksBtn" onclick="openRegionLinksModal()">🔗 Region links</button>
+      <button class="btn-ghost" onclick="copyAsTable()">📋 Copy as table</button>
+      <button class="btn-ghost" onclick="window.print()">🖶 Print view</button>
+      <button class="btn-primary" id="newJobBtn" onclick="openJobModal()">+ New job</button>
+    </div>
+    <p class="hint">Tip: filter to one region, then use Copy as table to paste a snapshot straight into an email, or Print view for a PDF.</p>
+
+    <div class="board" id="boardWrap"></div>
+    <div class="table-wrap" id="tableWrap" style="display:none;">
+      <table class="jobs-table" id="jobsTable">
+        <colgroup id="tableColgroup"></colgroup>
+        <thead><tr id="tableHeadRow"></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="jobsEmpty" style="display:none;">
+      <h3>No jobs yet</h3>
+      <p>Add your first job to get the board started.</p>
+    </div>
+  </div>
+
+  <div class="view" id="view-workload">
+    <div class="week-nav">
+      <button onclick="shiftWeek(-1)">← Prev week</button>
+      <span class="week-label" id="weekLabel"></span>
+      <button onclick="shiftWeek(1)">Next week →</button>
+      <button class="btn-ghost" onclick="shiftWeek(0,true)">This week</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" onclick="window.print()">🖶 Print view</button>
+    </div>
+    <div class="staff-add">
+      <input id="newStaffName" placeholder="Add team member…" onkeydown="if(event.key==='Enter')addStaff()">
+      <button class="btn-primary" onclick="addStaff()">+ Add</button>
+    </div>
+    <div class="workload-wrap">
+      <table class="wl-table">
+        <thead>
+          <tr id="wlHeadRow"></tr>
+        </thead>
+        <tbody id="wlBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="view" id="view-stagetimes">
+    <p class="hint">Actual time spent per stage, measured automatically from when each job's Stage field changes. On Site isn't tracked here. Jobs that haven't changed stage since tracking began show a single starting point rather than a full history.</p>
+    <div class="stage-summary-row" id="stageTimesSummary"></div>
+    <div class="table-wrap">
+      <table class="jobs-table" id="stageTimesTable" style="table-layout:auto;min-width:0;">
+        <thead><tr>
+          <th>Region</th><th>Job #</th><th>Client / Job</th>
+          <th>SP (days)</th><th>PD (days)</th><th>WD (days)</th><th>Current stage</th>
+        </tr></thead>
+        <tbody id="stageTimesBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="jobOverlay" onclick="if(event.target===this){ READ_ONLY ? closeJobModal() : saveJob(); }">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">New job</h2>
+      <button class="modal-close" onclick="closeJobModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="full" style="display:grid;grid-template-columns:1fr 120px 2fr;gap:14px;">
+        <div><label class="f-label">Region</label><input class="f-input" id="f-region" list="regionList"></div>
+        <div><label class="f-label">Job number</label><input class="f-input" id="f-jobNumber" placeholder="e.g. 27002"></div>
+        <div><label class="f-label">Client / job name</label><input class="f-input" id="f-jobName" placeholder="e.g. Coelho &amp; Campbell"></div>
+      </div>
+      <div class="full" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;">
+        <div><label class="f-label">Stage</label>
+          <select class="f-select" id="f-stage" onchange="autoCalcDates(false); populateStateOptions(this.value, '', false);">
+            <option value="SP">SP — Concept</option>
+            <option value="PD">PD — Preliminary</option>
+            <option value="WD">WD — Working Drawings</option>
+            <option value="On Site">On Site</option>
+          </select>
+        </div>
+        <div><label class="f-label">State</label>
+          <select class="f-select" id="f-status"></select>
+        </div>
+        <div><label class="f-label">Assigned to</label>
+          <select class="f-select" id="f-who"></select>
+        </div>
+        <div><label class="f-label">Task status</label>
+          <select class="f-select" id="f-taskStatus">
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+            <option value="On Hold">On Hold</option>
+          </select>
+        </div>
+      </div>
+      <div class="full" style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:12px;margin-top:2px;">
+        <span style="font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;">Estimated completion</span>
+        <button type="button" class="btn-ghost" id="recalcBtn" style="padding:5px 10px;font-size:11.5px;" onclick="autoCalcDates(true)">↻ Recalculate from guide</button>
+      </div>
+      <div class="full" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+        <div><label class="f-label">Stage start date</label><input class="f-input" type="date" id="f-stageStart" onchange="autoCalcDates(false)"></div>
+        <div><label class="f-label">Earliest est. completion</label><input class="f-input" type="date" id="f-earliestDate"></div>
+        <div><label class="f-label">Latest est. completion <span style="font-weight:400;color:var(--ink-faint);text-transform:none;">— used for sorting</span></label><input class="f-input" type="date" id="f-latestDate"></div>
+      </div>
+      <div><label class="f-label">Updates sent</label><input class="f-input" type="date" id="f-updatesSent"></div>
+      <div class="full" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;">
+        <div><label class="f-label">Task notes</label><textarea class="f-textarea" id="f-notes" placeholder="Free-text notes, same as your spreadsheet's Task Notes column…"></textarea></div>
+        <div><label class="f-label">Planning</label><textarea class="f-textarea" id="f-planning"></textarea></div>
+        <div><label class="f-label">Engineer</label><textarea class="f-textarea" id="f-engineer"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="foot-left">
+        <button class="btn-danger" id="archiveBtn" onclick="archiveCurrentJob()" style="display:none;">Archive job</button>
+        <button class="btn-ghost" id="restoreBtn" onclick="restoreCurrentJob()" style="display:none;">Restore job</button>
+        <button class="btn-danger" id="deleteBtn" onclick="deleteCurrentJob()" style="display:none;">Delete permanently</button>
+      </div>
+      <div class="foot-right">
+        <button class="btn-ghost" id="modalCancelBtn" onclick="closeJobModal()">Cancel</button>
+        <button class="btn-primary" id="modalSaveBtn" onclick="saveJob()">Save job</button>
+      </div>
+    </div>
+  </div>
+</div>
+<datalist id="regionList"></datalist>
+
+<div class="overlay" id="guideOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Turnaround guide</h2>
+      <button class="modal-close" onclick="closeGuideModal()">✕</button>
+    </div>
+    <div class="modal-body" style="grid-template-columns:1fr;">
+      <p style="margin:0;color:var(--ink-soft);font-size:12.5px;">These timeframes drive the "auto" estimated completion dates on each job. Edit anytime — changes apply to future auto-calculations, not existing jobs, unless you recalculate them.</p>
+      <div id="guideStageRows"></div>
+      <div>
+        <label class="f-label">General note</label>
+        <input class="f-input" id="guideNotes">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div class="foot-right">
+        <button class="btn-ghost" onclick="closeGuideModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveGuideModal()">Save guide</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="regionLinksOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Region links</h2>
+      <button class="modal-close" onclick="closeRegionLinksModal()">✕</button>
+    </div>
+    <div class="modal-body" style="grid-template-columns:1fr;">
+      <p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Each link opens the tracker locked to that region only — view-only, no editing, no other tabs. Click Copy and paste it straight into an email or message. No need to type or edit anything yourself.</p>
+      <div id="regionLinksList"></div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div class="foot-right">
+        <button class="btn-ghost" onclick="closeRegionLinksModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SEED_JOBS = [
+  {
+    "region": "Wellington",
+    "jobNumber": "27002",
+    "jobName": "Coelho & Campbell",
+    "stage": "WD",
+    "status": "WD with Services",
+    "who": "Hannah",
+    "taskStatus": "In Progress",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "2026-07-20",
+    "address": "",
+    "notes": "Signed documents sent through / WW/SW in action by Mark / Geo done / Topo Done / Awaiting Truss desgin from Mark / Firefighting provisions - Tanks Chck Parking for FF Appliances / Engineering underway 23/6",
+    "id": "j1"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "26033",
+    "jobName": "Lot 6 Sullivan Rd",
+    "stage": "SP",
+    "status": "SP with Services",
+    "who": "Dan W",
+    "taskStatus": "In Progress",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "2026-07-30",
+    "latestEstimatedCompletion": "2026-07-31",
+    "address": "",
+    "notes": "High Res Renders Required",
+    "id": "j2"
+  },
+  {
+    "region": "Hawkes Bay",
+    "jobNumber": "26031",
+    "jobName": "Rea",
+    "stage": "WD",
+    "status": "WD with Services",
+    "who": "Hannah",
+    "taskStatus": "In Progress",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "2026-09-21",
+    "address": "",
+    "notes": "Design Approval / Landscape Design & Engineering Consent Notice conditions. Signed LOE received 10/08",
+    "id": "j3"
+  },
+  {
+    "region": "Canterbury",
+    "jobNumber": "25009",
+    "jobName": "Cheong",
+    "stage": "WD",
+    "status": "Council RFI-\nW/Services",
+    "who": "Hannah",
+    "taskStatus": "In Progress",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "TBC",
+    "notes": "RFIs returned to council. Received back from council",
+    "id": "j4"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "26032",
+    "jobName": "Lot 13 Sullivan Rd",
+    "stage": "WD",
+    "status": "Council RFI-\nW/Services",
+    "who": "Sarah",
+    "taskStatus": "In Progress",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "BLD0053/27, received 4/08",
+    "id": "j5"
+  },
+  {
+    "region": "Wellington",
+    "jobNumber": "26018",
+    "jobName": "Taylor",
+    "stage": "WD",
+    "status": "On Site Changes",
+    "who": "Hannah",
+    "taskStatus": "In Progress",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "47 Pingao Lane",
+    "notes": "RFI for Earthworks returned to Jenny 5/5 / BC submitted 20/05 - RFI's on Water Tanks. Client window & hallway changes, will need Engineer input",
+    "id": "j6"
+  },
+  {
+    "region": "Manawatu",
+    "jobNumber": "",
+    "jobName": "Echo Street Lot 14",
+    "stage": "WD",
+    "status": "WD with Services",
+    "who": "Sarah",
+    "taskStatus": "In Progress",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Proceed with WDs, RC, Ivan is doing Geo and Structure. Region to organise Resource Consent. Received peer review from region 23/07. updating plans",
+    "id": "j7"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "26027",
+    "jobName": "Showhome #5",
+    "stage": "WD",
+    "status": "WD with Services",
+    "who": "Daniel A",
+    "taskStatus": "In Progress",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Changes received 28/4 to be completed before proceeding with WDs / Geo done and recieved/ Jeff to Organise Topo, COT & Landscaping Plan / No pool on Build Consent / RC Matters pertaining to Archilogical have been delt with during Subdivison. Cladding take off needed",
+    "id": "j8"
+  },
+  {
+    "region": "Hawkes Bay",
+    "jobNumber": "25015",
+    "jobName": "Jansen",
+    "stage": "WD",
+    "status": "Consent Processing",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "6 Tupai Place",
+    "notes": "Aaron to assess Site Earthworks / Timeframes for WDs to be confirmed once Engineer provides Shortform. / Colours and Design Committee approval to be done. (Amended and Sent to region 1/7/2026) / Topo to be done, received showing 3m fall across section. Peer review sent to region. PIM submitted to NCC.",
+    "id": "j9"
+  },
+  {
+    "region": "Canterbury",
+    "jobNumber": "25011",
+    "jobName": "Dimen",
+    "stage": "WD",
+    "status": "Consent Processing",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "15 Lemonwood Lane",
+    "notes": "Building Consent Submitted, WasteWater design approved 23/07. Building RFIs received 22/07. Returned to council 7/08",
+    "id": "j10"
+  },
+  {
+    "region": "Canterbury",
+    "jobNumber": "27001",
+    "jobName": "Worsp",
+    "stage": "PD",
+    "status": "PD with Region",
+    "who": "Dan W",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "",
+    "id": "j11"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "27006",
+    "jobName": "Mazzoleni Shed",
+    "stage": "SP",
+    "status": "SP with Region",
+    "who": "Hannah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "",
+    "id": "j12"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "27005",
+    "jobName": "Morris",
+    "stage": "SP",
+    "status": "SP with Services",
+    "who": "Daniel A",
+    "taskStatus": "In Progress",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "2026-08-17",
+    "address": "",
+    "notes": "changes received 10/08",
+    "id": "j13"
+  },
+  {
+    "region": "BOP",
+    "jobNumber": "26019",
+    "jobName": "Nicholson & Dawson",
+    "stage": "WD",
+    "status": "Consent Processing",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "WDs signed 18/12, preliminary plans sent to region, Awaiting final Engineering. Vetting RFI's, returned to council 22/04. RFIs returned to council. Amendment will be needed for updated wastewater design",
+    "id": "j14"
+  },
+  {
+    "region": "Taupo",
+    "jobNumber": "26023",
+    "jobName": "FitzGerald",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Building Consent Submitted",
+    "id": "j15"
+  },
+  {
+    "region": "Hawkes Bay",
+    "jobNumber": "26010",
+    "jobName": "McCormick",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "10 The Esplanade",
+    "notes": "Amendment submitted 7/07 for HomeRAB change",
+    "id": "j16"
+  },
+  {
+    "region": "Taupo",
+    "jobNumber": "26014",
+    "jobName": "Hanegraaf Family Trust",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Building Consent / Pool concept Done",
+    "id": "j17"
+  },
+  {
+    "region": "Canterbury",
+    "jobNumber": "26004",
+    "jobName": "Ford",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "14 TWIN MEADOWS DRIVE",
+    "notes": "Drainage plan update submitted to council 14/07",
+    "id": "j18"
+  },
+  {
+    "region": "Manawatu",
+    "jobNumber": "26020",
+    "jobName": "Mason & Lewis",
+    "stage": "PD",
+    "status": "PD with Region",
+    "who": "Dan W",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Changes received , PDs returned to region",
+    "id": "j19"
+  },
+  {
+    "region": "Hawkes Bay",
+    "jobNumber": "27003",
+    "jobName": "Free",
+    "stage": "SP",
+    "status": "SP with Region",
+    "who": "Dan W",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Changes received and notes for the Resource Consent",
+    "id": "j20"
+  },
+  {
+    "region": "Wellington",
+    "jobNumber": "25004",
+    "jobName": "Nixon & Clapperton",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Amendment for velux to be submitted to council. Submitted 13/05",
+    "id": "j21"
+  },
+  {
+    "region": "Hawkes Bay",
+    "jobNumber": "",
+    "jobName": "Wollin",
+    "stage": "WD",
+    "status": "WD with Region",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "CORE50 detailing sent to Services to complete, Plans updated. Clients requested multiple sun angles through 3D images, sent to region 13/05",
+    "id": "j22"
+  },
+  {
+    "region": "Taupo",
+    "jobNumber": "25016",
+    "jobName": "Taylor",
+    "stage": "SP",
+    "status": "SP with Region",
+    "who": "Dan W",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "changes sent to region",
+    "id": "j23"
+  },
+  {
+    "region": "Taupo",
+    "jobNumber": "25010",
+    "jobName": "Ellis",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Building Consent Lodged 5/05",
+    "id": "j24"
+  },
+  {
+    "region": "Hawkes Bay",
+    "jobNumber": "25000",
+    "jobName": "Mission Hills SH",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Amendment submitted 6/05",
+    "id": "j25"
+  },
+  {
+    "region": "Wellington",
+    "jobNumber": "26030",
+    "jobName": "Man",
+    "stage": "SP",
+    "status": "SP with Region",
+    "who": "Dan W",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Design Brief",
+    "id": "j26"
+  },
+  {
+    "region": "Wellington",
+    "jobNumber": "26024",
+    "jobName": "D. Bell",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "8 Kotuku Ngutupapa Way",
+    "notes": "Submitted to council 18/03 - Changes to be incorporated during RFI's - MD email 23/3 20/3 / RFIs received 7/4. Returned to Council/ RC Lodged",
+    "id": "j27"
+  },
+  {
+    "region": "Taupo",
+    "jobNumber": "26008",
+    "jobName": "Diosa Mago Trust",
+    "stage": "PD",
+    "status": "PD with Region",
+    "who": "Dan W",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Render requested",
+    "id": "j28"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "26012",
+    "jobName": "Rajan",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Dan W",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "1902 River Road, Flagstaff",
+    "notes": "BC Approved",
+    "id": "j29"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "26025",
+    "jobName": "Marra Reno",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Hannah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "RFI returned 13/4",
+    "id": "j30"
+  },
+  {
+    "region": "BOP",
+    "jobNumber": "24013",
+    "jobName": "Perrin Reno",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Amendment RFI returned to council",
+    "id": "j31"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "26013",
+    "jobName": "Dickson",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "35 Amberfields Way, Dury",
+    "notes": "BC approved",
+    "id": "j32"
+  },
+  {
+    "region": "BOP",
+    "jobNumber": "25014",
+    "jobName": "Sahakian Reno",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Site minor variation, rafter change and detail for point load footing. Sent to Sam for Review and Engineer sign off for footing",
+    "id": "j33"
+  },
+  {
+    "region": "Canterbury",
+    "jobNumber": "24043",
+    "jobName": "Thompson",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "24 Mountain View Road",
+    "notes": "RC in Progress for Water Tank position.",
+    "id": "j34"
+  },
+  {
+    "region": "Wellington",
+    "jobNumber": "25002",
+    "jobName": "Patel",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Landscaping plan requested, sent to region 11/11",
+    "id": "j35"
+  },
+  {
+    "region": "Taupo",
+    "jobNumber": "26007",
+    "jobName": "Speers",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Changes received, then move into WDs. Changes sent 7/11",
+    "id": "j36"
+  },
+  {
+    "region": "Canterbury",
+    "jobNumber": "25006",
+    "jobName": "Sutcliffe",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "6 Glenturret Drive",
+    "notes": "Consent submitted to council 5/08. Planning RFI received 26/08. Waiting on floor level assessment from CCC. Building RFI received 28/09. RFIs returned to council 5/09",
+    "id": "j37"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "23003",
+    "jobName": "Payne",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "838 Ouruwhero Road",
+    "notes": "Submitted to Council 12/08, RFI received 4/09",
+    "id": "j38"
+  },
+  {
+    "region": "Manawatu",
+    "jobNumber": "23036",
+    "jobName": "Saunders",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "BC Issued",
+    "id": "j39"
+  },
+  {
+    "region": "Hawkes Bay",
+    "jobNumber": "24045",
+    "jobName": "Prebble Fargher",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "51 Joll Road",
+    "notes": "Consent Granted 2/07",
+    "id": "j40"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "26016",
+    "jobName": "Watts",
+    "stage": "WD",
+    "status": "Consent Processing",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "21a Riverfields lane, Tamahere",
+    "notes": "Geo SW WW received, Structural Eng engaged",
+    "id": "j41"
+  },
+  {
+    "region": "Taupo",
+    "jobNumber": "26001",
+    "jobName": "Wakerley",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "",
+    "id": "j42"
+  },
+  {
+    "region": "Waikato",
+    "jobNumber": "26000",
+    "jobName": "Bohinc",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Sarah",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "86 Maraetai School Rd",
+    "notes": "BC Approved /  RC RFI with Planners",
+    "id": "j43"
+  },
+  {
+    "region": "Manawatu",
+    "jobNumber": "25008",
+    "jobName": "Ayres",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Granted BC 14/07",
+    "id": "j44"
+  },
+  {
+    "region": "Canterbury",
+    "jobNumber": "24055",
+    "jobName": "Daniels",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Hayley",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "38 Walter Case Drive",
+    "notes": "BC Granted",
+    "id": "j45"
+  },
+  {
+    "region": "North Auckland",
+    "jobNumber": "24022",
+    "jobName": "Travers-Bishop & Goddard",
+    "stage": "On Site",
+    "status": "On Site",
+    "who": "Daniel A",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "",
+    "id": "j46"
+  },
+  {
+    "region": "Wellington",
+    "jobNumber": "26026",
+    "jobName": "A & B Bell",
+    "stage": "PD",
+    "status": "PD with Region",
+    "who": "Dan W",
+    "taskStatus": "Completed",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "",
+    "id": "j47"
+  },
+  {
+    "region": "Canterbury",
+    "jobNumber": "25018",
+    "jobName": "Allan",
+    "stage": "SP",
+    "status": "SP with Region",
+    "who": "Dan W",
+    "taskStatus": "On Hold",
+    "stageStartDate": "",
+    "earliestEstimatedCompletion": "",
+    "latestEstimatedCompletion": "",
+    "address": "",
+    "notes": "Update Feaso 5/02",
+    "id": "j48"
+  }
+];
+const SEED_STAFF = [
+  {
+    "id": "s1",
+    "name": "Daniel A"
+  },
+  {
+    "id": "s2",
+    "name": "Dan W"
+  },
+  {
+    "id": "s3",
+    "name": "Aaron"
+  },
+  {
+    "id": "s4",
+    "name": "Hannah"
+  },
+  {
+    "id": "s5",
+    "name": "Sarah"
+  },
+  {
+    "id": "s6",
+    "name": "Hayley"
+  }
+];
+
+const DEFAULT_GUIDES = {
+  notes: "DBS = Design Builders Services",
+  stages: {
+    SP: { label: "SP — Concept", minWeeks: 2, maxWeeks: 3, desc: "from signed brief received by services" },
+    PD: { label: "PD — Preliminary Design", minWeeks: 2, maxWeeks: 3, desc: "from instruction to services by partner" },
+    WD: { label: "WD — Working Drawings", minWeeks: 4, maxWeeks: 8, desc: "determined by signed LOE price" }
+  }
+};
+let timelineGuides = JSON.parse(JSON.stringify(DEFAULT_GUIDES));
+
+const SUPABASE_URL = 'https://jeztkwnvfewhnaadaazh.supabase.co';
+const urlParams = new URLSearchParams(window.location.search);
+const LOCKED_REGION = urlParams.get('region') || '';
+const READ_ONLY = !!LOCKED_REGION;
+const SUPABASE_KEY = 'sb_publishable_SydrZ17z4xJGOVT7B7yZAA_UrG6qJSV';
+
+async function sbFetch(path, opts){
+  opts = opts || {};
+  const headers = Object.assign({
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json'
+  }, opts.headers || {});
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: opts.method || 'GET',
+    headers: headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if(!res.ok){
+    const text = await res.text().catch(()=>'');
+    throw new Error('Supabase ' + res.status + ' ' + text);
+  }
+  if(res.status === 204) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+function jobToRow(j){
+  return {
+    id: j.id,
+    region: j.region || '',
+    job_number: j.jobNumber || '',
+    job_name: j.jobName || '',
+    stage: j.stage || 'SP',
+    status: j.status || '',
+    who: j.who || '',
+    task_status: j.taskStatus || 'In Progress',
+    stage_start_date: j.stageStartDate || null,
+    earliest_estimated_completion: j.earliestEstimatedCompletion || null,
+    latest_estimated_completion: j.latestEstimatedCompletion || null,
+    address: j.address || '',
+    notes: j.notes || '',
+    planning: j.planning || '',
+    updates_sent: j.updatesSent || null,
+    engineer_date: j.engineer || null,
+    archived: !!j.archived
+  };
+}
+function rowToJob(r){
+  return {
+    id: r.id,
+    region: r.region || '',
+    jobNumber: r.job_number || '',
+    jobName: r.job_name || '',
+    stage: r.stage || 'SP',
+    status: r.status || '',
+    who: r.who || '',
+    taskStatus: r.task_status || 'In Progress',
+    stageStartDate: r.stage_start_date || '',
+    earliestEstimatedCompletion: r.earliest_estimated_completion || '',
+    latestEstimatedCompletion: r.latest_estimated_completion || '',
+    address: r.address || '',
+    notes: r.notes || '',
+    planning: r.planning || '',
+    updatesSent: r.updates_sent || '',
+    engineer: r.engineer_date || '',
+    archived: !!r.archived
+  };
+}
+
+let jobs = [];
+let staff = [];
+let connectionOk = true;
+let seedAttempted = false;
+let consecutiveFailures = 0;
+let pendingSaves = 0;
+let regions = ["Northland","North Auckland","Waikato","BOP","Taupo","Hawkes Bay","Manawatu","Wellington","Canterbury"];
+let jobView = 'table';
+let sortCol = 'latestEstimatedCompletion', sortDir = 1;
+let currentEditId = null;
+let weekOffset = 0;
+let workloadCache = {};
+
+const DAYS = ['mon','tue','wed','thu','fri'];
+const DAY_LABELS = {mon:'Monday',tue:'Tuesday',wed:'Wednesday',thu:'Thursday',fri:'Friday'};
+
+function setSync(busy){
+  document.getElementById('syncDot').classList.toggle('busy', !!busy);
+  document.getElementById('syncText').textContent = busy ? 'syncing…' : 'synced';
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function updateStorageBanner(){
+  document.getElementById('storageWarning').style.display = connectionOk ? 'none' : 'block';
+}
+
+async function seedInitialData(){
+  const jobRows = await sbFetch('jobs', { method:'POST', headers:{'Prefer':'return=representation'}, body: SEED_JOBS.map(jobToRow) });
+  const staffRows = await sbFetch('staff', { method:'POST', headers:{'Prefer':'return=representation'}, body: SEED_STAFF });
+  const regionNames = Array.from(new Set(SEED_JOBS.map(j=>j.region).filter(Boolean)));
+  await sbFetch('regions?on_conflict=name', { method:'POST', headers:{'Prefer':'resolution=ignore-duplicates'}, body: regionNames.map(name=>({name})) });
+  await sbFetch('timeline_guides?on_conflict=id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{id:1, data: DEFAULT_GUIDES}] });
+  const startRows = jobRows.map(r=>({ job_id: r.id, stage: r.stage, entered_at: new Date().toISOString() }));
+  if(startRows.length) await sbFetch('stage_history', { method:'POST', body: startRows }).catch(()=>{});
+  jobs = jobRows.map(rowToJob);
+  staff = staffRows;
+}
+
+async function loadAll(silent){
+  setSync(true);
+  try{
+    const jobRows = await sbFetch('jobs?select=*');
+    const staffRows = await sbFetch('staff?select=*');
+    if(jobRows.length===0 && staffRows.length===0 && !seedAttempted){
+      seedAttempted = true;
+      await seedInitialData();
+      showToast('Loaded your existing jobs from the spreadsheet');
+    } else {
+      jobs = jobRows.map(rowToJob);
+      staff = staffRows;
+    }
+    const regionRows = await sbFetch('regions?select=name');
+    if(regionRows.length) regions = regionRows.map(r=>r.name);
+    const guideRows = await sbFetch('timeline_guides?select=data&id=eq.1');
+    if(guideRows.length && guideRows[0].data) timelineGuides = guideRows[0].data;
+    const widthRows = await sbFetch('column_widths?select=widths&id=eq.1');
+    if(widthRows.length && Array.isArray(widthRows[0].widths) && widthRows[0].widths.length===TABLE_COLS.length){
+      TABLE_COLS.forEach((c,i)=>{
+        if(!STATIC_FIT_KEYS.includes(c.key)) columnWidths[i] = widthRows[0].widths[i];
+      });
+      hasSharedWidths = true;
+    }
+
+    connectionOk = true;
+    consecutiveFailures = 0;
+    populateRegionFilters();
+    renderJobs();
+    await loadWorkloadForCurrentWeek();
+  }catch(e){
+    consecutiveFailures++;
+    connectionOk = false;
+    console.warn(e);
+  }finally{
+    updateStorageBanner();
+    setSync(false);
+    if(!silent) showToast(connectionOk ? 'Up to date' : 'Sync trouble — will keep retrying');
+  }
+}
+
+function manualRefresh(){ loadAll(false); }
+function isEditingNow(){
+  const el = document.activeElement;
+  const tag = el && el.tagName;
+  const inlineEditing = tag==='TEXTAREA' || tag==='INPUT';
+  const modalOpen = document.getElementById('jobOverlay').classList.contains('open');
+  return inlineEditing || modalOpen || pendingSaves > 0;
+}
+setInterval(()=>{ if(!isEditingNow()) loadAll(true); }, 20000);
+setInterval(()=>{
+  if(consecutiveFailures>0 && consecutiveFailures<10 && !isEditingNow()) loadAll(true);
+}, 6000);
+
+const STATE_PILL_COLORS = {
+  onSiteChanges: {bg:'#FBE1C7', fg:'#95530A'},
+  rfi: {bg:'#FAD9D4', fg:'#A13B2A'},
+  consent: {bg:'#E8E7D2', fg:'#6B6830'},
+  vetting: {bg:'#E5DCF4', fg:'#5B3A96'},
+  onSite: {bg:'#DCEFD6', fg:'#3A6B2A'},
+  default: {bg:'#D2EEE9', fg:'#0F6B5C'}
+};
+const TASK_PILL_COLORS = {
+  'In Progress': {bg:'#FBF0C7', fg:'#8A6D00'},
+  'Completed': {bg:'#E9E9E7', fg:'#54524C'},
+  'On Hold': null
+};
+function inlinePillHtml(text, colors){
+  if(!text) return '';
+  if(!colors) return esc(text);
+  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:600;padding:3px 10px;border-radius:14px;">${esc(text)}</span>`;
+}
+function copyAsTable(){
+  const list = getFiltered().slice().sort((a,b)=>{
+    let va = (a[sortCol]||'').toString().toLowerCase(), vb = (b[sortCol]||'').toString().toLowerCase();
+    const isDateCol = sortCol==='earliestEstimatedCompletion' || sortCol==='latestEstimatedCompletion';
+    if(isDateCol){ if(!va) va='9999-99-99'; if(!vb) vb='9999-99-99'; }
+    return va<vb ? -1*sortDir : va>vb ? 1*sortDir : 0;
+  });
+  const dateFields = new Set(['earliestEstimatedCompletion','latestEstimatedCompletion','updatesSent']);
+  let html = '<table style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px;">';
+  html += '<tr>' + TABLE_COLS.map(c=>`<th style="border:1px solid #ccc;background:#01003A;color:#fff;padding:6px 8px;text-align:left;">${esc(c.label)}</th>`).join('') + '</tr>';
+  list.forEach(j=>{
+    html += '<tr>' + TABLE_COLS.map(c=>{
+      let cellHtml;
+      if(c.key === 'status'){
+        cellHtml = inlinePillHtml(j.status, STATE_PILL_COLORS[stateCategory(j.status)]);
+      } else if(c.key === 'taskStatus'){
+        cellHtml = inlinePillHtml(j.taskStatus || 'In Progress', TASK_PILL_COLORS[j.taskStatus || 'In Progress']);
+      } else {
+        const val = dateFields.has(c.key) ? fmtDate(j[c.key]) : (j[c.key]||'');
+        cellHtml = esc(val);
+      }
+      return `<td style="border:1px solid #ccc;padding:6px 8px;vertical-align:top;">${cellHtml}</td>`;
+    }).join('') + '</tr>';
+  });
+  html += '</table>';
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  container.style.position = 'fixed';
+  container.style.left = '-9999px';
+  document.body.appendChild(container);
+  const range = document.createRange();
+  range.selectNode(container);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  try{
+    document.execCommand('copy');
+    showToast('Copied — paste into your email');
+  }catch(e){
+    showToast('Copy failed — try selecting the table manually');
+  }
+  sel.removeAllRanges();
+  document.body.removeChild(container);
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  document.getElementById('view-jobs').classList.toggle('active', name==='jobs');
+  document.getElementById('view-workload').classList.toggle('active', name==='workload');
+  document.getElementById('view-stagetimes').classList.toggle('active', name==='stagetimes');
+  if(name==='workload') renderWorkload();
+  if(name==='stagetimes') loadAndRenderStageTimes();
+}
+let stageHistory = [];
+async function loadAndRenderStageTimes(){
+  try{
+    stageHistory = await sbFetch('stage_history?select=*');
+  }catch(e){
+    console.warn('failed to load stage history', e);
+  }
+  renderStageTimes();
+}
+function stageDurationsForJob(jobId){
+  const durations = {SP:0, PD:0, WD:0};
+  stageHistory.filter(h=>h.job_id===jobId).forEach(h=>{
+    if(!durations.hasOwnProperty(h.stage)) return;
+    const start = new Date(h.entered_at);
+    const end = h.exited_at ? new Date(h.exited_at) : new Date();
+    durations[h.stage] += (end - start) / 86400000;
+  });
+  return durations;
+}
+function renderStageTimes(){
+  const stages = ['SP','PD','WD'];
+  const totals = {SP:[], PD:[], WD:[]};
+  const rows = jobs.filter(j=>!j.archived).map(j=>{
+    const d = stageDurationsForJob(j.id);
+    stages.forEach(s=>{ if(d[s]>0) totals[s].push(d[s]); });
+    return {job:j, d};
+  });
+  document.getElementById('stageTimesSummary').innerHTML = stages.map(s=>{
+    const guide = timelineGuides.stages[s];
+    const vals = totals[s];
+    const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length) : null;
+    const targetMaxDays = guide ? guide.maxWeeks*7 : null;
+    const over = avg!=null && targetMaxDays!=null && avg > targetMaxDays;
+    return `<div class="stage-summary-card">
+      <div class="stage-summary-label">${esc(guide ? guide.label : s)}</div>
+      <div class="stage-summary-value ${over?'over':''}">${avg!=null ? avg.toFixed(1)+' days avg' : 'No data yet'}</div>
+      <div class="stage-summary-target">Target: ${guide ? guide.minWeeks+'–'+guide.maxWeeks+' weeks ('+(guide.minWeeks*7)+'–'+(guide.maxWeeks*7)+' days)' : '—'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('stageTimesBody').innerHTML = rows.map(r=>`
+    <tr>
+      <td>${esc(r.job.region)}</td>
+      <td>${esc(r.job.jobNumber)}</td>
+      <td><strong>${esc(r.job.jobName)}</strong></td>
+      <td>${r.d.SP>0 ? r.d.SP.toFixed(1) : '—'}</td>
+      <td>${r.d.PD>0 ? r.d.PD.toFixed(1) : '—'}</td>
+      <td>${r.d.WD>0 ? r.d.WD.toFixed(1) : '—'}</td>
+      <td><span class="stamp ${stageClass(r.job.stage)}">${esc(r.job.stage)}</span></td>
+    </tr>`).join('') || '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
+}
+
+function populateRegionFilters(){
+  const sel = document.getElementById('regionFilter');
+  if(READ_ONLY){
+    sel.innerHTML = `<option value="${esc(LOCKED_REGION)}">${esc(LOCKED_REGION)}</option>`;
+    sel.value = LOCKED_REGION;
+    sel.disabled = true;
+    return;
+  }
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All regions</option>' + regions.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  sel.value = cur;
+  document.getElementById('regionList').innerHTML = regions.map(r=>`<option value="${esc(r)}">`).join('');
+}
+
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function stageClass(s){ return s==='On Site' ? 'stage-OnSite' : 'stage-'+s; }
+function taskPillClass(s){ return 'pill-' + (s||'In Progress').replace(/\s/g,''); }
+function stateCategory(s){
+  if(!s) return 'default';
+  const t = s.toLowerCase();
+  if(t.includes('on site changes')) return 'onSiteChanges';
+  if(t.includes('rfi')) return 'rfi';
+  if(t.includes('consent processing')) return 'consent';
+  if(t.includes('council vetting')) return 'vetting';
+  if(t.includes('on site')) return 'onSite';
+  return 'default';
+}
+function statePillClass(s){ return 'pill-state-' + stateCategory(s); }
+function fmtDate(d){
+  if(!d) return '';
+  const dt = new Date(d+'T00:00:00');
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-NZ',{day:'2-digit',month:'short'});
+}
+function dateUrgencyClass(d){
+  if(!d) return '';
+  const dt = new Date(d+'T00:00:00');
+  if(isNaN(dt)) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diffDays = Math.round((dt-today)/86400000);
+  if(diffDays < 0) return 'date-overdue';
+  if(diffDays <= 5) return 'date-soon';
+  return '';
+}
+
+function getFiltered(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const region = READ_ONLY ? LOCKED_REGION : document.getElementById('regionFilter').value;
+  const stage = document.getElementById('stageFilter').value;
+  const showCompleted = document.getElementById('showCompleted').checked;
+  const showArchived = READ_ONLY ? false : document.getElementById('showArchived').checked;
+  return jobs.filter(j=>{
+    if(showArchived){ if(!j.archived) return false; }
+    else{
+      if(j.archived) return false;
+      if(!showCompleted && j.taskStatus === 'Completed') return false;
+    }
+    if(region && j.region !== region) return false;
+    if(stage && j.stage !== stage) return false;
+    if(q){
+      const hay = [j.jobNumber,j.jobName,j.notes,j.who,j.address,j.status].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function setJobView(v){
+  jobView = v;
+  document.querySelectorAll('#viewToggle button').forEach(b=>b.classList.toggle('active', b.dataset.v===v));
+  document.getElementById('boardWrap').style.display = v==='board' ? 'flex' : 'none';
+  document.getElementById('tableWrap').style.display = v==='table' ? 'block' : 'none';
+  renderJobs();
+}
+
+function renderJobs(){
+  const filtered = getFiltered();
+  document.getElementById('jobsEmpty').style.display = jobs.length===0 ? 'block' : 'none';
+  document.getElementById('boardWrap').style.display = (jobView==='board' && jobs.length>0) ? 'flex' : 'none';
+  document.getElementById('tableWrap').style.display = (jobView==='table' && jobs.length>0) ? 'block' : 'none';
+  if(jobs.length===0) return;
+  if(jobView==='board') renderBoard(filtered); else renderTable(filtered);
+}
+
+const STAGE_ORDER = ['SP','PD','WD','On Site'];
+function renderBoard(list){
+  const groupBy = document.getElementById('groupBy').value;
+  const wrap = document.getElementById('boardWrap');
+  let groups = [];
+  const STAGE_COLORS = { SP:'#01003A', PD:'#180F5E', WD:'#006699', 'On Site':'#408CB2' };
+  if(groupBy==='stage'){
+    groups = STAGE_ORDER.map(s=>({key:s,label: s==='On Site'?'On Site':s+' — '+({SP:'Concept',PD:'Preliminary',WD:'Working Dwgs'}[s]||''),color:STAGE_COLORS[s]}));
+  } else {
+    groups = regions.map(r=>({key:r,label:r,color:'var(--blue-deep)'}));
+  }
+  wrap.innerHTML = groups.map(g=>{
+    const items = list.filter(j=> (groupBy==='stage' ? j.stage : j.region) === g.key)
+                       .sort((a,b)=> (a.latestEstimatedCompletion||'9999').localeCompare(b.latestEstimatedCompletion||'9999'));
+    return `<div class="col">
+      <div class="col-head" style="background:${g.color};color:#fff;"><span>${esc(g.label)}</span><span class="col-count">${items.length}</span></div>
+      <div class="col-body">
+        ${items.length? items.map(cardHtml).join('') : '<div class="empty-col">No jobs</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function cardHtml(j){
+  return `<div class="card" onclick="openJobModal('${j.id}')">
+    <div class="card-top">
+      <span class="card-job">${esc(j.jobNumber||'')}</span>
+      <span class="card-date ${dateUrgencyClass(j.latestEstimatedCompletion)}">${fmtDate(j.latestEstimatedCompletion) || 'No date'}</span>
+    </div>
+    <div class="card-title">${esc(j.jobName || 'Untitled job')}</div>
+    <div class="card-meta"><span class="card-region">${esc(j.region||'—')}</span>${j.status ? ` · <span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</div>
+  </div>`;
+}
+
+const TABLE_COLS = [
+  {key:'region',label:'Region',w:110,fit:true},
+  {key:'jobNumber',label:'Job #',w:80,fit:true},
+  {key:'jobName',label:'Client / Job',w:160,fit:true},
+  {key:'stage',label:'Stage',w:70,fit:true},
+  {key:'who',label:'Who',w:90,fit:true},
+  {key:'status',label:'State',w:150,fit:true},
+  {key:'notes',label:'Task Notes',w:420,fit:false},
+  {key:'planning',label:'Planning',w:100,fit:true,min:100,max:340},
+  {key:'earliestEstimatedCompletion',label:'Earliest est.',w:100,fit:false},
+  {key:'latestEstimatedCompletion',label:'Latest est.',w:100,fit:false},
+  {key:'engineer',label:'Engineer',w:100,fit:true,min:100,max:340},
+  {key:'updatesSent',label:'Updates sent',w:100,fit:false},
+  {key:'taskStatus',label:'Task Status',w:110,fit:true},
+];
+let columnWidths = TABLE_COLS.map(c=>c.w);
+let columnsAutoFitted = false;
+let hasSharedWidths = false;
+const DYNAMIC_FIT_KEYS = ['planning','engineer'];
+const STATIC_FIT_KEYS = ['region','jobNumber','jobName','stage','who','status','taskStatus'];
+function measureTextWidth(text, font){
+  const canvas = measureTextWidth._c || (measureTextWidth._c = document.createElement('canvas'));
+  const ctx = canvas.getContext('2d');
+  ctx.font = font;
+  return ctx.measureText(text||'').width;
+}
+function fitColumnWidth(c, list){
+  const font = '13px "Open Sans", sans-serif';
+  let max = measureTextWidth(c.label, '700 13px "Open Sans", sans-serif');
+  list.forEach(j=>{
+    const val = (j[c.key]||'').toString();
+    const w = measureTextWidth(val, c.key==='jobName' ? '600 13px "Open Sans", sans-serif' : font);
+    if(w>max) max = w;
+  });
+  const floor = c.min || 55;
+  const ceil = c.max || 240;
+  return Math.min(ceil, Math.max(floor, Math.round(max) + 32));
+}
+function autoFitDynamicColumns(list){
+  TABLE_COLS.forEach((c,i)=>{
+    if(!DYNAMIC_FIT_KEYS.includes(c.key)) return;
+    columnWidths[i] = fitColumnWidth(c, list);
+  });
+}
+const FIELD_COLUMN_MAP = {
+  notes:'notes',
+  planning:'planning',
+  earliestEstimatedCompletion:'earliest_estimated_completion',
+  latestEstimatedCompletion:'latest_estimated_completion',
+  updatesSent:'updates_sent',
+  engineer:'engineer_date'
+};
+async function saveInlineField(el){
+  const id = el.dataset.id, field = el.dataset.field;
+  const val = el.value;
+  const j = jobs.find(x=>x.id===id);
+  if(!j || j[field]===val) return;
+  j[field] = val;
+  pendingSaves++;
+  setSync(true);
+  try{
+    const row = {};
+    row[FIELD_COLUMN_MAP[field]] = val || null;
+    await sbFetch('jobs?id=eq.' + encodeURIComponent(id), { method:'PATCH', body: row });
+  }catch(e){
+    showToast('Save failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+    if(field==='planning' || field==='engineer') renderJobs();
+  }
+}
+function applyTableWidth(){
+  const total = columnWidths.reduce((a,b)=>a+b, 0);
+  const table = document.getElementById('jobsTable');
+  if(table) table.style.width = total + 'px';
+}
+function renderColgroup(){
+  document.getElementById('tableColgroup').innerHTML = columnWidths.map(w=>`<col style="width:${w}px">`).join('');
+  applyTableWidth();
+}
+function startResize(e, idx){
+  e.stopPropagation();
+  e.preventDefault();
+  const startX = e.clientX;
+  const startWidth = columnWidths[idx];
+  function onMove(ev){
+    columnWidths[idx] = Math.max(50, startWidth + (ev.clientX - startX));
+    const cg = document.getElementById('tableColgroup');
+    if(cg && cg.children[idx]) cg.children[idx].style.width = columnWidths[idx]+'px';
+    applyTableWidth();
+  }
+  function onUp(){
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    saveColumnWidths();
+  }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+async function saveColumnWidths(){
+  hasSharedWidths = true;
+  try{
+    await sbFetch('column_widths?on_conflict=id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{ id:1, widths: columnWidths }] });
+  }catch(e){
+    showToast('Column size save failed — check connection');
+  }
+}
+function parseLooseDate(str){
+  if(!str) return null;
+  const m = str.trim().match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?$/);
+  if(!m) return null;
+  let day = parseInt(m[1],10), month = parseInt(m[2],10), year = m[3] ? parseInt(m[3],10) : new Date().getFullYear();
+  if(year<100) year += 2000;
+  if(month<1||month>12||day<1||day>31) return null;
+  return year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+}
+async function saveDateCell(el){
+  const id = el.dataset.id, field = el.dataset.field;
+  const raw = el.value.trim();
+  const parsed = parseLooseDate(raw);
+  const valueToStore = raw ? (parsed || raw) : '';
+  const j = jobs.find(x=>x.id===id);
+  if(!j) return;
+  if(j[field]===valueToStore){ if(parsed) el.value = fmtDate(parsed); return; }
+  j[field] = valueToStore;
+  pendingSaves++;
+  setSync(true);
+  try{
+    const row = {};
+    row[FIELD_COLUMN_MAP[field]] = valueToStore || null;
+    await sbFetch('jobs?id=eq.' + encodeURIComponent(id), { method:'PATCH', body: row });
+    if(parsed) el.value = fmtDate(parsed);
+  }catch(e){
+    showToast('Save failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+    if(field==='earliestEstimatedCompletion' || field==='latestEstimatedCompletion') renderJobs();
+  }
+}
+function autoGrow(el){
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+const RIGHT_DIVIDER_KEYS = new Set(['notes','planning','earliestEstimatedCompletion','latestEstimatedCompletion','engineer','updatesSent','taskStatus']);
+function dateCell(j, field){
+  const urgency = (field==='earliestEstimatedCompletion' || field==='latestEstimatedCompletion') ? dateUrgencyClass(j[field]) : '';
+  const display = j[field] ? fmtDate(j[field]) : '';
+  const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
+  if(READ_ONLY) return `<td class="${urgency} ${divider}">${esc(display)}</td>`;
+  return `<td class="td-editable ${urgency} ${divider}"><input type="text" class="cell-date" placeholder="dd/mm" data-id="${j.id}" data-field="${field}" value="${esc(display)}" onclick="event.stopPropagation()" onblur="saveDateCell(this)"></td>`;
+}
+function textCell(j, field){
+  const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
+  if(READ_ONLY) return `<td class="td-notes ${divider}">${esc(j[field]||'')}</td>`;
+  return `<td class="td-notes td-editable ${divider}"><textarea class="cell-text" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="saveInlineField(this)">${esc(j[field]||'')}</textarea></td>`;
+}
+function renderTable(list){
+  if(!hasSharedWidths) autoFitDynamicColumns(jobs);
+  renderColgroup();
+  const head = document.getElementById('tableHeadRow');
+  head.innerHTML = TABLE_COLS.map((c,i)=>`<th class="${RIGHT_DIVIDER_KEYS.has(c.key)?'divider-right':''}" onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key ? `<span class="sort-arrow">${sortDir>0?'▲':'▼'}</span>`:''}${(STATIC_FIT_KEYS.includes(c.key) || READ_ONLY) ? '' : `<span class="col-resize-handle" onmousedown="startResize(event,${i})" onclick="event.stopPropagation()"></span>`}</th>`).join('');
+  list = list.slice().sort((a,b)=>{
+    let va = (a[sortCol]||'').toString().toLowerCase(), vb=(b[sortCol]||'').toString().toLowerCase();
+    const isDateCol = sortCol==='earliestEstimatedCompletion' || sortCol==='latestEstimatedCompletion';
+    if(isDateCol){ if(!va) va='9999-99-99'; if(!vb) vb='9999-99-99'; }
+    return va<vb ? -1*sortDir : va>vb ? 1*sortDir : 0;
+  });
+  document.getElementById('tableBody').innerHTML = list.map(j=>`
+    <tr onclick="openJobModal('${j.id}')">
+      <td>${esc(j.region||'')}</td>
+      <td>${esc(j.jobNumber||'')}</td>
+      <td><strong>${esc(j.jobName||'Untitled')}</strong></td>
+      <td><span class="stamp ${stageClass(j.stage)}">${esc(j.stage)}</span></td>
+      <td>${esc(j.who||'')}</td>
+      <td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>
+      ${textCell(j,'notes')}
+      ${textCell(j,'planning')}
+      ${dateCell(j,'earliestEstimatedCompletion')}
+      ${dateCell(j,'latestEstimatedCompletion')}
+      ${textCell(j,'engineer')}
+      ${dateCell(j,'updatesSent')}
+      <td class="divider-right"><span class="pill ${taskPillClass(j.taskStatus)}">${esc(j.taskStatus||'In Progress')}</span></td>
+    </tr>`).join('');
+  document.querySelectorAll('#tableBody .cell-text').forEach(autoGrow);
+  if(!columnsAutoFitted && jobs.length){
+    measureAndLockStaticColumnWidths();
+    columnsAutoFitted = true;
+  }
+}
+function measureAndLockStaticColumnWidths(){
+  const table = document.getElementById('jobsTable');
+  const originalLayout = table.style.tableLayout;
+  const originalWidth = table.style.width;
+  const cg = document.getElementById('tableColgroup');
+  const originalCg = cg.innerHTML;
+  table.style.tableLayout = 'auto';
+  table.style.width = 'auto';
+  cg.innerHTML = '';
+  const headerCells = document.querySelectorAll('#tableHeadRow th');
+  TABLE_COLS.forEach((c,i)=>{
+    if(STATIC_FIT_KEYS.includes(c.key) && headerCells[i]){
+      columnWidths[i] = Math.ceil(headerCells[i].getBoundingClientRect().width) + 2;
+    }
+  });
+  table.style.tableLayout = originalLayout || 'fixed';
+  table.style.width = originalWidth;
+  cg.innerHTML = originalCg;
+  renderColgroup();
+}
+function sortBy(col){
+  if(sortCol===col) sortDir *= -1; else { sortCol=col; sortDir=1; }
+  renderJobs();
+}
+
+const STATE_OPTIONS_BY_STAGE = {
+  SP: ['SP with Region','SP with Services'],
+  PD: ['PD with Region','PD with Services'],
+  WD: ['WD with Region','WD with Services','Consent Processing','Council Vetting','Council RFI- W/Services','Council RFI- W/Consultant','Council RFI- W/Region','With Consultant'],
+  'On Site': ['On Site','On Site Changes','Site RFI']
+};
+function populateStateOptions(stage, currentValue, preserveCurrent){
+  let options = (STATE_OPTIONS_BY_STAGE[stage] || []).slice();
+  if(preserveCurrent && currentValue && !options.includes(currentValue)) options.push(currentValue);
+  document.getElementById('f-status').innerHTML = '<option value=""></option>' + options.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  document.getElementById('f-status').value = options.includes(currentValue) ? currentValue : '';
+}
+function openJobModal(id){
+  if(READ_ONLY && !id) return;
+  currentEditId = id || null;
+  const j = id ? jobs.find(x=>x.id===id) : null;
+  document.getElementById('modalTitle').textContent = j ? 'Edit job' : 'New job';
+  document.getElementById('archiveBtn').style.display = (!READ_ONLY && j && !j.archived) ? 'inline-block' : 'none';
+  document.getElementById('restoreBtn').style.display = (!READ_ONLY && j && j.archived) ? 'inline-block' : 'none';
+  document.getElementById('deleteBtn').style.display = (!READ_ONLY && j && j.archived) ? 'inline-block' : 'none';
+  document.getElementById('modalSaveBtn').style.display = READ_ONLY ? 'none' : 'inline-block';
+  document.getElementById('modalCancelBtn').textContent = READ_ONLY ? 'Close' : 'Cancel';
+  document.getElementById('recalcBtn').style.display = READ_ONLY ? 'none' : 'inline-block';
+  document.querySelectorAll('#jobOverlay input, #jobOverlay select, #jobOverlay textarea').forEach(el=>{ el.disabled = READ_ONLY; });
+  populateStateOptions(j?.stage || 'SP', j?.status || '', true);
+  const whoOptions = staff.map(s=>s.name).sort((a,b)=>a.localeCompare(b));
+  if(j?.who && !whoOptions.includes(j.who)) whoOptions.push(j.who);
+  document.getElementById('f-who').innerHTML = '<option value=""></option>' + whoOptions.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  document.getElementById('f-region').value = j?.region || '';
+  document.getElementById('f-jobNumber').value = j?.jobNumber || '';
+  document.getElementById('f-jobName').value = j?.jobName || '';
+  document.getElementById('f-stage').value = j?.stage || 'SP';
+  document.getElementById('f-who').value = j?.who || '';
+  document.getElementById('f-taskStatus').value = j?.taskStatus || 'In Progress';
+  document.getElementById('f-stageStart').value = j?.stageStartDate || '';
+  document.getElementById('f-earliestDate').value = j?.earliestEstimatedCompletion || '';
+  document.getElementById('f-latestDate').value = j?.latestEstimatedCompletion || '';
+  document.getElementById('f-updatesSent').value = j?.updatesSent || '';
+  document.getElementById('f-engineer').value = j?.engineer || '';
+  document.getElementById('f-notes').value = j?.notes || '';
+  document.getElementById('f-planning').value = j?.planning || '';
+  document.getElementById('jobOverlay').classList.add('open');
+  if(!j){
+    document.getElementById('f-stageStart').value = new Date().toISOString().slice(0,10);
+    autoCalcDates(false);
+  }
+}
+function closeJobModal(){ document.getElementById('jobOverlay').classList.remove('open'); currentEditId=null; }
+
+function addWeeksISO(dateStr, weeks){
+  const dt = new Date(dateStr+'T00:00:00');
+  if(isNaN(dt)) return '';
+  dt.setDate(dt.getDate() + Math.round(weeks*7));
+  return dt.toISOString().slice(0,10);
+}
+function autoCalcDates(force){
+  const stage = document.getElementById('f-stage').value;
+  const start = document.getElementById('f-stageStart').value;
+  const guide = timelineGuides.stages[stage];
+  if(!start || !guide) return;
+  const earliestEl = document.getElementById('f-earliestDate');
+  const latestEl = document.getElementById('f-latestDate');
+  if(force || !earliestEl.value) earliestEl.value = addWeeksISO(start, guide.minWeeks);
+  if(force || !latestEl.value) latestEl.value = addWeeksISO(start, guide.maxWeeks);
+}
+
+function openGuideModal(){
+  const wrap = document.getElementById('guideStageRows');
+  wrap.innerHTML = Object.keys(timelineGuides.stages).map(key=>{
+    const s = timelineGuides.stages[key];
+    return `<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:10px;align-items:end;margin-bottom:10px;">
+      <div><label class="f-label">${esc(s.label)}</label><input class="f-input" data-guide-desc="${key}" value="${esc(s.desc)}" placeholder="Basis for this timeframe"></div>
+      <div><label class="f-label">Min weeks</label><input class="f-input" type="number" min="0" step="0.5" data-guide-min="${key}" value="${s.minWeeks}"></div>
+      <div><label class="f-label">Max weeks</label><input class="f-input" type="number" min="0" step="0.5" data-guide-max="${key}" value="${s.maxWeeks}"></div>
+    </div>`;
+  }).join('');
+  document.getElementById('guideNotes').value = timelineGuides.notes || '';
+  document.getElementById('guideOverlay').classList.add('open');
+}
+function closeGuideModal(){ document.getElementById('guideOverlay').classList.remove('open'); }
+function baseUrl(){
+  return window.location.origin + window.location.pathname;
+}
+function openRegionLinksModal(){
+  const list = document.getElementById('regionLinksList');
+  if(!regions.length){
+    list.innerHTML = '<p style="color:var(--ink-faint);font-size:12.5px;">No regions set up yet.</p>';
+  } else {
+    list.innerHTML = regions.slice().sort((a,b)=>a.localeCompare(b)).map(r=>{
+      const url = baseUrl() + '?region=' + encodeURIComponent(r);
+      return `<div class="region-link-row">
+        <div>
+          <div class="region-link-name">${esc(r)}</div>
+          <div class="region-link-url">${esc(url)}</div>
+        </div>
+        <button class="btn-ghost" onclick="copyRegionLink('${esc(url).replace(/'/g,"\\'")}', this)">Copy</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('regionLinksOverlay').classList.add('open');
+}
+function closeRegionLinksModal(){ document.getElementById('regionLinksOverlay').classList.remove('open'); }
+function copyRegionLink(url, btn){
+  const ta = document.createElement('textarea');
+  ta.value = url;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try{
+    document.execCommand('copy');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>{ btn.textContent = original; }, 1500);
+  }catch(e){
+    showToast('Copy failed — select and copy the link manually');
+  }
+  document.body.removeChild(ta);
+}
+async function saveGuideModal(){
+  Object.keys(timelineGuides.stages).forEach(key=>{
+    const desc = document.querySelector(`[data-guide-desc="${key}"]`).value.trim();
+    const min = parseFloat(document.querySelector(`[data-guide-min="${key}"]`).value) || 0;
+    const max = parseFloat(document.querySelector(`[data-guide-max="${key}"]`).value) || 0;
+    timelineGuides.stages[key].desc = desc;
+    timelineGuides.stages[key].minWeeks = min;
+    timelineGuides.stages[key].maxWeeks = max;
+  });
+  timelineGuides.notes = document.getElementById('guideNotes').value.trim();
+  pendingSaves++;
+  setSync(true);
+  try{
+    await sbFetch('timeline_guides?on_conflict=id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{id:1, data: timelineGuides}] });
+    showToast('Turnaround guide saved');
+  }catch(e){
+    showToast('Save failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+  closeGuideModal();
+}
+
+async function logStageChange(jobId, oldStage, newStage){
+  if(oldStage === newStage) return;
+  try{
+    if(oldStage){
+      await sbFetch('stage_history?job_id=eq.' + encodeURIComponent(jobId) + '&exited_at=is.null', { method:'PATCH', body:{ exited_at: new Date().toISOString() } });
+    }
+    await sbFetch('stage_history', { method:'POST', body:[{ job_id: jobId, stage: newStage, entered_at: new Date().toISOString() }] });
+  }catch(e){
+    console.warn('stage history log failed', e);
+  }
+}
+async function saveJob(){
+  const region = document.getElementById('f-region').value.trim();
+  if(region && !regions.includes(region)){
+    regions.push(region);
+    populateRegionFilters();
+    sbFetch('regions?on_conflict=name', { method:'POST', headers:{'Prefer':'resolution=ignore-duplicates'}, body:[{name:region}] }).catch(()=>{});
+  }
+  const previousStage = currentEditId ? (jobs.find(x=>x.id===currentEditId)?.stage || null) : null;
+  const data = {
+    region,
+    jobNumber: document.getElementById('f-jobNumber').value.trim(),
+    jobName: document.getElementById('f-jobName').value.trim(),
+    stage: document.getElementById('f-stage').value,
+    status: document.getElementById('f-status').value.trim(),
+    who: document.getElementById('f-who').value.trim(),
+    taskStatus: document.getElementById('f-taskStatus').value,
+    stageStartDate: document.getElementById('f-stageStart').value,
+    earliestEstimatedCompletion: document.getElementById('f-earliestDate').value,
+    latestEstimatedCompletion: document.getElementById('f-latestDate').value,
+    address: (jobs.find(x=>x.id===currentEditId)?.address) || '',
+    updatesSent: document.getElementById('f-updatesSent').value,
+    engineer: document.getElementById('f-engineer').value.trim(),
+    notes: document.getElementById('f-notes').value.trim(),
+    planning: document.getElementById('f-planning').value.trim(),
+  };
+  if(!data.jobName){ showToast('Give the job a client / job name first'); return; }
+  pendingSaves++;
+  setSync(true);
+  try{
+    if(currentEditId){
+      data.id = currentEditId;
+      await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'PATCH', body: jobToRow(data) });
+      const j = jobs.find(x=>x.id===currentEditId);
+      Object.assign(j, data);
+    } else {
+      data.id = (crypto.randomUUID ? crypto.randomUUID() : 'j'+Date.now()+Math.random());
+      const inserted = await sbFetch('jobs', { method:'POST', headers:{'Prefer':'return=representation'}, body:[jobToRow(data)] });
+      jobs.push(rowToJob(inserted[0]));
+    }
+    await logStageChange(data.id, previousStage, data.stage);
+    closeJobModal();
+    renderJobs();
+    showToast('Job saved');
+  }catch(e){
+    showToast('Save failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+}
+async function archiveCurrentJob(){
+  if(!currentEditId) return;
+  if(!confirm('Archive this job? It will be hidden from the board and table, but you can bring it back anytime from "Show archived".')) return;
+  const j = jobs.find(x=>x.id===currentEditId);
+  if(!j) return;
+  j.archived = true;
+  pendingSaves++;
+  setSync(true);
+  try{
+    await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'PATCH', body:{ archived:true } });
+    closeJobModal();
+    renderJobs();
+    showToast('Job archived');
+  }catch(e){
+    j.archived = false;
+    showToast('Archive failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+}
+async function restoreCurrentJob(){
+  if(!currentEditId) return;
+  const j = jobs.find(x=>x.id===currentEditId);
+  if(!j) return;
+  j.archived = false;
+  pendingSaves++;
+  setSync(true);
+  try{
+    await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'PATCH', body:{ archived:false } });
+    closeJobModal();
+    renderJobs();
+    showToast('Job restored');
+  }catch(e){
+    j.archived = true;
+    showToast('Restore failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+}
+async function deleteCurrentJob(){
+  if(!currentEditId) return;
+  if(!confirm('Permanently delete this job? This cannot be undone.')) return;
+  pendingSaves++;
+  setSync(true);
+  try{
+    await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'DELETE' });
+    jobs = jobs.filter(j=>j.id!==currentEditId);
+    closeJobModal();
+    renderJobs();
+    showToast('Job deleted');
+  }catch(e){
+    showToast('Delete failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+}
+
+function getMonday(d){
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = (day===0? -6 : 1) - day;
+  date.setDate(date.getDate()+diff);
+  date.setHours(0,0,0,0);
+  return date;
+}
+function weekKeyFor(offset){
+  const base = getMonday(new Date());
+  base.setDate(base.getDate() + offset*7);
+  return base.toISOString().slice(0,10);
+}
+function shiftWeek(delta, reset){
+  weekOffset = reset ? 0 : weekOffset+delta;
+  loadWorkloadForCurrentWeek();
+}
+async function loadWorkloadForCurrentWeek(){
+  const key = weekKeyFor(weekOffset);
+  document.getElementById('weekLabel').textContent = weekLabelFor(key);
+  if(!workloadCache[key]){
+    try{
+      const rows = await sbFetch('workload?select=staff_id,data&week_key=eq.' + encodeURIComponent(key));
+      const obj = {};
+      rows.forEach(r=>{ obj[r.staff_id] = r.data; });
+      workloadCache[key] = obj;
+    }catch(e){
+      workloadCache[key] = workloadCache[key] || {};
+    }
+  }
+  renderWorkload();
+}
+function weekLabelFor(key){
+  const start = new Date(key+'T00:00:00');
+  const end = new Date(start); end.setDate(end.getDate()+4);
+  const opts = {day:'numeric',month:'short'};
+  return `${start.toLocaleDateString('en-NZ',opts)} – ${end.toLocaleDateString('en-NZ',opts)}, ${end.getFullYear()}`;
+}
+function todayKey(){
+  const d = new Date();
+  return ['sun','mon','tue','wed','thu','fri','sat'][d.getDay()];
+}
+function renderWorkload(){
+  const key = weekKeyFor(weekOffset);
+  const data = workloadCache[key] || {};
+  const head = document.getElementById('wlHeadRow');
+  head.innerHTML = '<th style="position:sticky;left:0;z-index:2;">Team member</th>' +
+    DAYS.map(d=>`<th>${DAY_LABELS[d]}</th>`).join('') +
+    '<th>Upcoming / notes</th>';
+  const tk = todayKey();
+  document.getElementById('wlBody').innerHTML = staff.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(s=>{
+    const row = data[s.id] || {};
+    return `<tr>
+      <td class="wl-name">${esc(s.name)}<button class="rm" title="Remove" onclick="removeStaff('${s.id}')">✕</button></td>
+      ${DAYS.map(d=>`<td class="wl-cell ${d===tk?'today':''}"><textarea data-staff="${s.id}" data-day="${d}" onblur="saveWorkloadCell(this)" placeholder="…">${esc(row[d]||'')}</textarea></td>`).join('')}
+      <td class="wl-cell"><textarea data-staff="${s.id}" data-day="upcoming" onblur="saveWorkloadCell(this)" placeholder="Upcoming / to lodge…">${esc(row.upcoming||'')}</textarea></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--ink-faint);">No team members yet — add one above.</td></tr>`;
+}
+async function saveWorkloadCell(el){
+  const key = weekKeyFor(weekOffset);
+  if(!workloadCache[key]) workloadCache[key] = {};
+  const sid = el.dataset.staff, day = el.dataset.day;
+  if(!workloadCache[key][sid]) workloadCache[key][sid] = {};
+  workloadCache[key][sid][day] = el.value;
+  pendingSaves++;
+  setSync(true);
+  try{
+    await sbFetch('workload?on_conflict=week_key,staff_id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{ week_key:key, staff_id:sid, data: workloadCache[key][sid] }] });
+  }catch(e){
+    showToast('Save failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+}
+async function addStaff(){
+  const input = document.getElementById('newStaffName');
+  const name = input.value.trim();
+  if(!name) return;
+  const id = (crypto.randomUUID ? crypto.randomUUID() : 's'+Date.now());
+  pendingSaves++;
+  setSync(true);
+  try{
+    await sbFetch('staff', { method:'POST', headers:{'Prefer':'return=representation'}, body:[{id, name}] });
+    staff.push({id, name});
+    input.value='';
+    renderWorkload();
+  }catch(e){
+    showToast('Save failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+}
+async function removeStaff(id){
+  if(!confirm('Remove this team member from the workload grid?')) return;
+  pendingSaves++;
+  setSync(true);
+  try{
+    await sbFetch('staff?id=eq.' + encodeURIComponent(id), { method:'DELETE' });
+    staff = staff.filter(s=>s.id!==id);
+    renderWorkload();
+  }catch(e){
+    showToast('Delete failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+}
+
+function applyReadOnlyMode(){
+  if(!READ_ONLY) return;
+  document.getElementById('newJobBtn').style.display = 'none';
+  document.getElementById('turnaroundGuideBtn').style.display = 'none';
+  document.getElementById('regionLinksBtn').style.display = 'none';
+  document.querySelector('[data-tab="workload"]').style.display = 'none';
+  document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
+  document.getElementById('showArchived').closest('label').style.display = 'none';
+  const banner = document.getElementById('readOnlyBanner');
+  banner.textContent = '👁 Viewing ' + LOCKED_REGION + ' jobs — view only, no changes can be made here.';
+  banner.style.display = 'block';
+}
+applyReadOnlyMode();
+loadAll(true);
+</script>
+</body>
+</html>

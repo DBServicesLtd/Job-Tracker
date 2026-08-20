@@ -285,6 +285,10 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
   background:var(--blue-soft);border:1px solid var(--blue);color:var(--blue-deep);
   border-radius:6px;padding:10px 14px;font-size:12.5px;margin-bottom:16px;line-height:1.5;font-weight:600;
 }
+.readonly-mode .card{cursor:default;}
+.readonly-mode .card:hover{box-shadow:var(--shadow);transform:none;border-color:var(--line);}
+.readonly-mode table.jobs-table tbody tr{cursor:default;}
+.readonly-mode table.jobs-table tbody tr:hover{background:none;}
 .region-link-row{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:8px;
@@ -1930,7 +1934,7 @@ function populateStateOptions(stage, currentValue, preserveCurrent){
   document.getElementById('f-status').value = options.includes(currentValue) ? currentValue : '';
 }
 function openJobModal(id){
-  if(READ_ONLY && !id) return;
+  if(READ_ONLY) return;
   currentEditId = id || null;
   const j = id ? jobs.find(x=>x.id===id) : null;
   document.getElementById('modalTitle').textContent = j ? 'Edit job' : 'New job';
@@ -2300,6 +2304,7 @@ function applyReadOnlyMode(){
   document.querySelector('[data-tab="workload"]').style.display = 'none';
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
   document.getElementById('showArchived').closest('label').style.display = 'none';
+  document.body.classList.add('readonly-mode');
   const banner = document.getElementById('readOnlyBanner');
   banner.textContent = '👁 Viewing ' + LOCKED_REGION + ' jobs — view only, no changes can be made here.';
   banner.style.display = 'block';

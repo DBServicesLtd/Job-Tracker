@@ -1797,11 +1797,14 @@ function syncToolbarWidth(){
     if(hint) hint.style.maxWidth = '';
     return;
   }
-  const w = wrap.offsetWidth + 'px';
+  const measured = wrap.offsetWidth;
+  if(measured < 300) return;
+  const w = measured + 'px';
   toolbar.style.maxWidth = w;
   if(hint) hint.style.maxWidth = w;
 }
 window.addEventListener('resize', syncToolbarWidth);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncToolbarWidth(); });
 function renderColgroup(){
   document.getElementById('tableColgroup').innerHTML = columnWidths.map(w=>`<col style="width:${w}px">`).join('');
   applyTableWidth();

@@ -148,6 +148,7 @@ select.select, .toolbar select{
 .pill-state-consent{background:#E8E7D2;color:#6B6830;}
 .pill-state-vetting{background:#E5DCF4;color:#5B3A96;}
 .pill-state-onSite{background:#DCEFD6;color:#3A6B2A;}
+.pill-state-withServices{background:#F9DCE6;color:#B84D7B;}
 .pill-state-default{background:#D2EEE9;color:#0F6B5C;}
 
 .board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
@@ -1471,6 +1472,7 @@ const STATE_PILL_COLORS = {
   consent: {bg:'#E8E7D2', fg:'#6B6830'},
   vetting: {bg:'#E5DCF4', fg:'#5B3A96'},
   onSite: {bg:'#DCEFD6', fg:'#3A6B2A'},
+  withServices: {bg:'#F9DCE6', fg:'#B84D7B'},
   default: {bg:'#D2EEE9', fg:'#0F6B5C'}
 };
 const TASK_PILL_COLORS = {
@@ -1612,6 +1614,7 @@ function stateCategory(s){
   if(t.includes('consent processing')) return 'consent';
   if(t.includes('council vetting')) return 'vetting';
   if(t.includes('on site')) return 'onSite';
+  if(t.includes('with services')) return 'withServices';
   return 'default';
 }
 function statePillClass(s){ return 'pill-state-' + stateCategory(s); }
@@ -1660,6 +1663,7 @@ function setJobView(v){
   document.getElementById('boardWrap').style.display = v==='board' ? 'flex' : 'none';
   document.getElementById('tableWrap').style.display = v==='table' ? 'block' : 'none';
   renderJobs();
+  syncToolbarWidth();
 }
 
 function renderJobs(){
@@ -1781,7 +1785,23 @@ function applyTableWidth(){
   const total = columnWidths.reduce((a,b)=>a+b, 0);
   const table = document.getElementById('jobsTable');
   if(table) table.style.width = total + 'px';
+  syncToolbarWidth();
 }
+function syncToolbarWidth(){
+  const wrap = document.getElementById('tableWrap');
+  const toolbar = document.querySelector('.toolbar');
+  const hint = document.querySelector('.hint');
+  if(!wrap || !toolbar) return;
+  if(wrap.style.display === 'none'){
+    toolbar.style.maxWidth = '';
+    if(hint) hint.style.maxWidth = '';
+    return;
+  }
+  const w = wrap.offsetWidth + 'px';
+  toolbar.style.maxWidth = w;
+  if(hint) hint.style.maxWidth = w;
+}
+window.addEventListener('resize', syncToolbarWidth);
 function renderColgroup(){
   document.getElementById('tableColgroup').innerHTML = columnWidths.map(w=>`<col style="width:${w}px">`).join('');
   applyTableWidth();

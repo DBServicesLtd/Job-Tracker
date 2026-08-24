@@ -371,6 +371,7 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
       </select>
       <button class="btn-ghost" id="turnaroundGuideBtn" onclick="openGuideModal()">⏱ Turnaround guide</button>
       <button class="btn-ghost" id="regionLinksBtn" onclick="openRegionLinksModal()">🔗 Region links</button>
+      <button class="btn-ghost" id="myWorkLinksBtn" onclick="openMyWorkLinksModal()">🔗 My Work links</button>
       <button class="btn-ghost" onclick="copyAsTable()">📋 Copy as table</button>
       <button class="btn-ghost" onclick="window.print()">🖶 Print view</button>
       <button class="btn-primary" id="newJobBtn" onclick="openJobModal()">+ New job</button>
@@ -533,6 +534,25 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
       <span></span>
       <div class="foot-right">
         <button class="btn-ghost" onclick="closeRegionLinksModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="myWorkLinksOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>My Work links</h2>
+      <button class="modal-close" onclick="closeMyWorkLinksModal()">✕</button>
+    </div>
+    <div class="modal-body" style="grid-template-columns:1fr;">
+      <p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Each link opens the tracker locked to that person's own jobs only — view-only, no editing, no other tabs. Click Copy and paste it straight into an email or message.</p>
+      <div id="myWorkLinksList"></div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div class="foot-right">
+        <button class="btn-ghost" onclick="closeMyWorkLinksModal()">Close</button>
       </div>
     </div>
   </div>
@@ -1303,7 +1323,8 @@ let timelineGuides = JSON.parse(JSON.stringify(DEFAULT_GUIDES));
 const SUPABASE_URL = 'https://jeztkwnvfewhnaadaazh.supabase.co';
 const urlParams = new URLSearchParams(window.location.search);
 const LOCKED_REGION = urlParams.get('region') || '';
-const READ_ONLY = !!LOCKED_REGION;
+const LOCKED_WHO = urlParams.get('who') || '';
+const READ_ONLY = !!LOCKED_REGION || !!LOCKED_WHO;
 const SUPABASE_KEY = 'sb_publishable_SydrZ17z4xJGOVT7B7yZAA_UrG6qJSV';
 
 async function sbFetch(path, opts){
@@ -1591,7 +1612,7 @@ function renderStageTimes(){
 
 function populateRegionFilters(){
   const sel = document.getElementById('regionFilter');
-  if(READ_ONLY){
+  if(LOCKED_REGION){
     sel.innerHTML = `<option value="${esc(LOCKED_REGION)}">${esc(LOCKED_REGION)}</option>`;
     sel.value = LOCKED_REGION;
     sel.disabled = true;
@@ -1637,7 +1658,7 @@ function dateUrgencyClass(d){
 
 function getFiltered(){
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const region = READ_ONLY ? LOCKED_REGION : document.getElementById('regionFilter').value;
+  const region = LOCKED_REGION || document.getElementById('regionFilter').value;
   const stage = document.getElementById('stageFilter').value;
   const showCompleted = document.getElementById('showCompleted').checked;
   const showArchived = READ_ONLY ? false : document.getElementById('showArchived').checked;
@@ -1648,6 +1669,7 @@ function getFiltered(){
       if(!showCompleted && j.taskStatus === 'Completed') return false;
     }
     if(region && j.region !== region) return false;
+    if(LOCKED_WHO && j.who !== LOCKED_WHO) return false;
     if(stage && j.stage !== stage) return false;
     if(q){
       const hay = [j.jobNumber,j.jobName,j.notes,j.who,j.address,j.status].join(' ').toLowerCase();
@@ -2046,6 +2068,26 @@ function openRegionLinksModal(){
   document.getElementById('regionLinksOverlay').classList.add('open');
 }
 function closeRegionLinksModal(){ document.getElementById('regionLinksOverlay').classList.remove('open'); }
+function openMyWorkLinksModal(){
+  const list = document.getElementById('myWorkLinksList');
+  const names = staff.map(s=>s.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  if(!names.length){
+    list.innerHTML = '<p style="color:var(--ink-faint);font-size:12.5px;">No staff set up yet.</p>';
+  } else {
+    list.innerHTML = names.map(n=>{
+      const url = baseUrl() + '?who=' + encodeURIComponent(n);
+      return `<div class="region-link-row">
+        <div>
+          <div class="region-link-name">${esc(n)}</div>
+          <div class="region-link-url">${esc(url)}</div>
+        </div>
+        <button class="btn-ghost" onclick="copyRegionLink('${esc(url).replace(/'/g,"\\'")}', this)">Copy</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('myWorkLinksOverlay').classList.add('open');
+}
+function closeMyWorkLinksModal(){ document.getElementById('myWorkLinksOverlay').classList.remove('open'); }
 function copyRegionLink(url, btn){
   const ta = document.createElement('textarea');
   ta.value = url;
@@ -2324,12 +2366,16 @@ function applyReadOnlyMode(){
   document.getElementById('newJobBtn').style.display = 'none';
   document.getElementById('turnaroundGuideBtn').style.display = 'none';
   document.getElementById('regionLinksBtn').style.display = 'none';
+  document.getElementById('myWorkLinksBtn').style.display = 'none';
   document.querySelector('[data-tab="workload"]').style.display = 'none';
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
   document.getElementById('showArchived').closest('label').style.display = 'none';
   document.body.classList.add('readonly-mode');
   const banner = document.getElementById('readOnlyBanner');
-  banner.textContent = '👁 Viewing ' + LOCKED_REGION + ' jobs — view only, no changes can be made here.';
+  const parts = [];
+  if(LOCKED_REGION) parts.push(LOCKED_REGION);
+  if(LOCKED_WHO) parts.push(LOCKED_WHO + "'s");
+  banner.textContent = '👁 Viewing ' + parts.join(' / ') + ' jobs — view only, no changes can be made here.';
   banner.style.display = 'block';
 }
 applyReadOnlyMode();

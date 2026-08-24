@@ -74,7 +74,25 @@ a{color:var(--blue);}
 }
 .btn-refresh:hover{border-color:var(--blue);color:var(--blue);}
 
-.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+.tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+.tabs-left{display:flex;gap:4px;}
+.settings-wrap{position:relative;padding-bottom:6px;}
+.settings-btn{
+  display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;
+  color:var(--ink-soft);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px;
+}
+.settings-btn:hover{background:var(--panel-soft);color:var(--ink);}
+.settings-menu{
+  position:absolute;right:0;top:calc(100% + 4px);background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;display:none;flex-direction:column;
+  gap:2px;min-width:180px;z-index:20;
+}
+.settings-menu.open{display:flex;}
+.settings-menu button{
+  display:flex;align-items:center;gap:8px;background:none;border:none;text-align:left;cursor:pointer;
+  padding:8px 10px;border-radius:7px;font-size:13px;color:var(--ink);
+}
+.settings-menu button:hover{background:var(--panel-soft);}
 .tab{
   padding:14px 10px;margin-right:26px;font-family:'DM Serif Display',serif;font-style:italic;font-weight:600;
   font-size:23px;color:var(--ink-faint);border-bottom:2px solid transparent;cursor:pointer;
@@ -340,9 +358,20 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
   <div id="readOnlyBanner" class="readonly-banner" style="display:none;"></div>
 
   <div class="tabs">
-    <button class="tab active" data-tab="jobs" onclick="switchTab('jobs')">Job Board</button>
-    <button class="tab" data-tab="workload" onclick="switchTab('workload')">Staff Workload</button>
-    <button class="tab" data-tab="stagetimes" onclick="switchTab('stagetimes')">Stage Times</button>
+    <div class="tabs-left">
+      <button class="tab active" data-tab="jobs" onclick="switchTab('jobs')">Job Board</button>
+      <button class="tab" data-tab="workload" onclick="switchTab('workload')">Staff Workload</button>
+      <button class="tab" data-tab="stagetimes" onclick="switchTab('stagetimes')">Stage Times</button>
+    </div>
+    <div class="settings-wrap">
+      <button class="settings-btn" id="settingsBtn" onclick="toggleSettingsMenu()">⚙ Settings</button>
+      <div class="settings-menu" id="settingsMenu">
+        <button onclick="closeSettingsMenu(); openRegionLinksModal()">🔗 Region links</button>
+        <button id="myWorkLinksBtn" onclick="closeSettingsMenu(); openMyWorkLinksModal()">🔗 My Work links</button>
+        <button onclick="closeSettingsMenu(); copyAsTable()">📋 Copy as table</button>
+        <button onclick="closeSettingsMenu(); window.print()">🖶 Print view</button>
+      </div>
+    </div>
   </div>
 
   <div class="view active" id="view-jobs">
@@ -370,13 +399,9 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
         <option value="region">Group by region</option>
       </select>
       <button class="btn-ghost" id="turnaroundGuideBtn" onclick="openGuideModal()">⏱ Turnaround guide</button>
-      <button class="btn-ghost" id="regionLinksBtn" onclick="openRegionLinksModal()">🔗 Region links</button>
-      <button class="btn-ghost" id="myWorkLinksBtn" onclick="openMyWorkLinksModal()">🔗 My Work links</button>
-      <button class="btn-ghost" onclick="copyAsTable()">📋 Copy as table</button>
-      <button class="btn-ghost" onclick="window.print()">🖶 Print view</button>
       <button class="btn-primary" id="newJobBtn" onclick="openJobModal()">+ New job</button>
     </div>
-    <p class="hint">Tip: filter to one region, then use Copy as table to paste a snapshot straight into an email, or Print view for a PDF.</p>
+    <p class="hint">Tip: filter to one region, then use Copy as table (in ⚙ Settings) to paste a snapshot straight into an email, or Print view for a PDF.</p>
 
     <div class="board" id="boardWrap"></div>
     <div class="table-wrap" id="tableWrap" style="display:none;">
@@ -1510,7 +1535,7 @@ function copyAsTable(){
   const list = getFiltered().slice().sort((a,b)=>{
     let va = (a[sortCol]||'').toString().toLowerCase(), vb = (b[sortCol]||'').toString().toLowerCase();
     const isDateCol = sortCol==='earliestEstimatedCompletion' || sortCol==='latestEstimatedCompletion';
-    if(isDateCol){ if(!va) va='9999-99-99'; if(!vb) vb='9999-99-99'; }
+    if(isDateCol){ va = dateSortKey(va); vb = dateSortKey(vb); }
     return va<vb ? -1*sortDir : va>vb ? 1*sortDir : 0;
   });
   const dateFields = new Set(['earliestEstimatedCompletion','latestEstimatedCompletion','updatesSent']);
@@ -1610,6 +1635,16 @@ function renderStageTimes(){
     </tr>`).join('') || '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
 }
 
+const REGION_ORDER = ["Northland","North Auckland","Auckland","Waikato","BOP","Taupo","Hawkes Bay","Taranaki","Manawatu","Wellington","Nelson","Marlborough","West Coast","Canterbury","Wanaka","Queenstown","Otago","Southland"];
+function sortRegionsGeo(list){
+  return list.slice().sort((a,b)=>{
+    const ia = REGION_ORDER.indexOf(a), ib = REGION_ORDER.indexOf(b);
+    if(ia===-1 && ib===-1) return a.localeCompare(b);
+    if(ia===-1) return 1;
+    if(ib===-1) return -1;
+    return ia-ib;
+  });
+}
 function populateRegionFilters(){
   const sel = document.getElementById('regionFilter');
   if(LOCKED_REGION){
@@ -1619,12 +1654,19 @@ function populateRegionFilters(){
     return;
   }
   const cur = sel.value;
-  sel.innerHTML = '<option value="">All regions</option>' + regions.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  const sorted = sortRegionsGeo(regions);
+  sel.innerHTML = '<option value="">All regions</option>' + sorted.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
   sel.value = cur;
-  document.getElementById('regionList').innerHTML = regions.map(r=>`<option value="${esc(r)}">`).join('');
+  document.getElementById('regionList').innerHTML = sorted.map(r=>`<option value="${esc(r)}">`).join('');
 }
 
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function dateSortKey(v){
+  if(!v) return '9999-99-99';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  if(v.toLowerCase()==='asap') return '0000-00-00';
+  return '9998-99-99';
+}
 function stageClass(s){ return s==='On Site' ? 'stage-OnSite' : 'stage-'+s; }
 function taskPillClass(s){ return 'pill-' + (s||'In Progress').replace(/\s/g,''); }
 function stateCategory(s){
@@ -1734,23 +1776,25 @@ function cardHtml(j){
 const TABLE_COLS = [
   {key:'region',label:'Region',w:110,fit:true},
   {key:'jobNumber',label:'Job #',w:80,fit:true},
-  {key:'jobName',label:'Client / Job',w:160,fit:true},
+  {key:'jobName',label:'Client / Job',w:160,fit:true,min:140,max:400},
   {key:'stage',label:'Stage',w:70,fit:true},
   {key:'who',label:'Who',w:90,fit:true},
   {key:'status',label:'State',w:150,fit:true},
   {key:'notes',label:'Task Notes',w:420,fit:false},
   {key:'planning',label:'Planning',w:100,fit:true,min:100,max:340},
-  {key:'earliestEstimatedCompletion',label:'Earliest est.',w:100,fit:false},
-  {key:'latestEstimatedCompletion',label:'Latest est.',w:100,fit:false},
+  {key:'earliestEstimatedCompletion',label:'Earliest est.',w:100,fit:false,min:90,max:150},
+  {key:'latestEstimatedCompletion',label:'Latest est.',w:100,fit:false,min:90,max:150},
   {key:'engineer',label:'Engineer',w:100,fit:true,min:100,max:340},
-  {key:'updatesSent',label:'Updates sent',w:100,fit:false},
+  {key:'updatesSent',label:'Updates sent',w:100,fit:false,min:90,max:150},
   {key:'taskStatus',label:'Task Status',w:110,fit:true},
 ];
 let columnWidths = TABLE_COLS.map(c=>c.w);
 let columnsAutoFitted = false;
 let hasSharedWidths = false;
-const DYNAMIC_FIT_KEYS = ['planning','engineer'];
-const STATIC_FIT_KEYS = ['region','jobNumber','jobName','stage','who','status','taskStatus'];
+const DYNAMIC_FIT_KEYS = ['planning','engineer','jobName'];
+const HEADER_MIN_KEYS = ['earliestEstimatedCompletion','latestEstimatedCompletion','updatesSent'];
+const CONTENT_MIN_KEYS = ['region','jobNumber','stage','who','status','taskStatus'];
+const STATIC_FIT_KEYS = HEADER_MIN_KEYS.concat(CONTENT_MIN_KEYS);
 function measureTextWidth(text, font){
   const canvas = measureTextWidth._c || (measureTextWidth._c = document.createElement('canvas'));
   const ctx = canvas.getContext('2d');
@@ -1901,7 +1945,7 @@ function dateCell(j, field){
   const display = j[field] ? fmtDate(j[field]) : '';
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
   if(READ_ONLY) return `<td class="${urgency} ${divider}">${esc(display)}</td>`;
-  return `<td class="td-editable ${urgency} ${divider}"><input type="text" class="cell-date" placeholder="dd/mm" data-id="${j.id}" data-field="${field}" value="${esc(display)}" onclick="event.stopPropagation()" onblur="saveDateCell(this)"></td>`;
+  return `<td class="td-editable ${urgency} ${divider}"><input type="text" class="cell-date" placeholder="" data-id="${j.id}" data-field="${field}" value="${esc(display)}" onclick="event.stopPropagation()" onblur="saveDateCell(this)"></td>`;
 }
 function textCell(j, field){
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
@@ -1916,7 +1960,7 @@ function renderTable(list){
   list = list.slice().sort((a,b)=>{
     let va = (a[sortCol]||'').toString().toLowerCase(), vb=(b[sortCol]||'').toString().toLowerCase();
     const isDateCol = sortCol==='earliestEstimatedCompletion' || sortCol==='latestEstimatedCompletion';
-    if(isDateCol){ if(!va) va='9999-99-99'; if(!vb) vb='9999-99-99'; }
+    if(isDateCol){ va = dateSortKey(va); vb = dateSortKey(vb); }
     return va<vb ? -1*sortDir : va>vb ? 1*sortDir : 0;
   });
   document.getElementById('tableBody').innerHTML = list.map(j=>`
@@ -1952,8 +1996,10 @@ function measureAndLockStaticColumnWidths(){
   cg.innerHTML = '';
   const headerCells = document.querySelectorAll('#tableHeadRow th');
   TABLE_COLS.forEach((c,i)=>{
-    if(STATIC_FIT_KEYS.includes(c.key) && headerCells[i]){
+    if(CONTENT_MIN_KEYS.includes(c.key) && headerCells[i]){
       columnWidths[i] = Math.ceil(headerCells[i].getBoundingClientRect().width) + 2;
+    } else if(HEADER_MIN_KEYS.includes(c.key)){
+      columnWidths[i] = fitColumnWidth(c, []);
     }
   });
   table.style.tableLayout = originalLayout || 'fixed';
@@ -2054,7 +2100,7 @@ function openRegionLinksModal(){
   if(!regions.length){
     list.innerHTML = '<p style="color:var(--ink-faint);font-size:12.5px;">No regions set up yet.</p>';
   } else {
-    list.innerHTML = regions.slice().sort((a,b)=>a.localeCompare(b)).map(r=>{
+    list.innerHTML = sortRegionsGeo(regions).map(r=>{
       const url = baseUrl() + '?region=' + encodeURIComponent(r);
       return `<div class="region-link-row">
         <div>
@@ -2068,6 +2114,12 @@ function openRegionLinksModal(){
   document.getElementById('regionLinksOverlay').classList.add('open');
 }
 function closeRegionLinksModal(){ document.getElementById('regionLinksOverlay').classList.remove('open'); }
+function toggleSettingsMenu(){ document.getElementById('settingsMenu').classList.toggle('open'); }
+function closeSettingsMenu(){ document.getElementById('settingsMenu').classList.remove('open'); }
+document.addEventListener('click', e=>{
+  const wrap = document.querySelector('.settings-wrap');
+  if(wrap && !wrap.contains(e.target)) closeSettingsMenu();
+});
 function openMyWorkLinksModal(){
   const list = document.getElementById('myWorkLinksList');
   const names = staff.map(s=>s.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
@@ -2365,8 +2417,7 @@ function applyReadOnlyMode(){
   if(!READ_ONLY) return;
   document.getElementById('newJobBtn').style.display = 'none';
   document.getElementById('turnaroundGuideBtn').style.display = 'none';
-  document.getElementById('regionLinksBtn').style.display = 'none';
-  document.getElementById('myWorkLinksBtn').style.display = 'none';
+  document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
   document.querySelector('[data-tab="workload"]').style.display = 'none';
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
   document.getElementById('showArchived').closest('label').style.display = 'none';

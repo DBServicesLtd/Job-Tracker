@@ -73,6 +73,8 @@ a{color:var(--blue);}
   border-radius:5px;padding:6px 10px;font-size:12px;display:flex;align-items:center;gap:6px;
 }
 .btn-refresh:hover{border-color:var(--blue);color:var(--blue);}
+.btn-refresh:disabled{opacity:.4;cursor:default;}
+.btn-refresh:disabled:hover{border-color:var(--line-strong);color:var(--ink-soft);}
 
 .tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
 .tabs-left{display:flex;gap:4px;}
@@ -141,6 +143,7 @@ select.select, .toolbar select{
 }
 .btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
 .hint{font-size:11.5px;color:var(--ink-faint);margin:-6px 0 14px 2px;}
+.f-hint{font-size:11px;color:var(--ink-faint);margin-top:4px;}
 .stage-summary-row{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
 .stage-summary-card{
   flex:1 1 200px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow);
@@ -199,6 +202,9 @@ select.select, .toolbar select{
 .card-date.date-overdue{color:var(--red);font-weight:700;}
 td.date-soon{color:var(--amber);font-weight:600;}
 td.date-overdue{color:var(--red);font-weight:700;}
+td.date-soon .cell-date{color:var(--amber);font-weight:600;}
+td.date-overdue .cell-date{color:var(--red);font-weight:700;}
+.stale-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ink-faint);margin-right:6px;vertical-align:middle;cursor:default;}
 .empty-col{padding:20px 10px;text-align:center;color:var(--ink-faint);font-size:12px;}
 
 .table-wrap{
@@ -224,6 +230,17 @@ table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .td-editable{padding:0 !important;}
 .cell-text{width:100%;min-height:38px;border:none;background:none;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);resize:none;overflow:hidden;display:block;}
 .cell-text:focus{outline:none;background:var(--blue-soft);}
+.cell-rich{width:100%;min-height:38px;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);outline:none;white-space:pre-wrap;}
+.cell-rich:focus{background:var(--blue-soft);}
+.cell-rich mark, .cell-rich-view mark{background:#FFF3B0;padding:0 2px;border-radius:2px;}
+.rich-toolbar{position:fixed;display:none;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.18);padding:4px;z-index:60;}
+.rich-toolbar.open{display:flex;}
+.rich-toolbar button{border:none;background:none;cursor:pointer;padding:6px 10px;border-radius:6px;font-size:13px;color:var(--ink);min-width:28px;}
+.rich-toolbar button:hover{background:var(--panel-soft);}
+.rich-toolbar button.rt-b{font-weight:700;}
+.rich-toolbar button.rt-i{font-style:italic;}
+.rich-toolbar button.rt-h{background:#FFF3B0;}
+.rich-toolbar button.rt-h:hover{background:#FDE989;}
 .cell-date{width:100%;border:none;background:none;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink);display:block;}
 .cell-date:focus{outline:none;background:var(--blue-soft);}
 .sort-arrow{font-size:9px;margin-left:3px;color:var(--blue);}
@@ -348,6 +365,7 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
     <div class="sync">
       <span id="syncDot" class="sync-dot"></span>
       <span id="syncText">synced</span>
+      <button class="btn-refresh" id="undoBtn" onclick="performUndo()" disabled title="Undo your last edit">↩ Undo</button>
       <button class="btn-refresh" onclick="manualRefresh()">↻ Refresh</button>
     </div>
   </div>
@@ -480,7 +498,8 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
           <select class="f-select" id="f-status"></select>
         </div>
         <div><label class="f-label">Assigned to</label>
-          <select class="f-select" id="f-who"></select>
+          <select class="f-select" id="f-who" multiple size="4"></select>
+          <div class="f-hint">Ctrl/Cmd-click to select more than one person</div>
         </div>
         <div><label class="f-label">Task status</label>
           <select class="f-select" id="f-taskStatus">
@@ -501,8 +520,8 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
       </div>
       <div><label class="f-label">Updates sent</label><input class="f-input" type="date" id="f-updatesSent"></div>
       <div class="full" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;">
-        <div><label class="f-label">Task notes</label><textarea class="f-textarea" id="f-notes" placeholder="Free-text notes, same as your spreadsheet's Task Notes column…"></textarea></div>
-        <div><label class="f-label">Planning</label><textarea class="f-textarea" id="f-planning"></textarea></div>
+        <div><label class="f-label">Task notes</label><textarea class="f-textarea" id="f-notes" placeholder="Free-text notes. Use **bold**, *italic*, ==highlight== for formatting…"></textarea></div>
+        <div><label class="f-label">Planning</label><textarea class="f-textarea" id="f-planning" placeholder="Use **bold**, *italic*, ==highlight== for formatting…"></textarea></div>
         <div><label class="f-label">Engineer</label><textarea class="f-textarea" id="f-engineer"></textarea></div>
       </div>
     </div>
@@ -584,6 +603,12 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="rich-toolbar" id="richToolbar">
+  <button type="button" class="rt-b" onmousedown="event.preventDefault()" onclick="applyRichFormat('b')">B</button>
+  <button type="button" class="rt-i" onmousedown="event.preventDefault()" onclick="applyRichFormat('i')">I</button>
+  <button type="button" class="rt-h" onmousedown="event.preventDefault()" onclick="applyRichFormat('mark')">H</button>
+</div>
 
 <script>
 const SEED_JOBS = [
@@ -1412,6 +1437,7 @@ function rowToJob(r){
     planning: r.planning || '',
     updatesSent: r.updates_sent || '',
     engineer: r.engineer_date || '',
+    updatedAt: r.updated_at || null,
     archived: !!r.archived
   };
 }
@@ -1424,7 +1450,8 @@ let consecutiveFailures = 0;
 let pendingSaves = 0;
 let regions = ["Northland","North Auckland","Waikato","BOP","Taupo","Hawkes Bay","Manawatu","Wellington","Canterbury"];
 let jobView = 'table';
-let sortCol = 'latestEstimatedCompletion', sortDir = 1;
+let sortCol = localStorage.getItem('jobTrackerSortCol') || 'latestEstimatedCompletion';
+let sortDir = parseInt(localStorage.getItem('jobTrackerSortDir') || '1', 10);
 let currentEditId = null;
 let weekOffset = 0;
 let workloadCache = {};
@@ -1550,7 +1577,7 @@ function copyAsTable(){
         cellHtml = inlinePillHtml(j.taskStatus || 'In Progress', TASK_PILL_COLORS[j.taskStatus || 'In Progress']);
       } else {
         const val = dateFields.has(c.key) ? fmtDate(j[c.key]) : (j[c.key]||'');
-        cellHtml = esc(val);
+        cellHtml = (c.key==='notes' || c.key==='planning') ? sanitizeRich(val) : esc(val);
       }
       return `<td style="border:1px solid #ccc;padding:6px 8px;vertical-align:top;">${cellHtml}</td>`;
     }).join('') + '</tr>';
@@ -1687,6 +1714,49 @@ function fmtDate(d){
   if(isNaN(dt)) return d;
   return dt.toLocaleDateString('en-NZ',{day:'2-digit',month:'short'});
 }
+function focusCellEnd(el){
+  if(!el) return;
+  el.focus();
+  if(el.tagName==='TEXTAREA' || el.tagName==='INPUT'){
+    const len = el.value.length;
+    el.setSelectionRange(len, len);
+  } else if(el.isContentEditable){
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+function moveToRow(el, rowDelta){
+  const field = el.dataset.field;
+  const tr = el.closest('tr');
+  if(!tr) return;
+  const targetTr = rowDelta>0 ? tr.nextElementSibling : tr.previousElementSibling;
+  if(!targetTr) return;
+  const targetEl = targetTr.querySelector(`[data-field="${field}"]`);
+  if(targetEl) focusCellEnd(targetEl);
+}
+function handleGridNavKey(e){
+  const ctrl = e.ctrlKey || e.metaKey;
+  if(ctrl && (e.key==='ArrowDown' || e.key==='ArrowUp')){
+    e.preventDefault();
+    moveToRow(e.target, e.key==='ArrowDown' ? 1 : -1);
+  } else if(e.key==='Enter' && e.target.tagName==='INPUT'){
+    e.preventDefault();
+    e.target.blur();
+    moveToRow(e.target, 1);
+  }
+}
+const STALE_DAYS = 60;
+function staleDaysAgo(j){
+  if(!j.updatedAt || j.archived || j.stage==='On Site') return 0;
+  const updated = new Date(j.updatedAt);
+  if(isNaN(updated)) return 0;
+  const days = Math.floor((Date.now()-updated.getTime())/86400000);
+  return days>=STALE_DAYS ? days : 0;
+}
 function dateUrgencyClass(d){
   if(!d) return '';
   const dt = new Date(d+'T00:00:00');
@@ -1711,7 +1781,7 @@ function getFiltered(){
       if(!showCompleted && j.taskStatus === 'Completed') return false;
     }
     if(region && j.region !== region) return false;
-    if(LOCKED_WHO && j.who !== LOCKED_WHO) return false;
+    if(LOCKED_WHO && !(j.who||'').split(',').map(s=>s.trim()).includes(LOCKED_WHO)) return false;
     if(stage && j.stage !== stage) return false;
     if(q){
       const hay = [j.jobNumber,j.jobName,j.notes,j.who,j.address,j.status].join(' ').toLowerCase();
@@ -1832,6 +1902,7 @@ async function saveInlineField(el){
   const val = el.value;
   const j = jobs.find(x=>x.id===id);
   if(!j || j[field]===val) return;
+  pushUndo({type:'field', id, field, oldValue: j[field]});
   j[field] = val;
   pendingSaves++;
   setSync(true);
@@ -1919,6 +1990,7 @@ async function saveDateCell(el){
   const j = jobs.find(x=>x.id===id);
   if(!j) return;
   if(j[field]===valueToStore){ if(parsed) el.value = fmtDate(parsed); return; }
+  pushUndo({type:'field', id, field, oldValue: j[field]});
   j[field] = valueToStore;
   pendingSaves++;
   setSync(true);
@@ -1945,13 +2017,135 @@ function dateCell(j, field){
   const display = j[field] ? fmtDate(j[field]) : '';
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
   if(READ_ONLY) return `<td class="${urgency} ${divider}">${esc(display)}</td>`;
-  return `<td class="td-editable ${urgency} ${divider}"><input type="text" class="cell-date" placeholder="" data-id="${j.id}" data-field="${field}" value="${esc(display)}" onclick="event.stopPropagation()" onblur="saveDateCell(this)"></td>`;
+  return `<td class="td-editable ${urgency} ${divider}"><input type="text" class="cell-date" placeholder="" data-id="${j.id}" data-field="${field}" value="${esc(display)}" onclick="event.stopPropagation()" onblur="saveDateCell(this)" onkeydown="handleGridNavKey(event)"></td>`;
 }
 function textCell(j, field){
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
   if(READ_ONLY) return `<td class="td-notes ${divider}">${esc(j[field]||'')}</td>`;
-  return `<td class="td-notes td-editable ${divider}"><textarea class="cell-text" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="saveInlineField(this)">${esc(j[field]||'')}</textarea></td>`;
+  return `<td class="td-notes td-editable ${divider}"><textarea class="cell-text" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="saveInlineField(this)" onkeydown="handleGridNavKey(event)">${esc(j[field]||'')}</textarea></td>`;
 }
+const RICH_ALLOWED_TAGS = {B:1,STRONG:1,I:1,EM:1,MARK:1,BR:1};
+function sanitizeRich(html){
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+  (function clean(node){
+    Array.prototype.slice.call(node.childNodes).forEach(child=>{
+      if(child.nodeType!==1) return;
+      const tag = child.tagName;
+      if(tag==='BR') return;
+      if(tag==='DIV' || tag==='P'){
+        clean(child);
+        while(child.firstChild) node.insertBefore(child.firstChild, child);
+        node.insertBefore(document.createElement('br'), child);
+        node.removeChild(child);
+        return;
+      }
+      if(!RICH_ALLOWED_TAGS[tag]){
+        node.replaceChild(document.createTextNode(child.textContent), child);
+        return;
+      }
+      Array.prototype.slice.call(child.attributes).forEach(a=>child.removeAttribute(a.name));
+      clean(child);
+    });
+  })(tmp);
+  return tmp.innerHTML.replace(/^(<br>)+/,'').replace(/(<br>)+$/,'');
+}
+function richHtmlToPlain(html){
+  if(!html) return '';
+  let s = html;
+  s = s.replace(/<br\s*\/?>/gi, '\n');
+  s = s.replace(/<(b|strong)>([\s\S]*?)<\/\1>/gi, '**$2**');
+  s = s.replace(/<(i|em)>([\s\S]*?)<\/\1>/gi, '*$2*');
+  s = s.replace(/<mark>([\s\S]*?)<\/mark>/gi, '==$1==');
+  s = s.replace(/<[^>]+>/g, '');
+  return s;
+}
+function plainToRichHtml(text){
+  if(!text) return '';
+  let s = esc(text);
+  s = s.replace(/\n/g, '<br>');
+  s = s.replace(/\*\*([\s\S]+?)\*\*/g, '<b>$1</b>');
+  s = s.replace(/\*([\s\S]+?)\*/g, '<i>$1</i>');
+  s = s.replace(/==([\s\S]+?)==/g, '<mark>$1</mark>');
+  return s;
+}
+function richTextCell(j, field){
+  const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
+  const html = sanitizeRich(j[field]||'');
+  if(READ_ONLY) return `<td class="td-notes ${divider}"><div class="cell-rich-view">${html}</div></td>`;
+  return `<td class="td-notes td-editable ${divider}"><div class="cell-rich" contenteditable="true" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" onblur="saveRichCell(this)" onkeydown="handleGridNavKey(event)">${html}</div></td>`;
+}
+let activeRichEl = null;
+function toggleInlineTag(tagName){
+  const sel = window.getSelection();
+  if(!sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  if(range.collapsed) return;
+  let node = range.commonAncestorContainer;
+  if(node.nodeType===3) node = node.parentNode;
+  const existing = node.closest ? node.closest(tagName) : null;
+  if(existing){
+    const parent = existing.parentNode;
+    while(existing.firstChild) parent.insertBefore(existing.firstChild, existing);
+    parent.removeChild(existing);
+  } else {
+    const wrapEl = document.createElement(tagName);
+    try{
+      range.surroundContents(wrapEl);
+      range.selectNode(wrapEl);
+    }catch(e){
+      const frag = range.extractContents();
+      wrapEl.appendChild(frag);
+      range.insertNode(wrapEl);
+    }
+  }
+}
+async function saveRichCellValue(el){
+  if(!el) return;
+  const id = el.dataset.id, field = el.dataset.field;
+  const val = sanitizeRich(el.innerHTML);
+  const j = jobs.find(x=>x.id===id);
+  if(!j || j[field]===val) return;
+  pushUndo({type:'field', id, field, oldValue: j[field]});
+  j[field] = val;
+  pendingSaves++;
+  setSync(true);
+  try{
+    const row = {};
+    row[FIELD_COLUMN_MAP[field]] = val || null;
+    await sbFetch('jobs?id=eq.' + encodeURIComponent(id), { method:'PATCH', body: row });
+  }catch(e){
+    showToast('Save failed — check connection');
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+}
+function saveRichCell(el){ saveRichCellValue(el); }
+function applyRichFormat(tag){
+  if(!activeRichEl) return;
+  activeRichEl.focus();
+  toggleInlineTag(tag);
+  saveRichCellValue(activeRichEl);
+  document.getElementById('richToolbar').classList.remove('open');
+}
+document.addEventListener('mouseup', e=>{
+  const cell = e.target.closest ? e.target.closest('.cell-rich') : null;
+  setTimeout(()=>{
+    const toolbar = document.getElementById('richToolbar');
+    const sel = window.getSelection();
+    if(cell && sel && sel.rangeCount && !sel.getRangeAt(0).collapsed && sel.toString().trim()){
+      activeRichEl = cell;
+      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      toolbar.classList.add('open');
+      const left = Math.max(4, Math.min(window.innerWidth - toolbar.offsetWidth - 4, rect.left + rect.width/2 - toolbar.offsetWidth/2));
+      toolbar.style.left = left + 'px';
+      toolbar.style.top = Math.max(4, rect.top - toolbar.offsetHeight - 6) + 'px';
+    } else if(!e.target.closest('#richToolbar')){
+      toolbar.classList.remove('open');
+    }
+  }, 0);
+});
 function renderTable(list){
   if(!hasSharedWidths) autoFitDynamicColumns(jobs);
   renderColgroup();
@@ -1966,13 +2160,13 @@ function renderTable(list){
   document.getElementById('tableBody').innerHTML = list.map(j=>`
     <tr onclick="openJobModal('${j.id}')">
       <td>${esc(j.region||'')}</td>
-      <td>${esc(j.jobNumber||'')}</td>
+      <td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>
       <td><strong>${esc(j.jobName||'Untitled')}</strong></td>
       <td><span class="stamp ${stageClass(j.stage)}">${esc(j.stage)}</span></td>
       <td>${esc(j.who||'')}</td>
       <td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>
-      ${textCell(j,'notes')}
-      ${textCell(j,'planning')}
+      ${richTextCell(j,'notes')}
+      ${richTextCell(j,'planning')}
       ${dateCell(j,'earliestEstimatedCompletion')}
       ${dateCell(j,'latestEstimatedCompletion')}
       ${textCell(j,'engineer')}
@@ -2009,6 +2203,8 @@ function measureAndLockStaticColumnWidths(){
 }
 function sortBy(col){
   if(sortCol===col) sortDir *= -1; else { sortCol=col; sortDir=1; }
+  localStorage.setItem('jobTrackerSortCol', sortCol);
+  localStorage.setItem('jobTrackerSortDir', String(sortDir));
   renderJobs();
 }
 
@@ -2024,6 +2220,16 @@ function populateStateOptions(stage, currentValue, preserveCurrent){
   document.getElementById('f-status').innerHTML = '<option value=""></option>' + options.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
   document.getElementById('f-status').value = options.includes(currentValue) ? currentValue : '';
 }
+function suggestNextJobNumber(){
+  let max = 0;
+  jobs.forEach(x=>{
+    if(/^\d{5}$/.test(x.jobNumber||'')){
+      const n = parseInt(x.jobNumber, 10);
+      if(n>max) max = n;
+    }
+  });
+  return max ? String(max+1) : '';
+}
 function openJobModal(id){
   if(READ_ONLY) return;
   currentEditId = id || null;
@@ -2037,22 +2243,23 @@ function openJobModal(id){
   document.getElementById('recalcBtn').style.display = READ_ONLY ? 'none' : 'inline-block';
   document.querySelectorAll('#jobOverlay input, #jobOverlay select, #jobOverlay textarea').forEach(el=>{ el.disabled = READ_ONLY; });
   populateStateOptions(j?.stage || 'SP', j?.status || '', true);
+  const currentWho = (j?.who || '').split(',').map(s=>s.trim()).filter(Boolean);
   const whoOptions = staff.map(s=>s.name).sort((a,b)=>a.localeCompare(b));
-  if(j?.who && !whoOptions.includes(j.who)) whoOptions.push(j.who);
-  document.getElementById('f-who').innerHTML = '<option value=""></option>' + whoOptions.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  currentWho.forEach(n=>{ if(!whoOptions.includes(n)) whoOptions.push(n); });
+  document.getElementById('f-who').innerHTML = whoOptions.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  Array.from(document.getElementById('f-who').options).forEach(o=>{ o.selected = currentWho.includes(o.value); });
   document.getElementById('f-region').value = j?.region || '';
-  document.getElementById('f-jobNumber').value = j?.jobNumber || '';
+  document.getElementById('f-jobNumber').value = j?.jobNumber || (!id ? suggestNextJobNumber() : '');
   document.getElementById('f-jobName').value = j?.jobName || '';
   document.getElementById('f-stage').value = j?.stage || 'SP';
-  document.getElementById('f-who').value = j?.who || '';
   document.getElementById('f-taskStatus').value = j?.taskStatus || 'In Progress';
   document.getElementById('f-stageStart').value = j?.stageStartDate || '';
   document.getElementById('f-earliestDate').value = j?.earliestEstimatedCompletion || '';
   document.getElementById('f-latestDate').value = j?.latestEstimatedCompletion || '';
   document.getElementById('f-updatesSent').value = j?.updatesSent || '';
   document.getElementById('f-engineer').value = j?.engineer || '';
-  document.getElementById('f-notes').value = j?.notes || '';
-  document.getElementById('f-planning').value = j?.planning || '';
+  document.getElementById('f-notes').value = richHtmlToPlain(j?.notes || '');
+  document.getElementById('f-planning').value = richHtmlToPlain(j?.planning || '');
   document.getElementById('jobOverlay').classList.add('open');
   if(!j){
     document.getElementById('f-stageStart').value = new Date().toISOString().slice(0,10);
@@ -2067,6 +2274,106 @@ function addWeeksISO(dateStr, weeks){
   dt.setDate(dt.getDate() + Math.round(weeks*7));
   return dt.toISOString().slice(0,10);
 }
+function addDaysISO(dateStr, days){
+  const dt = new Date(dateStr+'T00:00:00');
+  if(isNaN(dt)) return dateStr;
+  dt.setDate(dt.getDate() + days);
+  return dt.toISOString().slice(0,10);
+}
+const MATARIKI_DATES = {
+  2022:'06-24',2023:'07-14',2024:'06-28',2025:'06-20',2026:'07-10',2027:'06-25',
+  2028:'07-14',2029:'07-06',2030:'06-21',2031:'07-11',2032:'07-02',2033:'06-24',
+  2034:'07-07',2035:'06-29',2036:'07-18',2037:'07-10',2038:'06-25',2039:'07-15',2040:'07-06'
+};
+function isoDate(d){ return d.toISOString().slice(0,10); }
+function nthWeekdayOfMonth(year, month, weekday, n){
+  const d = new Date(year, month, 1);
+  let count = 0;
+  while(true){
+    if(d.getDay()===weekday){ count++; if(count===n) return new Date(d); }
+    d.setDate(d.getDate()+1);
+  }
+}
+function mondayiseSingle(d){
+  const dt = new Date(d);
+  if(dt.getDay()===6) dt.setDate(dt.getDate()+2);
+  else if(dt.getDay()===0) dt.setDate(dt.getDate()+1);
+  return dt;
+}
+function mondayisePair(d1){
+  const a = new Date(d1);
+  const b = new Date(d1); b.setDate(b.getDate()+1);
+  const obsA = mondayiseSingle(a);
+  let obsB = mondayiseSingle(b);
+  if(obsA.getTime()===obsB.getTime()) obsB.setDate(obsB.getDate()+1);
+  return [obsA, obsB];
+}
+function nzEasterSunday(year){
+  const a = year % 19, b = Math.floor(year/100), c = year % 100;
+  const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
+  const g = Math.floor((b-f+1)/3), h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c/4), k = c % 4, l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l)/451);
+  const monthDay = h + l - 7*m + 114;
+  const month = Math.floor(monthDay/31);
+  const day = (monthDay % 31) + 1;
+  return new Date(year, month-1, day);
+}
+const nzHolidayCache = {};
+function getNZHolidays(year){
+  if(nzHolidayCache[year]) return nzHolidayCache[year];
+  const list = [];
+  const [ny1, ny2] = mondayisePair(new Date(year,0,1));
+  list.push(ny1, ny2);
+  list.push(mondayiseSingle(new Date(year,1,6)));
+  const easter = nzEasterSunday(year);
+  const goodFriday = new Date(easter); goodFriday.setDate(goodFriday.getDate()-2);
+  const easterMonday = new Date(easter); easterMonday.setDate(easterMonday.getDate()+1);
+  list.push(goodFriday, easterMonday);
+  list.push(mondayiseSingle(new Date(year,3,25)));
+  list.push(nthWeekdayOfMonth(year,5,1,1));
+  if(MATARIKI_DATES[year]){
+    const [mm,dd] = MATARIKI_DATES[year].split('-').map(Number);
+    list.push(new Date(year, mm-1, dd));
+  }
+  list.push(nthWeekdayOfMonth(year,9,1,4));
+  const [xmas, boxing] = mondayisePair(new Date(year,11,25));
+  list.push(xmas, boxing);
+  const isoList = list.map(isoDate);
+  nzHolidayCache[year] = isoList;
+  return isoList;
+}
+function countWeekdayHolidaysBetween(startISO, endISO){
+  if(!startISO || !endISO) return 0;
+  const start = new Date(startISO+'T00:00:00');
+  const end = new Date(endISO+'T00:00:00');
+  if(isNaN(start) || isNaN(end) || end<start) return 0;
+  const years = new Set();
+  for(let y=start.getFullYear(); y<=end.getFullYear(); y++) years.add(y);
+  const holidaySet = new Set();
+  years.forEach(y=>getNZHolidays(y).forEach(d=>holidaySet.add(d)));
+  let count = 0;
+  const cur = new Date(start); cur.setDate(cur.getDate()+1);
+  while(cur<=end){
+    const day = cur.getDay();
+    if(day!==0 && day!==6 && holidaySet.has(isoDate(cur))) count++;
+    cur.setDate(cur.getDate()+1);
+  }
+  return count;
+}
+function addWeeksWithHolidays(startISO, weeks){
+  const base = addWeeksISO(startISO, weeks);
+  let end = base;
+  let prevEnd = null;
+  let iterations = 0;
+  while(end !== prevEnd && iterations < 10){
+    prevEnd = end;
+    const holidayDays = countWeekdayHolidaysBetween(startISO, end);
+    end = addDaysISO(base, holidayDays);
+    iterations++;
+  }
+  return end;
+}
 function autoCalcDates(force){
   const stage = document.getElementById('f-stage').value;
   const start = document.getElementById('f-stageStart').value;
@@ -2074,8 +2381,8 @@ function autoCalcDates(force){
   if(!start || !guide) return;
   const earliestEl = document.getElementById('f-earliestDate');
   const latestEl = document.getElementById('f-latestDate');
-  if(force || !earliestEl.value) earliestEl.value = addWeeksISO(start, guide.minWeeks);
-  if(force || !latestEl.value) latestEl.value = addWeeksISO(start, guide.maxWeeks);
+  if(force || !earliestEl.value) earliestEl.value = addWeeksWithHolidays(start, guide.minWeeks);
+  if(force || !latestEl.value) latestEl.value = addWeeksWithHolidays(start, guide.maxWeeks);
 }
 
 function openGuideModal(){
@@ -2192,6 +2499,41 @@ async function logStageChange(jobId, oldStage, newStage){
     console.warn('stage history log failed', e);
   }
 }
+let undoStack = [];
+function pushUndo(entry){
+  undoStack.push(entry);
+  if(undoStack.length>20) undoStack.shift();
+  updateUndoButton();
+}
+function updateUndoButton(){
+  const btn = document.getElementById('undoBtn');
+  if(btn) btn.disabled = undoStack.length===0;
+}
+async function performUndo(){
+  if(!undoStack.length) return;
+  const entry = undoStack.pop();
+  updateUndoButton();
+  const j = jobs.find(x=>x.id===entry.id);
+  if(!j){ showToast('Could not undo — job no longer exists'); return; }
+  pendingSaves++; setSync(true);
+  try{
+    if(entry.type==='field'){
+      j[entry.field] = entry.oldValue;
+      const row = {};
+      row[FIELD_COLUMN_MAP[entry.field]] = entry.oldValue || null;
+      await sbFetch('jobs?id=eq.' + encodeURIComponent(entry.id), { method:'PATCH', body: row });
+    } else if(entry.type==='full'){
+      Object.assign(j, entry.oldJob);
+      await sbFetch('jobs?id=eq.' + encodeURIComponent(entry.id), { method:'PATCH', body: jobToRow(j) });
+    }
+    showToast('Undone');
+    renderJobs();
+  }catch(e){
+    showToast('Undo failed — check connection');
+  }finally{
+    setSync(false); pendingSaves--;
+  }
+}
 async function saveJob(){
   const region = document.getElementById('f-region').value.trim();
   if(region && !regions.includes(region)){
@@ -2206,7 +2548,7 @@ async function saveJob(){
     jobName: document.getElementById('f-jobName').value.trim(),
     stage: document.getElementById('f-stage').value,
     status: document.getElementById('f-status').value.trim(),
-    who: document.getElementById('f-who').value.trim(),
+    who: Array.from(document.getElementById('f-who').selectedOptions).map(o=>o.value).join(', '),
     taskStatus: document.getElementById('f-taskStatus').value,
     stageStartDate: document.getElementById('f-stageStart').value,
     earliestEstimatedCompletion: document.getElementById('f-earliestDate').value,
@@ -2214,17 +2556,24 @@ async function saveJob(){
     address: (jobs.find(x=>x.id===currentEditId)?.address) || '',
     updatesSent: document.getElementById('f-updatesSent').value,
     engineer: document.getElementById('f-engineer').value.trim(),
-    notes: document.getElementById('f-notes').value.trim(),
-    planning: document.getElementById('f-planning').value.trim(),
+    notes: plainToRichHtml(document.getElementById('f-notes').value.trim()),
+    planning: plainToRichHtml(document.getElementById('f-planning').value.trim()),
   };
   if(!data.jobName){ showToast('Give the job a client / job name first'); return; }
+  const prevTaskStatus = currentEditId ? (jobs.find(x=>x.id===currentEditId)?.taskStatus || 'In Progress') : null;
+  if(prevTaskStatus==='In Progress' && data.taskStatus==='Completed'){
+    data.earliestEstimatedCompletion = '';
+    data.latestEstimatedCompletion = '';
+    data.updatesSent = new Date().toISOString().slice(0,10);
+  }
   pendingSaves++;
   setSync(true);
   try{
     if(currentEditId){
       data.id = currentEditId;
-      await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'PATCH', body: jobToRow(data) });
       const j = jobs.find(x=>x.id===currentEditId);
+      pushUndo({type:'full', id: currentEditId, oldJob: {...j}});
+      await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'PATCH', body: jobToRow(data) });
       Object.assign(j, data);
     } else {
       data.id = (crypto.randomUUID ? crypto.randomUUID() : 'j'+Date.now()+Math.random());
@@ -2418,6 +2767,7 @@ function applyReadOnlyMode(){
   document.getElementById('newJobBtn').style.display = 'none';
   document.getElementById('turnaroundGuideBtn').style.display = 'none';
   document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
+  document.getElementById('undoBtn').style.display = 'none';
   document.querySelector('[data-tab="workload"]').style.display = 'none';
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
   document.getElementById('showArchived').closest('label').style.display = 'none';

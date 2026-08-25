@@ -1461,6 +1461,18 @@ function setSync(busy){
   document.getElementById('syncDot').classList.toggle('busy', !!busy);
   document.getElementById('syncText').textContent = busy ? 'syncing…' : 'synced';
 }
+async function withSync(action, errorMessage){
+  pendingSaves++;
+  setSync(true);
+  try{
+    return await action();
+  }catch(e){
+    showToast(errorMessage);
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+}
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -1896,6 +1908,11 @@ const FIELD_COLUMN_MAP = {
   updatesSent:'updates_sent',
   engineer:'engineer_date'
 };
+async function patchJobField(id, field, value){
+  const row = {};
+  row[FIELD_COLUMN_MAP[field]] = value || null;
+  await sbFetch('jobs?id=eq.' + encodeURIComponent(id), { method:'PATCH', body: row });
+}
 async function saveInlineField(el){
   const id = el.dataset.id, field = el.dataset.field;
   const val = el.value;
@@ -1903,19 +1920,10 @@ async function saveInlineField(el){
   if(!j || j[field]===val) return;
   pushUndo({type:'field', id, field, oldValue: j[field]});
   j[field] = val;
-  pendingSaves++;
-  setSync(true);
-  try{
-    const row = {};
-    row[FIELD_COLUMN_MAP[field]] = val || null;
-    await sbFetch('jobs?id=eq.' + encodeURIComponent(id), { method:'PATCH', body: row });
-  }catch(e){
-    showToast('Save failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-    if(field==='planning' || field==='engineer') renderJobs();
-  }
+  await withSync(async ()=>{
+    await patchJobField(id, field, val);
+  }, 'Save failed — check connection');
+  if(field==='planning' || field==='engineer') renderJobs();
 }
 function applyTableWidth(){
   const total = columnWidths.reduce((a,b)=>a+b, 0);
@@ -1991,20 +1999,11 @@ async function saveDateCell(el){
   if(j[field]===valueToStore){ if(parsed) el.value = fmtDate(parsed); return; }
   pushUndo({type:'field', id, field, oldValue: j[field]});
   j[field] = valueToStore;
-  pendingSaves++;
-  setSync(true);
-  try{
-    const row = {};
-    row[FIELD_COLUMN_MAP[field]] = valueToStore || null;
-    await sbFetch('jobs?id=eq.' + encodeURIComponent(id), { method:'PATCH', body: row });
+  await withSync(async ()=>{
+    await patchJobField(id, field, valueToStore);
     if(parsed) el.value = fmtDate(parsed);
-  }catch(e){
-    showToast('Save failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-    if(field==='earliestEstimatedCompletion' || field==='latestEstimatedCompletion') renderJobs();
-  }
+  }, 'Save failed — check connection');
+  if(field==='earliestEstimatedCompletion' || field==='latestEstimatedCompletion') renderJobs();
 }
 function autoGrow(el){
   el.style.height = 'auto';
@@ -2107,18 +2106,7 @@ async function saveRichCellValue(el){
   if(!j || j[field]===val) return;
   pushUndo({type:'field', id, field, oldValue: j[field]});
   j[field] = val;
-  pendingSaves++;
-  setSync(true);
-  try{
-    const row = {};
-    row[FIELD_COLUMN_MAP[field]] = val || null;
-    await sbFetch('jobs?id=eq.' + encodeURIComponent(id), { method:'PATCH', body: row });
-  }catch(e){
-    showToast('Save failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-  }
+  await withSync(()=> patchJobField(id, field, val), 'Save failed — check connection');
 }
 function saveRichCell(el){ saveRichCellValue(el); }
 function applyRichFormat(tag){
@@ -2473,17 +2461,10 @@ async function saveGuideModal(){
     timelineGuides.stages[key].maxWeeks = max;
   });
   timelineGuides.notes = document.getElementById('guideNotes').value.trim();
-  pendingSaves++;
-  setSync(true);
-  try{
+  await withSync(async ()=>{
     await sbFetch('timeline_guides?on_conflict=id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{id:1, data: timelineGuides}] });
     showToast('Turnaround guide saved');
-  }catch(e){
-    showToast('Save failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-  }
+  }, 'Save failed — check connection');
   closeGuideModal();
 }
 
@@ -2514,24 +2495,17 @@ async function performUndo(){
   updateUndoButton();
   const j = jobs.find(x=>x.id===entry.id);
   if(!j){ showToast('Could not undo — job no longer exists'); return; }
-  pendingSaves++; setSync(true);
-  try{
+  await withSync(async ()=>{
     if(entry.type==='field'){
       j[entry.field] = entry.oldValue;
-      const row = {};
-      row[FIELD_COLUMN_MAP[entry.field]] = entry.oldValue || null;
-      await sbFetch('jobs?id=eq.' + encodeURIComponent(entry.id), { method:'PATCH', body: row });
+      await patchJobField(entry.id, entry.field, entry.oldValue);
     } else if(entry.type==='full'){
       Object.assign(j, entry.oldJob);
       await sbFetch('jobs?id=eq.' + encodeURIComponent(entry.id), { method:'PATCH', body: jobToRow(j) });
     }
     showToast('Undone');
     renderJobs();
-  }catch(e){
-    showToast('Undo failed — check connection');
-  }finally{
-    setSync(false); pendingSaves--;
-  }
+  }, 'Undo failed — check connection');
 }
 async function saveJob(){
   const region = document.getElementById('f-region').value.trim();
@@ -2565,9 +2539,7 @@ async function saveJob(){
     data.latestEstimatedCompletion = '';
     data.updatesSent = new Date().toISOString().slice(0,10);
   }
-  pendingSaves++;
-  setSync(true);
-  try{
+  await withSync(async ()=>{
     if(currentEditId){
       data.id = currentEditId;
       const j = jobs.find(x=>x.id===currentEditId);
@@ -2583,12 +2555,7 @@ async function saveJob(){
     closeJobModal();
     renderJobs();
     showToast('Job saved');
-  }catch(e){
-    showToast('Save failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-  }
+  }, 'Save failed — check connection');
 }
 async function archiveCurrentJob(){
   if(!currentEditId) return;
@@ -2596,58 +2563,45 @@ async function archiveCurrentJob(){
   const j = jobs.find(x=>x.id===currentEditId);
   if(!j) return;
   j.archived = true;
-  pendingSaves++;
-  setSync(true);
-  try{
-    await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'PATCH', body:{ archived:true } });
-    closeJobModal();
-    renderJobs();
-    showToast('Job archived');
-  }catch(e){
-    j.archived = false;
-    showToast('Archive failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-  }
+  await withSync(async ()=>{
+    try{
+      await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'PATCH', body:{ archived:true } });
+      closeJobModal();
+      renderJobs();
+      showToast('Job archived');
+    }catch(e){
+      j.archived = false;
+      throw e;
+    }
+  }, 'Archive failed — check connection');
 }
 async function restoreCurrentJob(){
   if(!currentEditId) return;
   const j = jobs.find(x=>x.id===currentEditId);
   if(!j) return;
   j.archived = false;
-  pendingSaves++;
-  setSync(true);
-  try{
-    await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'PATCH', body:{ archived:false } });
-    closeJobModal();
-    renderJobs();
-    showToast('Job restored');
-  }catch(e){
-    j.archived = true;
-    showToast('Restore failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-  }
+  await withSync(async ()=>{
+    try{
+      await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'PATCH', body:{ archived:false } });
+      closeJobModal();
+      renderJobs();
+      showToast('Job restored');
+    }catch(e){
+      j.archived = true;
+      throw e;
+    }
+  }, 'Restore failed — check connection');
 }
 async function deleteCurrentJob(){
   if(!currentEditId) return;
   if(!confirm('Permanently delete this job? This cannot be undone.')) return;
-  pendingSaves++;
-  setSync(true);
-  try{
+  await withSync(async ()=>{
     await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'DELETE' });
     jobs = jobs.filter(j=>j.id!==currentEditId);
     closeJobModal();
     renderJobs();
     showToast('Job deleted');
-  }catch(e){
-    showToast('Delete failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-  }
+  }, 'Delete failed — check connection');
 }
 
 function getMonday(d){
@@ -2715,50 +2669,29 @@ async function saveWorkloadCell(el){
   const sid = el.dataset.staff, day = el.dataset.day;
   if(!workloadCache[key][sid]) workloadCache[key][sid] = {};
   workloadCache[key][sid][day] = el.value;
-  pendingSaves++;
-  setSync(true);
-  try{
+  await withSync(async ()=>{
     await sbFetch('workload?on_conflict=week_key,staff_id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{ week_key:key, staff_id:sid, data: workloadCache[key][sid] }] });
-  }catch(e){
-    showToast('Save failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-  }
+  }, 'Save failed — check connection');
 }
 async function addStaff(){
   const input = document.getElementById('newStaffName');
   const name = input.value.trim();
   if(!name) return;
   const id = (crypto.randomUUID ? crypto.randomUUID() : 's'+Date.now());
-  pendingSaves++;
-  setSync(true);
-  try{
+  await withSync(async ()=>{
     await sbFetch('staff', { method:'POST', headers:{'Prefer':'return=representation'}, body:[{id, name}] });
     staff.push({id, name});
     input.value='';
     renderWorkload();
-  }catch(e){
-    showToast('Save failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-  }
+  }, 'Save failed — check connection');
 }
 async function removeStaff(id){
   if(!confirm('Remove this team member from the workload grid?')) return;
-  pendingSaves++;
-  setSync(true);
-  try{
+  await withSync(async ()=>{
     await sbFetch('staff?id=eq.' + encodeURIComponent(id), { method:'DELETE' });
     staff = staff.filter(s=>s.id!==id);
     renderWorkload();
-  }catch(e){
-    showToast('Delete failed — check connection');
-  }finally{
-    setSync(false);
-    pendingSaves--;
-  }
+  }, 'Delete failed — check connection');
 }
 
 function applyReadOnlyMode(){

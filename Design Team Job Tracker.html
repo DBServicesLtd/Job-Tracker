@@ -110,7 +110,7 @@ a{color:var(--blue);}
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   padding:10px 12px;box-shadow:var(--shadow);
 }
-.toolbar .grow{flex:1 1 180px;}
+.toolbar .grow{flex:1 1 180px;max-width:280px;}
 .field{position:relative;}
 .search-input{
   width:100%;padding:7px 10px 7px 30px;border:1px solid var(--line);border-radius:5px;
@@ -150,8 +150,6 @@ select.select, .toolbar select{
 }
 .stage-summary-label{font-family:'DM Serif Display',serif;font-style:italic;font-size:16px;color:var(--ink);margin-bottom:6px;}
 .stage-summary-value{font-size:20px;font-weight:700;color:var(--blue-deep);}
-.stage-summary-value.over{color:var(--red);}
-.stage-summary-target{font-size:11.5px;color:var(--ink-faint);margin-top:4px;}
 
 .stamp{
   font-family:'Open Sans',sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.03em;
@@ -417,7 +415,7 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
         <option value="region">Group by region</option>
       </select>
       <button class="btn-ghost" id="turnaroundGuideBtn" onclick="openGuideModal()">⏱ Turnaround guide</button>
-      <button class="btn-primary" id="newJobBtn" onclick="openJobModal()">+ New job</button>
+      <button class="btn-primary" id="newJobBtn" onclick="openJobModal()" style="flex:1 1 200px;justify-content:center;">+ New job</button>
     </div>
     <p class="hint">Tip: filter to one region, then use Copy as table (in ⚙ Settings) to paste a snapshot straight into an email, or Print view for a PDF.</p>
 
@@ -1526,7 +1524,11 @@ async function loadAll(silent){
   }
 }
 
-function manualRefresh(){ loadAll(false); }
+function manualRefresh(){
+  loadAll(false);
+  workloadCache = {};
+  loadWorkloadForCurrentWeek();
+}
 function isEditingNow(){
   const el = document.activeElement;
   const tag = el && el.tagName;
@@ -1642,12 +1644,9 @@ function renderStageTimes(){
     const guide = timelineGuides.stages[s];
     const vals = totals[s];
     const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length) : null;
-    const targetMaxDays = guide ? guide.maxWeeks*7 : null;
-    const over = avg!=null && targetMaxDays!=null && avg > targetMaxDays;
     return `<div class="stage-summary-card">
       <div class="stage-summary-label">${esc(guide ? guide.label : s)}</div>
-      <div class="stage-summary-value ${over?'over':''}">${avg!=null ? avg.toFixed(1)+' days avg' : 'No data yet'}</div>
-      <div class="stage-summary-target">Target: ${guide ? guide.minWeeks+'–'+guide.maxWeeks+' weeks ('+(guide.minWeeks*7)+'–'+(guide.maxWeeks*7)+' days)' : '—'}</div>
+      <div class="stage-summary-value">${avg!=null ? avg.toFixed(1)+' days avg' : 'No data yet'}</div>
     </div>`;
   }).join('');
   document.getElementById('stageTimesBody').innerHTML = rows.map(r=>`

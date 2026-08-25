@@ -1372,7 +1372,8 @@ const SUPABASE_URL = 'https://jeztkwnvfewhnaadaazh.supabase.co';
 const urlParams = new URLSearchParams(window.location.search);
 const LOCKED_REGION = urlParams.get('region') || '';
 const LOCKED_WHO = urlParams.get('who') || '';
-const READ_ONLY = !!LOCKED_REGION || !!LOCKED_WHO;
+const VIEW_ALL_READONLY = urlParams.get('view') === 'readonly';
+const READ_ONLY = !!LOCKED_REGION || !!LOCKED_WHO || VIEW_ALL_READONLY;
 const SUPABASE_KEY = 'sb_publishable_SydrZ17z4xJGOVT7B7yZAA_UrG6qJSV';
 
 async function sbFetch(path, opts){
@@ -2417,10 +2418,18 @@ document.addEventListener('click', e=>{
 function openMyWorkLinksModal(){
   const list = document.getElementById('myWorkLinksList');
   const names = staff.map(s=>s.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  const everyoneUrl = baseUrl() + '?view=readonly';
+  let html = `<div class="region-link-row">
+    <div>
+      <div class="region-link-name">Everyone (view only)</div>
+      <div class="region-link-url">${esc(everyoneUrl)}</div>
+    </div>
+    <button class="btn-ghost" onclick="copyRegionLink('${esc(everyoneUrl).replace(/'/g,"\\'")}', this)">Copy</button>
+  </div>`;
   if(!names.length){
-    list.innerHTML = '<p style="color:var(--ink-faint);font-size:12.5px;">No staff set up yet.</p>';
+    html += '<p style="color:var(--ink-faint);font-size:12.5px;">No staff set up yet.</p>';
   } else {
-    list.innerHTML = names.map(n=>{
+    html += names.map(n=>{
       const url = baseUrl() + '?who=' + encodeURIComponent(n);
       return `<div class="region-link-row">
         <div>
@@ -2431,6 +2440,7 @@ function openMyWorkLinksModal(){
       </div>`;
     }).join('');
   }
+  list.innerHTML = html;
   document.getElementById('myWorkLinksOverlay').classList.add('open');
 }
 function closeMyWorkLinksModal(){ document.getElementById('myWorkLinksOverlay').classList.remove('open'); }
@@ -2708,7 +2718,9 @@ function applyReadOnlyMode(){
   const parts = [];
   if(LOCKED_REGION) parts.push(LOCKED_REGION);
   if(LOCKED_WHO) parts.push(LOCKED_WHO + "'s");
-  banner.textContent = '👁 Viewing ' + parts.join(' / ') + ' jobs — view only, no changes can be made here.';
+  banner.textContent = VIEW_ALL_READONLY
+    ? '👁 Viewing all jobs — view only, no changes can be made here.'
+    : '👁 Viewing ' + parts.join(' / ') + ' jobs — view only, no changes can be made here.';
   banner.style.display = 'block';
 }
 applyReadOnlyMode();

@@ -1454,6 +1454,7 @@ let sortDir = parseInt(localStorage.getItem('jobTrackerSortDir') || '1', 10);
 let currentEditId = null;
 let weekOffset = 0;
 let workloadCache = {};
+let personalNotes = {};
 
 const DAYS = ['mon','tue','wed','thu','fri'];
 const DAY_LABELS = {mon:'Monday',tue:'Tuesday',wed:'Wednesday',thu:'Thursday',fri:'Friday'};
@@ -1524,6 +1525,11 @@ async function loadAll(silent){
     connectionOk = true;
     consecutiveFailures = 0;
     populateRegionFilters();
+    if(LOCKED_WHO){
+      const noteRows = await sbFetch('personal_notes?select=job_id,note&who=eq.' + encodeURIComponent(LOCKED_WHO));
+      personalNotes = {};
+      noteRows.forEach(r=>{ personalNotes[r.job_id] = r.note || ''; });
+    }
     renderJobs();
     await loadWorkloadForCurrentWeek();
   }catch(e){
@@ -1927,7 +1933,7 @@ async function saveInlineField(el){
   if(field==='planning' || field==='engineer') renderJobs();
 }
 function applyTableWidth(){
-  const total = columnWidths.reduce((a,b)=>a+b, 0);
+  const total = columnWidths.reduce((a,b)=>a+b, 0) + (LOCKED_WHO ? PERSONAL_NOTE_COL_WIDTH : 0);
   const table = document.getElementById('jobsTable');
   if(table) table.style.width = total + 'px';
   syncToolbarWidth();
@@ -1950,8 +1956,10 @@ function syncToolbarWidth(){
 }
 window.addEventListener('resize', syncToolbarWidth);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncToolbarWidth(); });
+const PERSONAL_NOTE_COL_WIDTH = 220;
 function renderColgroup(){
-  document.getElementById('tableColgroup').innerHTML = columnWidths.map(w=>`<col style="width:${w}px">`).join('');
+  document.getElementById('tableColgroup').innerHTML = columnWidths.map(w=>`<col style="width:${w}px">`).join('')
+    + (LOCKED_WHO ? `<col style="width:${PERSONAL_NOTE_COL_WIDTH}px">` : '');
   applyTableWidth();
 }
 function startResize(e, idx){
@@ -2138,7 +2146,8 @@ function renderTable(list){
   if(!hasSharedWidths) autoFitDynamicColumns(jobs);
   renderColgroup();
   const head = document.getElementById('tableHeadRow');
-  head.innerHTML = TABLE_COLS.map((c,i)=>`<th class="${RIGHT_DIVIDER_KEYS.has(c.key)?'divider-right':''}" onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key ? `<span class="sort-arrow">${sortDir>0?'▲':'▼'}</span>`:''}${(STATIC_FIT_KEYS.includes(c.key) || READ_ONLY) ? '' : `<span class="col-resize-handle" onmousedown="startResize(event,${i})" onclick="event.stopPropagation()"></span>`}</th>`).join('');
+  head.innerHTML = TABLE_COLS.map((c,i)=>`<th class="${RIGHT_DIVIDER_KEYS.has(c.key)?'divider-right':''}" onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key ? `<span class="sort-arrow">${sortDir>0?'▲':'▼'}</span>`:''}${(STATIC_FIT_KEYS.includes(c.key) || READ_ONLY) ? '' : `<span class="col-resize-handle" onmousedown="startResize(event,${i})" onclick="event.stopPropagation()"></span>`}</th>`).join('')
+    + (LOCKED_WHO ? '<th>My Note</th>' : '');
   list = list.slice().sort((a,b)=>{
     let va = (a[sortCol]||'').toString().toLowerCase(), vb=(b[sortCol]||'').toString().toLowerCase();
     const isDateCol = sortCol==='earliestEstimatedCompletion' || sortCol==='latestEstimatedCompletion';
@@ -2160,6 +2169,7 @@ function renderTable(list){
       ${textCell(j,'engineer')}
       ${dateCell(j,'updatesSent')}
       <td class="divider-right"><span class="pill ${taskPillClass(j.taskStatus)}">${esc(j.taskStatus||'In Progress')}</span></td>
+      ${LOCKED_WHO ? `<td class="td-editable"><textarea class="cell-text" data-id="${j.id}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="savePersonalNote(this)" placeholder="Just for you…">${esc(personalNotes[j.id]||'')}</textarea></td>` : ''}
     </tr>`).join('');
   document.querySelectorAll('#tableBody .cell-text').forEach(autoGrow);
   if(!columnsAutoFitted && jobs.length){
@@ -2672,6 +2682,16 @@ function renderWorkload(){
       <td class="wl-cell"><textarea data-staff="${s.id}" data-day="upcoming" onblur="saveWorkloadCell(this)" placeholder="Upcoming / to lodge…">${esc(row.upcoming||'')}</textarea></td>
     </tr>`;
   }).join('') || `<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--ink-faint);">No team members yet — add one above.</td></tr>`;
+}
+async function savePersonalNote(el){
+  if(!LOCKED_WHO) return;
+  const jobId = el.dataset.id;
+  const note = el.value;
+  if(personalNotes[jobId]===note) return;
+  personalNotes[jobId] = note;
+  await withSync(async ()=>{
+    await sbFetch('personal_notes?on_conflict=job_id,who', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{ job_id: jobId, who: LOCKED_WHO, note }] });
+  }, 'Save failed — check connection');
 }
 async function saveWorkloadCell(el){
   const key = weekKeyFor(weekOffset);

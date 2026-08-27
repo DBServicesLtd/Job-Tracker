@@ -216,6 +216,8 @@ table.jobs-table th{position:relative;user-select:none;}
 .col-resize-handle{position:absolute;right:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:2;}
 .col-eye{cursor:pointer;margin-left:6px;font-size:12px;opacity:.6;}
 .col-eye:hover{opacity:1;}
+.col-collapsed{text-align:center;padding:10px 4px !important;}
+.col-collapsed .col-eye{margin-left:0;opacity:.8;}
 .col-resize-handle:hover{background:var(--blue-soft);}
 table.jobs-table th{
   text-align:left;font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:15px;
@@ -1946,7 +1948,7 @@ async function saveInlineField(el){
   if(field==='planning' || field==='engineer') renderJobs();
 }
 function applyTableWidth(){
-  const total = columnWidths.reduce((a,b)=>a+b, 0);
+  const total = columnWidths.reduce((sum,w,i)=> sum + ((LOCKED_WHO && hiddenCols.has(TABLE_COLS[i].key)) ? HIDDEN_COL_WIDTH : w), 0);
   const table = document.getElementById('jobsTable');
   if(table) table.style.width = total + 'px';
   syncToolbarWidth();
@@ -1969,8 +1971,12 @@ function syncToolbarWidth(){
 }
 window.addEventListener('resize', syncToolbarWidth);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncToolbarWidth(); });
+const HIDDEN_COL_WIDTH = 30;
 function renderColgroup(){
-  document.getElementById('tableColgroup').innerHTML = columnWidths.map(w=>`<col style="width:${w}px">`).join('');
+  document.getElementById('tableColgroup').innerHTML = columnWidths.map((w,i)=>{
+    const collapsed = LOCKED_WHO && hiddenCols.has(TABLE_COLS[i].key);
+    return `<col style="width:${collapsed ? HIDDEN_COL_WIDTH : w}px">`;
+  }).join('');
   applyTableWidth();
 }
 function startResize(e, idx){
@@ -2160,7 +2166,13 @@ function renderTable(list){
   if(!hasSharedWidths) autoFitDynamicColumns(jobs);
   renderColgroup();
   const head = document.getElementById('tableHeadRow');
-  head.innerHTML = TABLE_COLS.map((c,i)=>`<th class="${RIGHT_DIVIDER_KEYS.has(c.key)?'divider-right':''}" onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key ? `<span class="sort-arrow">${sortDir>0?'▲':'▼'}</span>`:''}${LOCKED_WHO ? `<span class="col-eye" title="Show/hide this column" onclick="event.stopPropagation(); toggleColHidden('${c.key}', hiddenCols.has('${c.key}'))">${hiddenCols.has(c.key)?'🙈':'👁'}</span>` : ''}${(STATIC_FIT_KEYS.includes(c.key) || READ_ONLY) ? '' : `<span class="col-resize-handle" onmousedown="startResize(event,${i})" onclick="event.stopPropagation()"></span>`}</th>`).join('');
+  head.innerHTML = TABLE_COLS.map((c,i)=>{
+    const collapsed = LOCKED_WHO && hiddenCols.has(c.key);
+    if(collapsed){
+      return `<th class="col-collapsed" title="${esc(c.label)} (hidden)"><span class="col-eye" onclick="event.stopPropagation(); toggleColHidden('${c.key}', true)">🙈</span></th>`;
+    }
+    return `<th class="${RIGHT_DIVIDER_KEYS.has(c.key)?'divider-right':''}" onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key ? `<span class="sort-arrow">${sortDir>0?'▲':'▼'}</span>`:''}${LOCKED_WHO ? `<span class="col-eye" title="Show/hide this column" onclick="event.stopPropagation(); toggleColHidden('${c.key}', false)">👁</span>` : ''}${(STATIC_FIT_KEYS.includes(c.key) || READ_ONLY) ? '' : `<span class="col-resize-handle" onmousedown="startResize(event,${i})" onclick="event.stopPropagation()"></span>`}</th>`;
+  }).join('');
   list = list.slice().sort((a,b)=>{
     let va = (a[sortCol]||'').toString().toLowerCase(), vb=(b[sortCol]||'').toString().toLowerCase();
     const isDateCol = sortCol==='earliestEstimatedCompletion' || sortCol==='latestEstimatedCompletion';

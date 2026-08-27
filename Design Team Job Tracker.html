@@ -214,6 +214,8 @@ td.date-overdue .cell-date{color:var(--red);font-weight:700;}
 table.jobs-table{width:auto;border-collapse:collapse;min-width:900px;table-layout:fixed;}
 table.jobs-table th{position:relative;user-select:none;}
 .col-resize-handle{position:absolute;right:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:2;}
+.col-eye{cursor:pointer;margin-left:6px;font-size:12px;opacity:.6;}
+.col-eye:hover{opacity:1;}
 .col-resize-handle:hover{background:var(--blue-soft);}
 table.jobs-table th{
   text-align:left;font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:15px;
@@ -290,8 +292,8 @@ table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .workload-wrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto;box-shadow:var(--shadow);}
 table.wl-table{border-collapse:collapse;width:100%;min-width:1100px;}
 table.wl-table th{
-  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;
-  color:var(--ink-soft);text-align:left;padding:10px 12px;border-bottom:1.5px solid var(--line-strong);
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:15px;text-transform:uppercase;letter-spacing:.03em;
+  color:var(--ink);text-align:left;padding:10px 12px;border-bottom:1.5px solid var(--line-strong);
   background:var(--paper);position:sticky;top:0;white-space:nowrap;
 }
 table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var(--paper-line);vertical-align:top;padding:0;}
@@ -2158,7 +2160,7 @@ function renderTable(list){
   if(!hasSharedWidths) autoFitDynamicColumns(jobs);
   renderColgroup();
   const head = document.getElementById('tableHeadRow');
-  head.innerHTML = TABLE_COLS.map((c,i)=>`<th class="${RIGHT_DIVIDER_KEYS.has(c.key)?'divider-right':''}" onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key ? `<span class="sort-arrow">${sortDir>0?'▲':'▼'}</span>`:''}${(STATIC_FIT_KEYS.includes(c.key) || READ_ONLY) ? '' : `<span class="col-resize-handle" onmousedown="startResize(event,${i})" onclick="event.stopPropagation()"></span>`}</th>`).join('');
+  head.innerHTML = TABLE_COLS.map((c,i)=>`<th class="${RIGHT_DIVIDER_KEYS.has(c.key)?'divider-right':''}" onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key ? `<span class="sort-arrow">${sortDir>0?'▲':'▼'}</span>`:''}${LOCKED_WHO ? `<span class="col-eye" title="Show/hide this column" onclick="event.stopPropagation(); toggleColHidden('${c.key}', hiddenCols.has('${c.key}'))">${hiddenCols.has(c.key)?'🙈':'👁'}</span>` : ''}${(STATIC_FIT_KEYS.includes(c.key) || READ_ONLY) ? '' : `<span class="col-resize-handle" onmousedown="startResize(event,${i})" onclick="event.stopPropagation()"></span>`}</th>`).join('');
   list = list.slice().sort((a,b)=>{
     let va = (a[sortCol]||'').toString().toLowerCase(), vb=(b[sortCol]||'').toString().toLowerCase();
     const isDateCol = sortCol==='earliestEstimatedCompletion' || sortCol==='latestEstimatedCompletion';
@@ -2455,13 +2457,14 @@ function renderColVisMenu(){
 function toggleColHidden(key, visible){
   if(visible) hiddenCols.delete(key); else hiddenCols.add(key);
   if(COL_VIS_KEY) localStorage.setItem(COL_VIS_KEY, JSON.stringify(Array.from(hiddenCols)));
-  applyColVisibility();
+  renderJobs();
+  renderColVisMenu();
 }
 function applyColVisibility(){
   if(!LOCKED_WHO) return;
   TABLE_COLS.forEach((c,i)=>{
     const hide = hiddenCols.has(c.key);
-    document.querySelectorAll(`#tableHeadRow th:nth-child(${i+1}), #tableBody tr td:nth-child(${i+1})`).forEach(el=>{
+    document.querySelectorAll(`#tableBody tr td:nth-child(${i+1})`).forEach(el=>{
       el.style.display = hide ? 'none' : '';
     });
   });

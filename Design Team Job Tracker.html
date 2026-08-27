@@ -79,6 +79,8 @@ a{color:var(--blue);}
 .tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
 .tabs-left{display:flex;gap:4px;}
 .settings-wrap{position:relative;padding-bottom:6px;}
+.colvis-wrap{position:relative;display:inline-block;}
+.colvis-wrap .settings-menu{right:auto;left:0;max-height:280px;overflow-y:auto;}
 .settings-btn{
   display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;
   color:var(--ink-soft);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px;
@@ -229,8 +231,8 @@ table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .cell-text{width:100%;min-height:38px;border:none;background:none;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);resize:none;overflow:hidden;display:block;}
 .cell-text:focus{outline:none;background:var(--blue-soft);}
 .cell-rich{width:100%;min-height:38px;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);outline:none;white-space:pre-wrap;}
-.my-note-wrap{border-top:2px solid var(--blue-deep);border-left:4px solid var(--blue-deep);padding:7px 10px 9px;background:#FFF6DA;margin-top:2px;}
-.my-note-label{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-deep);margin-bottom:4px;display:flex;align-items:center;gap:5px;}
+.my-note-wrap{border-top:2px solid #54524C;border-left:4px solid #54524C;padding:7px 10px 9px;background:#F1F1F0;margin-top:2px;}
+.my-note-label{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#54524C;margin-bottom:4px;display:flex;align-items:center;gap:5px;}
 .my-note-label::before{content:'📌';font-size:12px;}
 .my-note{width:100%;min-height:32px;border:none;background:none;padding:0;font-family:'Open Sans',sans-serif;font-size:12.5px;color:var(--ink);resize:none;overflow:hidden;display:block;}
 .my-note:focus{outline:none;}
@@ -377,6 +379,10 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
     ⚠ <strong>Can't reach the shared database right now.</strong> Changes you make may not save or sync with your team until this reconnects. Retrying automatically.
   </div>
   <div id="readOnlyBanner" class="readonly-banner" style="display:none;"></div>
+  <div id="colVisWrap" class="colvis-wrap" style="display:none;margin:0 0 10px;">
+    <button class="settings-btn" id="colVisBtn" onclick="toggleColVisMenu()">👁 Columns</button>
+    <div class="settings-menu" id="colVisMenu"></div>
+  </div>
 
   <div class="tabs">
     <div class="tabs-left">
@@ -2176,6 +2182,7 @@ function renderTable(list){
       <td class="divider-right"><span class="pill ${taskPillClass(j.taskStatus)}">${esc(j.taskStatus||'In Progress')}</span></td>
     </tr>`).join('');
   document.querySelectorAll('#tableBody .cell-text').forEach(autoGrow);
+  applyColVisibility();
   if(!columnsAutoFitted && jobs.length){
     measureAndLockStaticColumnWidths();
     columnsAutoFitted = true;
@@ -2428,7 +2435,37 @@ function closeSettingsMenu(){ document.getElementById('settingsMenu').classList.
 document.addEventListener('click', e=>{
   const wrap = document.querySelector('.settings-wrap');
   if(wrap && !wrap.contains(e.target)) closeSettingsMenu();
+  const colWrap = document.getElementById('colVisWrap');
+  if(colWrap && !colWrap.contains(e.target)) closeColVisMenu();
 });
+const COL_VIS_KEY = LOCKED_WHO ? 'whoColHidden:' + LOCKED_WHO : null;
+let hiddenCols = new Set();
+if(COL_VIS_KEY){
+  try{ hiddenCols = new Set(JSON.parse(localStorage.getItem(COL_VIS_KEY) || '[]')); }catch(e){}
+}
+function toggleColVisMenu(){ document.getElementById('colVisMenu').classList.toggle('open'); }
+function closeColVisMenu(){ document.getElementById('colVisMenu').classList.remove('open'); }
+function renderColVisMenu(){
+  const menu = document.getElementById('colVisMenu');
+  menu.innerHTML = TABLE_COLS.map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:13px;cursor:pointer;white-space:nowrap;">
+    <input type="checkbox" ${hiddenCols.has(c.key)?'':'checked'} onchange="toggleColHidden('${c.key}', this.checked)">
+    ${esc(c.label)}
+  </label>`).join('');
+}
+function toggleColHidden(key, visible){
+  if(visible) hiddenCols.delete(key); else hiddenCols.add(key);
+  if(COL_VIS_KEY) localStorage.setItem(COL_VIS_KEY, JSON.stringify(Array.from(hiddenCols)));
+  applyColVisibility();
+}
+function applyColVisibility(){
+  if(!LOCKED_WHO) return;
+  TABLE_COLS.forEach((c,i)=>{
+    const hide = hiddenCols.has(c.key);
+    document.querySelectorAll(`#tableHeadRow th:nth-child(${i+1}), #tableBody tr td:nth-child(${i+1})`).forEach(el=>{
+      el.style.display = hide ? 'none' : '';
+    });
+  });
+}
 function openMyWorkLinksModal(){
   const list = document.getElementById('myWorkLinksList');
   const names = staff.map(s=>s.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
@@ -2746,6 +2783,10 @@ function applyReadOnlyMode(){
     ? '👁 Viewing all jobs — view only, no changes can be made here.'
     : '👁 Viewing ' + parts.join(' / ') + ' jobs — view only, no changes can be made here.';
   banner.style.display = 'block';
+  if(LOCKED_WHO){
+    document.getElementById('colVisWrap').style.display = 'block';
+    renderColVisMenu();
+  }
 }
 applyReadOnlyMode();
 loadAll(true);

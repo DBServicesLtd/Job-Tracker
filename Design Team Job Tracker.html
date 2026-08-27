@@ -229,6 +229,10 @@ table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .cell-text{width:100%;min-height:38px;border:none;background:none;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);resize:none;overflow:hidden;display:block;}
 .cell-text:focus{outline:none;background:var(--blue-soft);}
 .cell-rich{width:100%;min-height:38px;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);outline:none;white-space:pre-wrap;}
+.my-note-wrap{border-top:1px dashed var(--line-strong);padding:6px 10px 8px;background:#FFFDF3;}
+.my-note-label{font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:3px;}
+.my-note{width:100%;min-height:32px;border:none;background:none;padding:0;font-family:'Open Sans',sans-serif;font-size:12.5px;color:var(--ink-soft);resize:none;overflow:hidden;display:block;}
+.my-note:focus{outline:none;}
 .cell-rich:focus{background:var(--blue-soft);}
 .cell-rich mark, .cell-rich-view mark{background:#FFF3B0;padding:0 2px;border-radius:2px;}
 .rich-toolbar{position:fixed;display:none;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.18);padding:4px;z-index:60;}
@@ -1933,7 +1937,7 @@ async function saveInlineField(el){
   if(field==='planning' || field==='engineer') renderJobs();
 }
 function applyTableWidth(){
-  const total = columnWidths.reduce((a,b)=>a+b, 0) + (LOCKED_WHO ? PERSONAL_NOTE_COL_WIDTH : 0);
+  const total = columnWidths.reduce((a,b)=>a+b, 0);
   const table = document.getElementById('jobsTable');
   if(table) table.style.width = total + 'px';
   syncToolbarWidth();
@@ -1956,10 +1960,8 @@ function syncToolbarWidth(){
 }
 window.addEventListener('resize', syncToolbarWidth);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncToolbarWidth(); });
-const PERSONAL_NOTE_COL_WIDTH = 220;
 function renderColgroup(){
-  document.getElementById('tableColgroup').innerHTML = columnWidths.map(w=>`<col style="width:${w}px">`).join('')
-    + (LOCKED_WHO ? `<col style="width:${PERSONAL_NOTE_COL_WIDTH}px">` : '');
+  document.getElementById('tableColgroup').innerHTML = columnWidths.map(w=>`<col style="width:${w}px">`).join('');
   applyTableWidth();
 }
 function startResize(e, idx){
@@ -2079,8 +2081,11 @@ function plainToRichHtml(text){
 function richTextCell(j, field){
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
   const html = sanitizeRich(j[field]||'');
-  if(READ_ONLY) return `<td class="td-notes ${divider}"><div class="cell-rich-view">${html}</div></td>`;
-  return `<td class="td-notes td-editable ${divider}"><div class="cell-rich" contenteditable="true" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" onblur="saveRichCell(this)" onkeydown="handleGridNavKey(event)">${html}</div></td>`;
+  const myNote = (field==='notes' && LOCKED_WHO)
+    ? `<div class="my-note-wrap"><div class="my-note-label">My Note</div><textarea class="cell-text my-note" data-id="${j.id}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="savePersonalNote(this)" placeholder="Just for you…">${esc(personalNotes[j.id]||'')}</textarea></div>`
+    : '';
+  if(READ_ONLY) return `<td class="td-notes ${divider}"><div class="cell-rich-view">${html}</div>${myNote}</td>`;
+  return `<td class="td-notes td-editable ${divider}"><div class="cell-rich" contenteditable="true" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" onblur="saveRichCell(this)" onkeydown="handleGridNavKey(event)">${html}</div>${myNote}</td>`;
 }
 let activeRichEl = null;
 function toggleInlineTag(tagName){
@@ -2146,8 +2151,7 @@ function renderTable(list){
   if(!hasSharedWidths) autoFitDynamicColumns(jobs);
   renderColgroup();
   const head = document.getElementById('tableHeadRow');
-  head.innerHTML = TABLE_COLS.map((c,i)=>`<th class="${RIGHT_DIVIDER_KEYS.has(c.key)?'divider-right':''}" onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key ? `<span class="sort-arrow">${sortDir>0?'▲':'▼'}</span>`:''}${(STATIC_FIT_KEYS.includes(c.key) || READ_ONLY) ? '' : `<span class="col-resize-handle" onmousedown="startResize(event,${i})" onclick="event.stopPropagation()"></span>`}</th>`).join('')
-    + (LOCKED_WHO ? '<th>My Note</th>' : '');
+  head.innerHTML = TABLE_COLS.map((c,i)=>`<th class="${RIGHT_DIVIDER_KEYS.has(c.key)?'divider-right':''}" onclick="sortBy('${c.key}')">${c.label}${sortCol===c.key ? `<span class="sort-arrow">${sortDir>0?'▲':'▼'}</span>`:''}${(STATIC_FIT_KEYS.includes(c.key) || READ_ONLY) ? '' : `<span class="col-resize-handle" onmousedown="startResize(event,${i})" onclick="event.stopPropagation()"></span>`}</th>`).join('');
   list = list.slice().sort((a,b)=>{
     let va = (a[sortCol]||'').toString().toLowerCase(), vb=(b[sortCol]||'').toString().toLowerCase();
     const isDateCol = sortCol==='earliestEstimatedCompletion' || sortCol==='latestEstimatedCompletion';
@@ -2169,7 +2173,6 @@ function renderTable(list){
       ${textCell(j,'engineer')}
       ${dateCell(j,'updatesSent')}
       <td class="divider-right"><span class="pill ${taskPillClass(j.taskStatus)}">${esc(j.taskStatus||'In Progress')}</span></td>
-      ${LOCKED_WHO ? `<td class="td-editable"><textarea class="cell-text" data-id="${j.id}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="savePersonalNote(this)" placeholder="Just for you…">${esc(personalNotes[j.id]||'')}</textarea></td>` : ''}
     </tr>`).join('');
   document.querySelectorAll('#tableBody .cell-text').forEach(autoGrow);
   if(!columnsAutoFitted && jobs.length){

@@ -229,9 +229,10 @@ table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .cell-text{width:100%;min-height:38px;border:none;background:none;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);resize:none;overflow:hidden;display:block;}
 .cell-text:focus{outline:none;background:var(--blue-soft);}
 .cell-rich{width:100%;min-height:38px;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);outline:none;white-space:pre-wrap;}
-.my-note-wrap{border-top:1px dashed var(--line-strong);padding:6px 10px 8px;background:#FFFDF3;}
-.my-note-label{font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:3px;}
-.my-note{width:100%;min-height:32px;border:none;background:none;padding:0;font-family:'Open Sans',sans-serif;font-size:12.5px;color:var(--ink-soft);resize:none;overflow:hidden;display:block;}
+.my-note-wrap{border-top:2px solid var(--blue-deep);border-left:4px solid var(--blue-deep);padding:7px 10px 9px;background:#FFF6DA;margin-top:2px;}
+.my-note-label{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-deep);margin-bottom:4px;display:flex;align-items:center;gap:5px;}
+.my-note-label::before{content:'📌';font-size:12px;}
+.my-note{width:100%;min-height:32px;border:none;background:none;padding:0;font-family:'Open Sans',sans-serif;font-size:12.5px;color:var(--ink);resize:none;overflow:hidden;display:block;}
 .my-note:focus{outline:none;}
 .cell-rich:focus{background:var(--blue-soft);}
 .cell-rich mark, .cell-rich-view mark{background:#FFF3B0;padding:0 2px;border-radius:2px;}

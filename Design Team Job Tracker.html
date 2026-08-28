@@ -2472,6 +2472,7 @@ function renderColVisMenu(){
 function toggleColHidden(key, visible){
   if(visible) hiddenCols.delete(key); else hiddenCols.add(key);
   if(COL_VIS_KEY) localStorage.setItem(COL_VIS_KEY, JSON.stringify(Array.from(hiddenCols)));
+  columnsAutoFitted = false;
   renderJobs();
   renderColVisMenu();
 }

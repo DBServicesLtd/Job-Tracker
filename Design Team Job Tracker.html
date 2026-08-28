@@ -2036,7 +2036,9 @@ function autoGrow(el){
   el.style.height = el.scrollHeight + 'px';
 }
 const RIGHT_DIVIDER_KEYS = new Set(['notes','planning','earliestEstimatedCompletion','latestEstimatedCompletion','engineer','updatesSent','taskStatus']);
+function isColHidden(key){ return LOCKED_WHO && hiddenCols.has(key); }
 function dateCell(j, field){
+  if(isColHidden(field)) return '<td class="col-collapsed"></td>';
   const urgency = (field==='earliestEstimatedCompletion' || field==='latestEstimatedCompletion') ? dateUrgencyClass(j[field]) : '';
   const display = j[field] ? fmtDate(j[field]) : '';
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
@@ -2044,6 +2046,7 @@ function dateCell(j, field){
   return `<td class="td-editable ${urgency} ${divider}"><input type="text" class="cell-date" placeholder="" data-id="${j.id}" data-field="${field}" value="${esc(display)}" onclick="event.stopPropagation()" onblur="saveDateCell(this)" onkeydown="handleGridNavKey(event)"></td>`;
 }
 function textCell(j, field){
+  if(isColHidden(field)) return '<td class="col-collapsed"></td>';
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
   if(READ_ONLY) return `<td class="td-notes ${divider}">${esc(j[field]||'')}</td>`;
   return `<td class="td-notes td-editable ${divider}"><textarea class="cell-text" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="saveInlineField(this)" onkeydown="handleGridNavKey(event)">${esc(j[field]||'')}</textarea></td>`;
@@ -2094,6 +2097,7 @@ function plainToRichHtml(text){
   return s;
 }
 function richTextCell(j, field){
+  if(isColHidden(field)) return '<td class="col-collapsed"></td>';
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
   const html = sanitizeRich(j[field]||'');
   const myNote = (field==='notes' && LOCKED_WHO)
@@ -2181,22 +2185,21 @@ function renderTable(list){
   });
   document.getElementById('tableBody').innerHTML = list.map(j=>`
     <tr onclick="openJobModal('${j.id}')">
-      <td>${esc(j.region||'')}</td>
-      <td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>
-      <td><strong>${esc(j.jobName||'Untitled')}</strong></td>
-      <td><span class="stamp ${stageClass(j.stage)}">${esc(j.stage)}</span></td>
-      <td>${esc(j.who||'')}</td>
-      <td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>
+      ${isColHidden('region') ? '<td class="col-collapsed"></td>' : `<td>${esc(j.region||'')}</td>`}
+      ${isColHidden('jobNumber') ? '<td class="col-collapsed"></td>' : `<td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>`}
+      ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td><strong>${esc(j.jobName||'Untitled')}</strong></td>`}
+      ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td><span class="stamp ${stageClass(j.stage)}">${esc(j.stage)}</span></td>`}
+      ${isColHidden('who') ? '<td class="col-collapsed"></td>' : `<td>${esc(j.who||'')}</td>`}
+      ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>`}
       ${richTextCell(j,'notes')}
       ${richTextCell(j,'planning')}
       ${dateCell(j,'earliestEstimatedCompletion')}
       ${dateCell(j,'latestEstimatedCompletion')}
       ${textCell(j,'engineer')}
       ${dateCell(j,'updatesSent')}
-      <td class="divider-right"><span class="pill ${taskPillClass(j.taskStatus)}">${esc(j.taskStatus||'In Progress')}</span></td>
+      ${isColHidden('taskStatus') ? '<td class="col-collapsed"></td>' : `<td class="divider-right"><span class="pill ${taskPillClass(j.taskStatus)}">${esc(j.taskStatus||'In Progress')}</span></td>`}
     </tr>`).join('');
   document.querySelectorAll('#tableBody .cell-text').forEach(autoGrow);
-  applyColVisibility();
   if(!columnsAutoFitted && jobs.length){
     measureAndLockStaticColumnWidths();
     columnsAutoFitted = true;
@@ -2471,15 +2474,6 @@ function toggleColHidden(key, visible){
   if(COL_VIS_KEY) localStorage.setItem(COL_VIS_KEY, JSON.stringify(Array.from(hiddenCols)));
   renderJobs();
   renderColVisMenu();
-}
-function applyColVisibility(){
-  if(!LOCKED_WHO) return;
-  TABLE_COLS.forEach((c,i)=>{
-    const hide = hiddenCols.has(c.key);
-    document.querySelectorAll(`#tableBody tr td:nth-child(${i+1})`).forEach(el=>{
-      el.style.display = hide ? 'none' : '';
-    });
-  });
 }
 function openMyWorkLinksModal(){
   const list = document.getElementById('myWorkLinksList');

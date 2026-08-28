@@ -81,6 +81,7 @@ a{color:var(--blue);}
 .settings-wrap{position:relative;padding-bottom:6px;}
 .colvis-wrap{position:relative;display:inline-block;}
 .colvis-wrap .settings-menu{right:auto;left:0;max-height:280px;overflow-y:auto;}
+.views-wrap{position:relative;display:inline-block;}
 .settings-btn{
   display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;
   color:var(--ink-soft);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px;
@@ -429,6 +430,10 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
         <option value="stage">Group by stage</option>
         <option value="region">Group by region</option>
       </select>
+      <div class="views-wrap" id="viewsWrap">
+        <button class="btn-ghost" id="viewsBtn" onclick="toggleViewsMenu()">📌 Views</button>
+        <div class="settings-menu" id="viewsMenu" style="min-width:240px;"></div>
+      </div>
       <button class="btn-ghost" id="turnaroundGuideBtn" onclick="openGuideModal()">⏱ Turnaround guide</button>
       <button class="btn-primary" id="newJobBtn" onclick="openJobModal()" style="flex:1 1 200px;justify-content:center;">+ New job</button>
     </div>
@@ -2454,7 +2459,68 @@ document.addEventListener('click', e=>{
   if(wrap && !wrap.contains(e.target)) closeSettingsMenu();
   const colWrap = document.getElementById('colVisWrap');
   if(colWrap && !colWrap.contains(e.target)) closeColVisMenu();
+  const viewsWrap = document.getElementById('viewsWrap');
+  if(viewsWrap && !viewsWrap.contains(e.target)) closeViewsMenu();
 });
+const SAVED_VIEWS_KEY = 'jobTrackerSavedViews';
+function getSavedViews(){
+  try{ return JSON.parse(localStorage.getItem(SAVED_VIEWS_KEY) || '[]'); }catch(e){ return []; }
+}
+function setSavedViews(list){ localStorage.setItem(SAVED_VIEWS_KEY, JSON.stringify(list)); }
+function toggleViewsMenu(){
+  document.getElementById('viewsMenu').classList.toggle('open');
+  renderViewsMenu();
+}
+function closeViewsMenu(){ document.getElementById('viewsMenu').classList.remove('open'); }
+function renderViewsMenu(){
+  const menu = document.getElementById('viewsMenu');
+  const views = getSavedViews();
+  const list = views.map((v,i)=>`<div style="display:flex;align-items:center;gap:6px;">
+    <button style="flex:1;text-align:left;" onclick="applySavedView(${i})">${esc(v.name)}</button>
+    <button style="padding:6px 8px;color:var(--red);" title="Delete" onclick="event.stopPropagation(); deleteSavedView(${i})">✕</button>
+  </div>`).join('');
+  menu.innerHTML = (list || '<p style="padding:6px 10px;color:var(--ink-faint);font-size:12.5px;margin:0;">No saved views yet.</p>')
+    + `<div style="border-top:1px solid var(--line);margin-top:4px;padding-top:6px;display:flex;gap:6px;padding-left:10px;padding-right:10px;">
+      <input type="text" id="newViewName" placeholder="Name this view…" style="flex:1;border:1px solid var(--line-strong);border-radius:6px;padding:5px 8px;font-size:12.5px;" onclick="event.stopPropagation()">
+      <button class="btn-ghost" onclick="event.stopPropagation(); saveCurrentView()">Save</button>
+    </div>`;
+}
+function saveCurrentView(){
+  const input = document.getElementById('newViewName');
+  const name = input.value.trim();
+  if(!name) return;
+  const views = getSavedViews();
+  views.push({
+    name,
+    region: document.getElementById('regionFilter').value,
+    stage: document.getElementById('stageFilter').value,
+    showCompleted: document.getElementById('showCompleted').checked,
+    showArchived: document.getElementById('showArchived').checked,
+    sortCol, sortDir
+  });
+  setSavedViews(views);
+  renderViewsMenu();
+}
+function applySavedView(i){
+  const v = getSavedViews()[i];
+  if(!v) return;
+  document.getElementById('regionFilter').value = v.region || '';
+  document.getElementById('stageFilter').value = v.stage || '';
+  document.getElementById('showCompleted').checked = !!v.showCompleted;
+  document.getElementById('showArchived').checked = !!v.showArchived;
+  sortCol = v.sortCol || sortCol;
+  sortDir = v.sortDir || 1;
+  localStorage.setItem('jobTrackerSortCol', sortCol);
+  localStorage.setItem('jobTrackerSortDir', String(sortDir));
+  closeViewsMenu();
+  renderJobs();
+}
+function deleteSavedView(i){
+  const views = getSavedViews();
+  views.splice(i,1);
+  setSavedViews(views);
+  renderViewsMenu();
+}
 const COL_VIS_KEY = LOCKED_WHO ? 'whoColHidden:' + LOCKED_WHO : null;
 let hiddenCols = new Set();
 if(COL_VIS_KEY){
@@ -2779,6 +2845,7 @@ function applyReadOnlyMode(){
   if(!READ_ONLY) return;
   document.getElementById('newJobBtn').style.display = 'none';
   document.getElementById('turnaroundGuideBtn').style.display = 'none';
+  document.getElementById('viewsWrap').style.display = 'none';
   document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
   document.getElementById('undoBtn').style.display = 'none';
   document.querySelector('[data-tab="workload"]').style.display = 'none';

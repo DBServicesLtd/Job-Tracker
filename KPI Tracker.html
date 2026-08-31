@@ -62,7 +62,8 @@ tbody tr.kpi-weekend .staff-block-b td{background:#DEE4E7 !important;}
 .kpi-total-row td{border-top:3px solid var(--blue-deep);font-weight:700;}
 .kpi-target{width:46px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 4px;font-size:12px;margin-left:6px;}
 .day-cell{position:sticky;left:0;background:var(--panel);font-weight:700;padding:9px 14px;z-index:3;border-right:2px solid var(--line-strong);white-space:nowrap;min-width:100px;}
-.staff-name-hdr{font-size:21px;font-weight:700;font-style:normal;font-family:'DM Serif Display',serif;color:var(--blue-deep);border-bottom:2px solid var(--blue-deep) !important;padding:12px 10px;}
+.staff-name-hdr{font-size:56px;font-weight:800;font-style:normal;font-family:'Open Sans',sans-serif;color:var(--blue);border-bottom:2px solid var(--blue-deep) !important;padding:10px 8px;line-height:1;white-space:normal;}
+.kpi-other-hdr{padding:2px 0 !important;}
 .kpi-holiday td{background:#FBEFD4 !important;}
 .kpi-holiday .staff-block-a td{background:#F6E8CB !important;}
 .kpi-holiday .staff-block-b td{background:#F0E0BE !important;}
@@ -361,7 +362,7 @@ function renderKpiDaily(){
   document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;" rowspan="3">Day</th>' + staff.map((s,idx)=>`<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)}</th>`).join('');
   document.getElementById('kpiHeadRow2').innerHTML = staff.map((s,idx)=>{
     const cls = 'staff-block-'+(idx%2===0?'a':'b');
-    return `<th class="${cls} staff-block-start" rowspan="2">Start</th><th class="${cls}" rowspan="2">Finish</th><th class="${cls}" rowspan="2">Lunch</th><th class="${cls}" colspan="2" style="text-align:center;">Other</th><th class="${cls}" rowspan="2">Total</th>`;
+    return `<th class="${cls} staff-block-start" rowspan="2">Start</th><th class="${cls}" rowspan="2">Finish</th><th class="${cls}" rowspan="2">Lunch</th><th class="${cls} kpi-other-hdr" colspan="2" style="text-align:center;">Other</th><th class="${cls}" rowspan="2">Total</th>`;
   }).join('');
   document.getElementById('kpiHeadRow3').innerHTML = staff.map((s,idx)=>{
     const cls = 'staff-block-'+(idx%2===0?'a':'b');

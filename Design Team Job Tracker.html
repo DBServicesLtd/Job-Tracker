@@ -461,6 +461,7 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
       <button class="btn-ghost" onclick="shiftWeek(0,true)">This week</button>
       <span style="flex:1"></span>
       <button class="btn-ghost" onclick="window.print()">🖶 Print view</button>
+      <a class="btn-ghost" href="KPI%20Tracker.html" target="_blank" style="text-decoration:none;">📊 KPI Tracker</a>
     </div>
     <div class="staff-add">
       <input id="newStaffName" placeholder="Add team member…" onkeydown="if(event.key==='Enter')addStaff()">
@@ -2791,7 +2792,7 @@ function renderWorkload(){
     DAYS.map(d=>`<th>${DAY_LABELS[d]}</th>`).join('') +
     '<th>Upcoming / notes</th>';
   const tk = todayKey();
-  document.getElementById('wlBody').innerHTML = staff.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(s=>{
+  document.getElementById('wlBody').innerHTML = staff.filter(s=>s.show_in_workload!==false).slice().sort((a,b)=>a.name.localeCompare(b.name)).map(s=>{
     const row = data[s.id] || {};
     return `<tr>
       <td class="wl-name">${esc(s.name)}<button class="rm" title="Remove" onclick="removeStaff('${s.id}')">✕</button></td>

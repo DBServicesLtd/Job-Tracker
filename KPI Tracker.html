@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Design Builders (Services) Ltd, KPI Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Open+Sans:wght@400;600;700&display=swap');
+:root{
+  --paper:#F4F4F2;--panel:#FFFFFF;--line:#E4E4E0;--line-strong:#D6D6D0;
+  --ink:#01003A;--ink-soft:#5B6673;--ink-faint:#8A93A0;
+  --blue:#006699;--blue-deep:#01003A;--blue-mid:#408CB2;--blue-soft:#C1DCEA;
+  --amber:#B5860A;--red:#B23A3A;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);font-family:'Open Sans',sans-serif;color:var(--ink);}
+.app{max-width:1600px;margin:0 auto;padding:24px 28px;}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-mark{background:var(--blue-deep);color:#fff;font-weight:700;font-size:11px;letter-spacing:.08em;padding:8px 10px;border-radius:6px;}
+h1{font-family:'DM Serif Display',serif;font-style:italic;font-size:26px;margin:0;color:var(--blue-deep);}
+.topbar p{margin:2px 0 0;color:var(--ink-soft);font-size:13px;}
+.sync{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft);}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#3A8A4A;}
+.sync-dot.busy{background:var(--amber);}
+.btn-refresh{border:1px solid var(--line-strong);background:var(--panel);color:var(--ink-soft);border-radius:5px;padding:6px 10px;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer;}
+.btn-refresh:hover{border-color:var(--blue);color:var(--blue);}
+.btn-ghost{border:1px solid var(--line-strong);background:var(--panel);color:var(--ink-soft);border-radius:5px;padding:8px 12px;font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer;}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
+.btn-ghost.active{background:var(--blue-deep);color:#fff;border-color:var(--blue-deep);}
+.week-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.week-label{font-weight:700;color:var(--blue-deep);font-size:14px;min-width:180px;text-align:center;}
+.hint{font-size:11.5px;color:var(--ink-faint);margin:0 0 14px 2px;}
+.table-wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;}
+table.kpi-table{border-collapse:collapse;width:100%;min-width:900px;}
+table.kpi-table th{
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:13px;
+  color:var(--ink);text-align:left;padding:9px 10px;border-bottom:2px solid var(--line-strong);
+  border-right:1px solid var(--line-strong);background:var(--paper);white-space:nowrap;
+}
+table.kpi-table td{padding:0;border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:middle;font-size:13px;}
+table.kpi-table tbody tr:nth-child(even) td{background:#FAFAF8;}
+table.kpi-table tbody tr:hover td{background:var(--blue-soft) !important;}
+.kpi-weekend td{background:#EDEDE9 !important;}
+.staff-block-a th, .staff-block-a td{background:#FFFFFF;}
+.staff-block-b th, .staff-block-b td{background:#F3F6F8;}
+tbody tr:nth-child(even) .staff-block-a td{background:#F7F7F5;}
+tbody tr:nth-child(even) .staff-block-b td{background:#EAEEF1;}
+tbody tr.kpi-weekend .staff-block-a td{background:#E9E9E5 !important;}
+tbody tr.kpi-weekend .staff-block-b td{background:#DEE4E7 !important;}
+.staff-block-start{border-left:3px solid var(--blue-deep) !important;}
+.kpi-time, .kpi-lunch, .kpi-leave{border:none;background:none;font-size:12.5px;padding:8px 4px;font-family:'Open Sans',sans-serif;color:var(--ink);text-align:center;}
+.kpi-time{width:52px;}
+.kpi-lunch{width:42px;}
+.kpi-leave{width:52px;}
+.kpi-time:focus, .kpi-lunch:focus, .kpi-leave:focus{outline:none;background:var(--blue-soft) !important;}
+.kpi-time.kpi-empty, .kpi-lunch.kpi-empty{color:#C3C7CC;}
+.kpi-time.kpi-filled, .kpi-lunch.kpi-filled{color:var(--ink);font-weight:600;}
+.kpi-total{font-weight:700;text-align:center;padding:8px 6px;background:#EAF1F6 !important;color:var(--blue-deep);width:52px;}
+.kpi-under{background:#FFC7CE !important;color:#9C0006;font-weight:700;text-align:center;padding:8px 6px;width:52px;}
+.kpi-over{background:#C6EFCE !important;color:#006100;font-weight:700;text-align:center;padding:8px 6px;width:52px;}
+.kpi-total-row td{border-top:3px solid var(--blue-deep);font-weight:700;}
+.kpi-target{width:46px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 4px;font-size:12px;margin-left:6px;}
+.day-cell{position:sticky;left:0;background:var(--panel);font-weight:700;padding:9px 14px;z-index:3;border-right:2px solid var(--line-strong);white-space:nowrap;min-width:100px;}
+.staff-name-hdr{font-size:21px;font-weight:700;font-style:normal;font-family:'DM Serif Display',serif;color:var(--blue-deep);border-bottom:2px solid var(--blue-deep) !important;padding:12px 10px;}
+.kpi-holiday td{background:#FBEFD4 !important;}
+.kpi-holiday .staff-block-a td{background:#F6E8CB !important;}
+.kpi-holiday .staff-block-b td{background:#F0E0BE !important;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--blue-deep);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">DESIGN BUILDERS</div>
+      <div>
+        <h1>KPI Tracker</h1>
+        <p>Staff hours &amp; leave — standalone preview, not yet linked into the main Job Tracker</p>
+      </div>
+    </div>
+    <div class="sync">
+      <span id="syncDot" class="sync-dot"></span>
+      <span id="syncText">synced</span>
+      <button class="btn-refresh" onclick="loadAndRenderKpi()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <button class="btn-ghost" id="kpiDailyBtn" onclick="setKpiViewMode('daily')">Daily Log</button>
+    <button class="btn-ghost" id="kpiAnnualBtn" onclick="setKpiViewMode('annual')">Annual Summary</button>
+    <span style="flex:1"></span>
+    <button class="btn-ghost" onclick="shiftKpiPeriod(-1)">← Prev</button>
+    <span class="week-label" id="kpiPeriodLabel"></span>
+    <button class="btn-ghost" onclick="shiftKpiPeriod(1)">Next →</button>
+    <button class="btn-ghost" onclick="shiftKpiPeriod(0,true)">This month</button>
+  </div>
+  <p class="hint">Green = at or above target hours/day, pink = under. Grey rows = weekends, gold rows 🎉 = NZ public holidays (no time entry on these). Filled-in times show dark, empty ones show light grey. Each person's target hours/day is set in Annual Summary, defaulting to 8.</p>
+
+  <div class="table-wrap">
+    <table class="kpi-table" id="kpiTable">
+      <thead><tr id="kpiHeadRow1"></tr><tr id="kpiHeadRow2"></tr></thead>
+      <tbody id="kpiBody"></tbody>
+    </table>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://jeztkwnvfewhnaadaazh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SydrZ17z4xJGOVT7B7yZAA_UrG6qJSV';
+
+async function sbFetch(path, opts){
+  opts = opts || {};
+  const headers = Object.assign({
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json'
+  }, opts.headers || {});
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: opts.method || 'GET',
+    headers: headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if(!res.ok){
+    const text = await res.text().catch(()=>'');
+    throw new Error('Supabase ' + res.status + ' ' + text);
+  }
+  if(res.status === 204) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function setSync(busy){
+  document.getElementById('syncDot').classList.toggle('busy', !!busy);
+  document.getElementById('syncText').textContent = busy ? 'syncing…' : 'synced';
+}
+let pendingSaves = 0;
+async function withSync(action, errorMessage){
+  pendingSaves++;
+  setSync(true);
+  try{
+    return await action();
+  }catch(e){
+    showToast(errorMessage);
+  }finally{
+    setSync(false);
+    pendingSaves--;
+  }
+}
+
+const MATARIKI_DATES = {
+  2022:'06-24',2023:'07-14',2024:'06-28',2025:'06-20',2026:'07-10',2027:'06-25',
+  2028:'07-14',2029:'07-06',2030:'06-21',2031:'07-11',2032:'07-02',2033:'06-24',
+  2034:'07-07',2035:'06-29',2036:'07-18',2037:'07-10',2038:'06-25',2039:'07-15',2040:'07-06'
+};
+function isoDate(d){ return d.toISOString().slice(0,10); }
+function nthWeekdayOfMonth(year, month, weekday, n){
+  const d = new Date(year, month, 1);
+  let count = 0;
+  while(true){
+    if(d.getDay()===weekday){ count++; if(count===n) return new Date(d); }
+    d.setDate(d.getDate()+1);
+  }
+}
+function mondayiseSingle(d){
+  const dt = new Date(d);
+  if(dt.getDay()===6) dt.setDate(dt.getDate()+2);
+  else if(dt.getDay()===0) dt.setDate(dt.getDate()+1);
+  return dt;
+}
+function mondayisePair(d1){
+  const a = new Date(d1);
+  const b = new Date(d1); b.setDate(b.getDate()+1);
+  const obsA = mondayiseSingle(a);
+  let obsB = mondayiseSingle(b);
+  if(obsA.getTime()===obsB.getTime()) obsB.setDate(obsB.getDate()+1);
+  return [obsA, obsB];
+}
+function nzEasterSunday(year){
+  const a = year % 19, b = Math.floor(year/100), c = year % 100;
+  const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
+  const g = Math.floor((b-f+1)/3), h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c/4), k = c % 4, l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l)/451);
+  const monthDay = h + l - 7*m + 114;
+  const month = Math.floor(monthDay/31);
+  const day = (monthDay % 31) + 1;
+  return new Date(year, month-1, day);
+}
+const nzHolidayCache = {};
+function getNZHolidays(year){
+  if(nzHolidayCache[year]) return nzHolidayCache[year];
+  const list = [];
+  const [ny1, ny2] = mondayisePair(new Date(year,0,1));
+  list.push(ny1, ny2);
+  list.push(mondayiseSingle(new Date(year,1,6)));
+  const easter = nzEasterSunday(year);
+  const goodFriday = new Date(easter); goodFriday.setDate(goodFriday.getDate()-2);
+  const easterMonday = new Date(easter); easterMonday.setDate(easterMonday.getDate()+1);
+  list.push(goodFriday, easterMonday);
+  list.push(mondayiseSingle(new Date(year,3,25)));
+  list.push(nthWeekdayOfMonth(year,5,1,1));
+  if(MATARIKI_DATES[year]){
+    const [mm,dd] = MATARIKI_DATES[year].split('-').map(Number);
+    list.push(new Date(year, mm-1, dd));
+  }
+  list.push(nthWeekdayOfMonth(year,9,1,4));
+  const [xmas, boxing] = mondayisePair(new Date(year,11,25));
+  list.push(xmas, boxing);
+  const isoList = list.map(isoDate);
+  nzHolidayCache[year] = isoList;
+  return isoList;
+}
+
+let staff = [];
+let kpiViewMode = 'daily';
+let kpiMonthOffset = 0;
+let kpiFyOffset = 0;
+let kpiEntries = {};
+let kpiLeave = {};
+
+function kpiMonthDate(offset){
+  const d = new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth()+offset);
+  return d;
+}
+function kpiFyStartYear(fyOffset){
+  const now = new Date();
+  let year = (now.getMonth()+1) >= 4 ? now.getFullYear() : now.getFullYear()-1;
+  return year + fyOffset;
+}
+function daysInMonth(year, month){ return new Date(year, month, 0).getDate(); }
+function hhmm(t){ return t ? String(t).slice(0,5) : ''; }
+function normalizeTime(raw){
+  const v = (raw||'').trim();
+  if(!v) return '';
+  const m = v.match(/^(\d{1,2}):?(\d{2})$/);
+  if(!m) return null;
+  const h = parseInt(m[1],10), mm = parseInt(m[2],10);
+  if(h>23 || mm>59) return null;
+  return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+}
+function timeStrToDecimal(t){
+  if(!t) return null;
+  const parts = String(t).split(':').map(Number);
+  return parts[0] + (parts[1]||0)/60;
+}
+function dailyHoursForEntry(e){
+  if(!e) return 0;
+  let total = 0;
+  if(e.start_time && e.finish_time){
+    total += (timeStrToDecimal(e.finish_time) - timeStrToDecimal(e.start_time)) - ((e.lunch_minutes||0)/60);
+  }
+  if(e.other_start && e.other_finish){
+    total += (timeStrToDecimal(e.other_finish) - timeStrToDecimal(e.other_start));
+  }
+  return total>0 ? total : 0;
+}
+function countWeekdaysInMonth(year, month){
+  const total = daysInMonth(year, month);
+  let count = 0;
+  for(let d=1; d<=total; d++){
+    const dow = new Date(year, month-1, d).getDay();
+    if(dow!==0 && dow!==6) count++;
+  }
+  return count;
+}
+function countHolidayWeekdaysInMonth(year, month){
+  return getNZHolidays(year).filter(iso=> Number(iso.slice(5,7))===month).length;
+}
+function setKpiViewMode(mode){
+  kpiViewMode = mode;
+  document.getElementById('kpiDailyBtn').classList.toggle('active', mode==='daily');
+  document.getElementById('kpiAnnualBtn').classList.toggle('active', mode==='annual');
+  loadAndRenderKpi();
+}
+function shiftKpiPeriod(delta, reset){
+  if(kpiViewMode==='daily') kpiMonthOffset = reset ? 0 : kpiMonthOffset+delta;
+  else kpiFyOffset = reset ? 0 : kpiFyOffset+delta;
+  loadAndRenderKpi();
+}
+function renderKpiPeriodLabel(){
+  const label = document.getElementById('kpiPeriodLabel');
+  if(kpiViewMode==='daily'){
+    label.textContent = kpiMonthDate(kpiMonthOffset).toLocaleDateString('en-NZ', {month:'long', year:'numeric'});
+  } else {
+    const fy = kpiFyStartYear(kpiFyOffset);
+    label.textContent = `FY ${fy}/${fy+1} (Apr ${fy} – Mar ${fy+1})`;
+  }
+}
+async function loadStaff(){
+  try{
+    staff = await sbFetch('staff?select=*');
+    staff.sort((a,b)=>a.name.localeCompare(b.name));
+  }catch(e){
+    console.warn('failed to load staff', e);
+    staff = [];
+  }
+}
+async function loadAndRenderKpi(){
+  document.getElementById('kpiDailyBtn').classList.toggle('active', kpiViewMode==='daily');
+  document.getElementById('kpiAnnualBtn').classList.toggle('active', kpiViewMode==='annual');
+  renderKpiPeriodLabel();
+  await loadStaff();
+  if(kpiViewMode==='daily'){
+    const d = kpiMonthDate(kpiMonthOffset);
+    const year = d.getFullYear(), month = d.getMonth()+1;
+    const first = `${year}-${String(month).padStart(2,'0')}-01`;
+    const last = `${year}-${String(month).padStart(2,'0')}-${String(daysInMonth(year,month)).padStart(2,'0')}`;
+    try{
+      const rows = await sbFetch(`timesheet_entries?select=*&entry_date=gte.${first}&entry_date=lte.${last}`);
+      kpiEntries = {};
+      rows.forEach(r=>{ kpiEntries[r.staff_id+'|'+r.entry_date] = r; });
+    }catch(e){ console.warn('failed to load timesheet entries', e); }
+    renderKpiDaily();
+  } else {
+    const fy = kpiFyStartYear(kpiFyOffset);
+    const first = `${fy}-04-01`;
+    const last = `${fy+1}-03-31`;
+    try{
+      const [entryRows, leaveRows] = await Promise.all([
+        sbFetch(`timesheet_entries?select=*&entry_date=gte.${first}&entry_date=lte.${last}`),
+        sbFetch('timesheet_leave?select=*')
+      ]);
+      kpiEntries = {};
+      entryRows.forEach(r=>{ kpiEntries[r.staff_id+'|'+r.entry_date] = r; });
+      kpiLeave = {};
+      leaveRows.forEach(r=>{ kpiLeave[r.staff_id+'|'+r.year_month] = r; });
+    }catch(e){ console.warn('failed to load KPI annual data', e); }
+    renderKpiAnnual();
+  }
+}
+async function saveStaffTarget(el){
+  const staffId = el.dataset.staff;
+  const val = parseFloat(el.value) || 8;
+  const s = staff.find(x=>x.id===staffId);
+  if(s) s.hours_per_day = val;
+  await withSync(async ()=>{
+    await sbFetch('staff?id=eq.' + encodeURIComponent(staffId), { method:'PATCH', body:{hours_per_day: val} });
+  }, 'Save failed — check connection');
+  if(kpiViewMode==='daily') renderKpiDaily(); else renderKpiAnnual();
+}
+function renderKpiDaily(){
+  const d = kpiMonthDate(kpiMonthOffset);
+  const year = d.getFullYear(), month = d.getMonth()+1;
+  const total = daysInMonth(year, month);
+  document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;">Day</th>' + staff.map((s,idx)=>`<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)}</th>`).join('');
+  document.getElementById('kpiHeadRow2').innerHTML = '<th class="day-cell" style="z-index:4;"></th>' + staff.map((s,idx)=>{
+    const cls = 'staff-block-'+(idx%2===0?'a':'b');
+    return `<th class="${cls} staff-block-start">Start</th><th class="${cls}">Finish</th><th class="${cls}">Lunch (min)</th><th class="${cls}">Other start</th><th class="${cls}">Other finish</th><th class="${cls}">Total</th>`;
+  }).join('');
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const holidaySet = new Set(getNZHolidays(year));
+  let rows = '';
+  for(let day=1; day<=total; day++){
+    const dateObj = new Date(year, month-1, day);
+    const iso = isoDate(dateObj);
+    const dow = dateObj.getDay();
+    const isWeekend = dow===0||dow===6;
+    const isHoliday = holidaySet.has(iso);
+    rows += `<tr class="${isHoliday?'kpi-holiday':(isWeekend?'kpi-weekend':'')}"><td class="day-cell">${dayNames[dow]} ${day}${isHoliday?' 🎉':''}</td>`;
+    staff.forEach((s,idx)=>{
+      const cls = 'staff-block-'+(idx%2===0?'a':'b');
+      if(isWeekend || isHoliday){
+        rows += `<td class="${cls} staff-block-start"></td><td class="${cls}"></td><td class="${cls}"></td><td class="${cls}"></td><td class="${cls}"></td><td></td>`;
+        return;
+      }
+      const e = kpiEntries[s.id+'|'+iso] || {};
+      const dayTotal = dailyHoursForEntry(e);
+      const f = v=> v ? 'kpi-filled' : 'kpi-empty';
+      rows += `<td class="${cls} staff-block-start"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.start_time)}" data-staff="${s.id}" data-date="${iso}" data-field="start_time" value="${hhmm(e.start_time)}" onchange="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.finish_time)}" data-staff="${s.id}" data-date="${iso}" data-field="finish_time" value="${hhmm(e.finish_time)}" onchange="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="number" min="0" step="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${e.lunch_minutes||''}" onchange="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_start)}" data-staff="${s.id}" data-date="${iso}" data-field="other_start" value="${hhmm(e.other_start)}" onchange="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_finish)}" data-staff="${s.id}" data-date="${iso}" data-field="other_finish" value="${hhmm(e.other_finish)}" onchange="saveTimesheetCell(this)"></td>
+        <td class="kpi-total">${dayTotal ? dayTotal.toFixed(2) : ''}</td>`;
+    });
+    rows += '</tr>';
+  }
+  document.getElementById('kpiBody').innerHTML = rows;
+}
+async function saveTimesheetCell(el){
+  const staffId = el.dataset.staff, date = el.dataset.date, field = el.dataset.field;
+  const key = staffId+'|'+date;
+  if(!kpiEntries[key]) kpiEntries[key] = {staff_id:staffId, entry_date:date};
+  let val = el.value;
+  if(field==='lunch_minutes'){
+    val = val ? parseInt(val,10) : null;
+  } else {
+    const normalized = normalizeTime(val);
+    if(normalized===null){
+      showToast('Enter a time like 08:00 (24-hour)');
+      el.value = hhmm(kpiEntries[key][field]);
+      return;
+    }
+    val = normalized;
+    el.value = val;
+  }
+  kpiEntries[key][field] = val || null;
+  await withSync(async ()=>{
+    const row = {staff_id:staffId, entry_date:date};
+    row[field] = val || null;
+    await sbFetch('timesheet_entries?on_conflict=staff_id,entry_date', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[row] });
+  }, 'Save failed — check connection');
+  renderKpiDaily();
+}
+function kpiFyMonths(fyStart){
+  const months = [];
+  for(let i=0;i<12;i++){
+    const month = ((3+i)%12)+1;
+    const year = i<9 ? fyStart : fyStart+1;
+    months.push({year, month, label: new Date(year, month-1, 1).toLocaleDateString('en-NZ',{month:'short'})});
+  }
+  return months;
+}
+function renderKpiAnnual(){
+  const fyStart = kpiFyStartYear(kpiFyOffset);
+  const months = kpiFyMonths(fyStart);
+  document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;">Month</th>' + staff.map((s,idx)=>`<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} <input type="number" step="0.1" min="0" class="kpi-target" data-staff="${s.id}" value="${s.hours_per_day||8}" title="Target hours/day" onchange="saveStaffTarget(this)"></th>`).join('');
+  document.getElementById('kpiHeadRow2').innerHTML = '<th class="day-cell" style="z-index:4;"></th>' + staff.map((s,idx)=>{
+    const cls = 'staff-block-'+(idx%2===0?'a':'b');
+    return `<th class="${cls} staff-block-start">Ann. Lv</th><th class="${cls}">Sick Lv</th><th class="${cls}">Other Lv</th><th class="${cls}">Total Days</th><th class="${cls}">Actual Hrs</th><th class="${cls}">p/day</th>`;
+  }).join('');
+  const totals = {};
+  staff.forEach(s=>{ totals[s.id] = {days:0, actual:0, annual:0, sick:0, other:0}; });
+  let rows = '';
+  months.forEach(({year, month, label})=>{
+    const ymKey = `${year}-${String(month).padStart(2,'0')}`;
+    rows += `<tr><td class="day-cell">${label} '${String(year).slice(2)}</td>`;
+    staff.forEach((s,idx)=>{
+      const cls = 'staff-block-'+(idx%2===0?'a':'b');
+      const leave = kpiLeave[s.id+'|'+ymKey] || {};
+      const weekdays = countWeekdaysInMonth(year, month);
+      const holidays = countHolidayWeekdaysInMonth(year, month);
+      const annual = Number(leave.annual_leave_days)||0, sick = Number(leave.sick_leave_days)||0, other = Number(leave.other_leave_days)||0;
+      const totalDays = Math.max(0, weekdays - holidays - annual - sick - other);
+      let actualHours = 0;
+      const dim = daysInMonth(year, month);
+      for(let day=1; day<=dim; day++){
+        actualHours += dailyHoursForEntry(kpiEntries[s.id+'|'+isoDate(new Date(year, month-1, day))]);
+      }
+      const target = s.hours_per_day || 8;
+      const perDay = totalDays>0 ? actualHours/totalDays : null;
+      const perDayCls = perDay==null ? cls : (perDay < target ? 'kpi-under' : 'kpi-over');
+      totals[s.id].days += totalDays;
+      totals[s.id].actual += actualHours;
+      totals[s.id].annual += annual;
+      totals[s.id].sick += sick;
+      totals[s.id].other += other;
+      rows += `<td class="${cls} staff-block-start"><input type="number" min="0" step="0.5" class="kpi-leave" data-staff="${s.id}" data-ym="${ymKey}" data-field="annual_leave_days" value="${leave.annual_leave_days||''}" onchange="saveLeaveCell(this)"></td>
+        <td class="${cls}"><input type="number" min="0" step="0.5" class="kpi-leave" data-staff="${s.id}" data-ym="${ymKey}" data-field="sick_leave_days" value="${leave.sick_leave_days||''}" onchange="saveLeaveCell(this)"></td>
+        <td class="${cls}"><input type="number" min="0" step="0.5" class="kpi-leave" data-staff="${s.id}" data-ym="${ymKey}" data-field="other_leave_days" value="${leave.other_leave_days||''}" onchange="saveLeaveCell(this)"></td>
+        <td class="${cls}" style="text-align:center;">${totalDays.toFixed(1)}</td>
+        <td class="${cls}" style="text-align:center;">${actualHours.toFixed(1)}</td>
+        <td class="${perDayCls}">${perDay!=null ? perDay.toFixed(1) : ''}</td>`;
+    });
+    rows += '</tr>';
+  });
+  rows += '<tr class="kpi-total-row"><td class="day-cell">Total</td>' + staff.map((s,idx)=>{
+    const cls = 'staff-block-'+(idx%2===0?'a':'b');
+    const t = totals[s.id];
+    const target = s.hours_per_day || 8;
+    const perDay = t.days>0 ? t.actual/t.days : null;
+    const perDayCls = perDay==null ? cls : (perDay < target ? 'kpi-under' : 'kpi-over');
+    return `<td class="${cls} staff-block-start">${t.annual.toFixed(1)}</td><td class="${cls}">${t.sick.toFixed(1)}</td><td class="${cls}">${t.other.toFixed(1)}</td><td class="${cls}" style="text-align:center;">${t.days.toFixed(1)}</td><td class="${cls}" style="text-align:center;">${t.actual.toFixed(1)}</td><td class="${perDayCls}">${perDay!=null?perDay.toFixed(1):''}</td>`;
+  }).join('') + '</tr>';
+  document.getElementById('kpiBody').innerHTML = rows;
+}
+async function saveLeaveCell(el){
+  const staffId = el.dataset.staff, ym = el.dataset.ym, field = el.dataset.field;
+  const key = staffId+'|'+ym;
+  if(!kpiLeave[key]) kpiLeave[key] = {staff_id:staffId, year_month:ym};
+  const val = el.value ? parseFloat(el.value) : 0;
+  kpiLeave[key][field] = val;
+  await withSync(async ()=>{
+    const row = {staff_id:staffId, year_month:ym};
+    row[field] = val;
+    await sbFetch('timesheet_leave?on_conflict=staff_id,year_month', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[row] });
+  }, 'Save failed — check connection');
+  renderKpiAnnual();
+}
+
+document.getElementById('kpiDailyBtn').classList.add('active');
+loadAndRenderKpi();
+</script>
+</body>
+</html>

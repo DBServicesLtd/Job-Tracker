@@ -61,6 +61,12 @@ tbody tr.kpi-weekend .staff-block-b td{background:#DEE4E7 !important;}
 .kpi-over{background:#C6EFCE !important;color:#006100;font-weight:700;text-align:center;padding:8px 6px;width:52px;}
 .kpi-total-row td{border-top:3px solid var(--blue-deep);font-weight:700;}
 .kpi-target{width:46px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 4px;font-size:12px;margin-left:6px;}
+.kpi-defaults-btn{cursor:pointer;font-size:14px;margin-left:4px;opacity:.7;}
+.kpi-defaults-btn:hover{opacity:1;}
+.kpi-defaults-popover{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px;z-index:60;font-size:13px;min-width:220px;}
+.kpi-defaults-popover label{display:block;font-size:11px;color:var(--ink-soft);margin:6px 0 2px;font-weight:600;}
+.kpi-defaults-popover input{width:100%;border:1px solid var(--line-strong);border-radius:5px;padding:5px 7px;font-size:13px;}
+.kpi-defaults-popover .btn-refresh{margin-top:10px;width:100%;justify-content:center;}
 .day-cell{position:sticky;left:0;background:var(--panel);font-weight:700;padding:9px 14px;z-index:3;border-right:2px solid var(--line-strong);white-space:nowrap;min-width:100px;}
 .staff-name-hdr{font-size:20px !important;font-weight:800 !important;font-style:normal;font-family:'Open Sans',sans-serif !important;color:var(--blue) !important;border-bottom:2px solid var(--blue-deep) !important;padding:10px 8px;line-height:1.1;white-space:normal;}
 .kpi-other-hdr{padding:2px 0 !important;}
@@ -365,7 +371,7 @@ function renderKpiDaily(){
   const d = kpiMonthDate(kpiMonthOffset);
   const year = d.getFullYear(), month = d.getMonth()+1;
   const total = daysInMonth(year, month);
-  document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;" rowspan="3">Day</th>' + staff.map((s,idx)=>`<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)}</th>`).join('');
+  document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;" rowspan="3">Day</th>' + staff.map((s,idx)=>`<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} <span class="kpi-defaults-btn" onclick="openDefaultsPopover(this,'${s.id}')" title="Set default times">⚙</span></th>`).join('');
   document.getElementById('kpiHeadRow2').innerHTML = staff.map((s,idx)=>{
     const cls = 'staff-block-'+(idx%2===0?'a':'b');
     return `<th class="${cls} staff-block-start" rowspan="2">Start</th><th class="${cls}" rowspan="2">Finish</th><th class="${cls}" rowspan="2">Lunch</th><th class="${cls} kpi-other-hdr" colspan="2" style="text-align:center;">Other</th><th class="${cls}" rowspan="2">Total</th>`;
@@ -393,34 +399,49 @@ function renderKpiDaily(){
       const e = kpiEntries[s.id+'|'+iso] || {};
       const dayTotal = dailyHoursForEntry(e);
       const f = v=> v ? 'kpi-filled' : 'kpi-empty';
-      rows += `<td class="${cls} staff-block-start"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.start_time)}" data-staff="${s.id}" data-date="${iso}" data-field="start_time" value="${hhmm(e.start_time)}" onchange="saveTimesheetCell(this)"></td>
-        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.finish_time)}" data-staff="${s.id}" data-date="${iso}" data-field="finish_time" value="${hhmm(e.finish_time)}" onchange="saveTimesheetCell(this)"></td>
-        <td class="${cls}"><input type="number" min="0" step="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${e.lunch_minutes||''}" onchange="saveTimesheetCell(this)"></td>
-        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_start)}" data-staff="${s.id}" data-date="${iso}" data-field="other_start" value="${hhmm(e.other_start)}" onchange="saveTimesheetCell(this)"></td>
-        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_finish)}" data-staff="${s.id}" data-date="${iso}" data-field="other_finish" value="${hhmm(e.other_finish)}" onchange="saveTimesheetCell(this)"></td>
+      rows += `<td class="${cls} staff-block-start"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.start_time)}" data-staff="${s.id}" data-date="${iso}" data-field="start_time" value="${hhmm(e.start_time)}" onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.finish_time)}" data-staff="${s.id}" data-date="${iso}" data-field="finish_time" value="${hhmm(e.finish_time)}" onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="number" min="0" step="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${e.lunch_minutes||''}" onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_start)}" data-staff="${s.id}" data-date="${iso}" data-field="other_start" value="${hhmm(e.other_start)}" onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_finish)}" data-staff="${s.id}" data-date="${iso}" data-field="other_finish" value="${hhmm(e.other_finish)}" onblur="saveTimesheetCell(this)"></td>
         <td class="kpi-total" data-staff="${s.id}" data-date="${iso}">${dayTotal ? dayTotal.toFixed(2) : ''}</td>`;
     });
     rows += '</tr>';
   }
   document.getElementById('kpiBody').innerHTML = rows;
 }
+function emptyOrNull(v){ return v || null; }
 async function saveTimesheetCell(el){
   const staffId = el.dataset.staff, date = el.dataset.date, field = el.dataset.field;
   const key = staffId+'|'+date;
   if(!kpiEntries[key]) kpiEntries[key] = {staff_id:staffId, entry_date:date};
+  const s = staff.find(x=>x.id===staffId);
   let val = el.value;
+  const isEmpty = !val || !val.trim();
   if(field==='lunch_minutes'){
-    val = val ? parseInt(val,10) : null;
-  } else {
-    const normalized = normalizeTime(val);
-    if(normalized===null){
-      showToast('Enter a time like 08:00 (24-hour)');
-      el.value = hhmm(kpiEntries[key][field]);
-      return;
+    if(isEmpty && s && s.default_lunch_minutes){
+      val = s.default_lunch_minutes;
+      el.value = val;
+    } else {
+      val = val ? parseInt(val,10) : null;
     }
-    val = normalized;
-    el.value = val;
+  } else {
+    if(isEmpty){
+      const defaultVal = field==='start_time' ? s?.default_start : field==='finish_time' ? s?.default_finish : null;
+      val = defaultVal ? hhmm(defaultVal) : '';
+      if(defaultVal) el.value = val;
+    } else {
+      const normalized = normalizeTime(val);
+      if(normalized===null){
+        showToast('Enter a time like 08:00 (24-hour)');
+        el.value = hhmm(kpiEntries[key][field]);
+        return;
+      }
+      val = normalized;
+      el.value = val;
+    }
   }
+  if(emptyOrNull(kpiEntries[key][field]) === emptyOrNull(val)) return;
   kpiEntries[key][field] = val || null;
   await withSync(async ()=>{
     const row = {staff_id:staffId, entry_date:date};
@@ -434,6 +455,65 @@ async function saveTimesheetCell(el){
     const dayTotal = dailyHoursForEntry(kpiEntries[key]);
     totalCell.textContent = dayTotal ? dayTotal.toFixed(2) : '';
   }
+}
+function openDefaultsPopover(triggerEl, staffId){
+  closeDefaultsPopover();
+  const s = staff.find(x=>x.id===staffId);
+  if(!s) return;
+  const rect = triggerEl.getBoundingClientRect();
+  const pop = document.createElement('div');
+  pop.className = 'kpi-defaults-popover';
+  pop.id = 'kpiDefaultsPopover';
+  pop.innerHTML = `<div style="font-weight:700;margin-bottom:4px;">${esc(s.name)}'s defaults</div>
+    <label>Default start</label>
+    <input type="text" inputmode="numeric" maxlength="5" id="defStart" value="${hhmm(s.default_start)}" placeholder="e.g. 8">
+    <label>Default finish</label>
+    <input type="text" inputmode="numeric" maxlength="5" id="defFinish" value="${hhmm(s.default_finish)}" placeholder="e.g. 17">
+    <label>Default lunch (min)</label>
+    <input type="number" min="0" step="5" id="defLunch" value="${s.default_lunch_minutes||''}" placeholder="e.g. 30">
+    <button class="btn-refresh" onclick="saveDefaults('${staffId}')">Save defaults</button>`;
+  document.body.appendChild(pop);
+  const top = Math.min(window.innerHeight - 240, rect.bottom + 6);
+  const left = Math.max(6, Math.min(window.innerWidth - 240, rect.left));
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+  setTimeout(()=>{ document.addEventListener('click', closeDefaultsPopoverOnClickOutside); }, 0);
+}
+function closeDefaultsPopoverOnClickOutside(e){
+  const pop = document.getElementById('kpiDefaultsPopover');
+  if(pop && !pop.contains(e.target) && !e.target.classList.contains('kpi-defaults-btn')){
+    closeDefaultsPopover();
+  }
+}
+function closeDefaultsPopover(){
+  const pop = document.getElementById('kpiDefaultsPopover');
+  if(pop) pop.remove();
+  document.removeEventListener('click', closeDefaultsPopoverOnClickOutside);
+}
+async function saveDefaults(staffId){
+  const start = normalizeTime(document.getElementById('defStart').value);
+  const finish = normalizeTime(document.getElementById('defFinish').value);
+  if(start===null || finish===null){
+    showToast('Enter valid default times, e.g. 8 or 08:00');
+    return;
+  }
+  const lunchRaw = document.getElementById('defLunch').value;
+  const lunch = lunchRaw ? parseInt(lunchRaw,10) : null;
+  const s = staff.find(x=>x.id===staffId);
+  if(s){
+    s.default_start = start || null;
+    s.default_finish = finish || null;
+    s.default_lunch_minutes = lunch;
+  }
+  await withSync(async ()=>{
+    await sbFetch('staff?id=eq.' + encodeURIComponent(staffId), { method:'PATCH', body:{
+      default_start: start || null,
+      default_finish: finish || null,
+      default_lunch_minutes: lunch
+    }});
+  }, 'Save failed — check connection');
+  closeDefaultsPopover();
+  showToast('Defaults saved');
 }
 function kpiFyMonths(fyStart){
   const months = [];
@@ -451,7 +531,7 @@ function renderKpiAnnual(){
     const targetHtml = LOCKED_WHO
       ? `<span style="font-size:12px;color:var(--ink-faint);margin-left:6px;">(target ${s.hours_per_day||8}/day)</span>`
       : `<input type="number" step="0.1" min="0" class="kpi-target" data-staff="${s.id}" value="${s.hours_per_day||8}" title="Target hours/day" onchange="saveStaffTarget(this)">`;
-    return `<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} ${targetHtml}</th>`;
+    return `<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} <span class="kpi-defaults-btn" onclick="openDefaultsPopover(this,'${s.id}')" title="Set default times">⚙</span> ${targetHtml}</th>`;
   }).join('');
   document.getElementById('kpiHeadRow2').innerHTML = staff.map((s,idx)=>{
     const cls = 'staff-block-'+(idx%2===0?'a':'b');

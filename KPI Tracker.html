@@ -392,7 +392,7 @@ function renderKpiDaily(){
         <td class="${cls}"><input type="number" min="0" step="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${e.lunch_minutes||''}" onchange="saveTimesheetCell(this)"></td>
         <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_start)}" data-staff="${s.id}" data-date="${iso}" data-field="other_start" value="${hhmm(e.other_start)}" onchange="saveTimesheetCell(this)"></td>
         <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_finish)}" data-staff="${s.id}" data-date="${iso}" data-field="other_finish" value="${hhmm(e.other_finish)}" onchange="saveTimesheetCell(this)"></td>
-        <td class="kpi-total">${dayTotal ? dayTotal.toFixed(2) : ''}</td>`;
+        <td class="kpi-total" data-staff="${s.id}" data-date="${iso}">${dayTotal ? dayTotal.toFixed(2) : ''}</td>`;
     });
     rows += '</tr>';
   }
@@ -421,7 +421,13 @@ async function saveTimesheetCell(el){
     row[field] = val || null;
     await sbFetch('timesheet_entries?on_conflict=staff_id,entry_date', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[row] });
   }, 'Save failed — check connection');
-  renderKpiDaily();
+  el.classList.toggle('kpi-filled', !!val);
+  el.classList.toggle('kpi-empty', !val);
+  const totalCell = document.querySelector(`td.kpi-total[data-staff="${staffId}"][data-date="${date}"]`);
+  if(totalCell){
+    const dayTotal = dailyHoursForEntry(kpiEntries[key]);
+    totalCell.textContent = dayTotal ? dayTotal.toFixed(2) : '';
+  }
 }
 function kpiFyMonths(fyStart){
   const months = [];
@@ -470,9 +476,9 @@ function renderKpiAnnual(){
       rows += `<td class="${cls} staff-block-start"><input type="number" min="0" step="0.5" class="kpi-leave" data-staff="${s.id}" data-ym="${ymKey}" data-field="annual_leave_days" value="${leave.annual_leave_days||''}" onchange="saveLeaveCell(this)"></td>
         <td class="${cls}"><input type="number" min="0" step="0.5" class="kpi-leave" data-staff="${s.id}" data-ym="${ymKey}" data-field="sick_leave_days" value="${leave.sick_leave_days||''}" onchange="saveLeaveCell(this)"></td>
         <td class="${cls}"><input type="number" min="0" step="0.5" class="kpi-leave" data-staff="${s.id}" data-ym="${ymKey}" data-field="other_leave_days" value="${leave.other_leave_days||''}" onchange="saveLeaveCell(this)"></td>
-        <td class="${cls}" style="text-align:center;">${totalDays.toFixed(1)}</td>
-        <td class="${cls}" style="text-align:center;">${actualHours.toFixed(1)}</td>
-        <td class="${perDayCls}">${perDay!=null ? perDay.toFixed(1) : ''}</td>`;
+        <td class="${cls}" style="text-align:center;" data-total-days="${s.id}|${ymKey}">${totalDays.toFixed(1)}</td>
+        <td class="${cls}" style="text-align:center;" data-actual-hrs="${s.id}|${ymKey}">${actualHours.toFixed(1)}</td>
+        <td class="${perDayCls}" data-perday="${s.id}|${ymKey}">${perDay!=null ? perDay.toFixed(1) : ''}</td>`;
     });
     rows += '</tr>';
   });
@@ -482,9 +488,77 @@ function renderKpiAnnual(){
     const target = s.hours_per_day || 8;
     const perDay = t.days>0 ? t.actual/t.days : null;
     const perDayCls = perDay==null ? cls : (perDay < target ? 'kpi-under' : 'kpi-over');
-    return `<td class="${cls} staff-block-start">${t.annual.toFixed(1)}</td><td class="${cls}">${t.sick.toFixed(1)}</td><td class="${cls}">${t.other.toFixed(1)}</td><td class="${cls}" style="text-align:center;">${t.days.toFixed(1)}</td><td class="${cls}" style="text-align:center;">${t.actual.toFixed(1)}</td><td class="${perDayCls}">${perDay!=null?perDay.toFixed(1):''}</td>`;
+    return `<td class="${cls} staff-block-start" data-total-annual="${s.id}">${t.annual.toFixed(1)}</td><td class="${cls}" data-total-sick="${s.id}">${t.sick.toFixed(1)}</td><td class="${cls}" data-total-other="${s.id}">${t.other.toFixed(1)}</td><td class="${cls}" style="text-align:center;" data-total-days-sum="${s.id}">${t.days.toFixed(1)}</td><td class="${cls}" style="text-align:center;" data-total-actual-sum="${s.id}">${t.actual.toFixed(1)}</td><td class="${perDayCls}" data-total-perday="${s.id}">${perDay!=null?perDay.toFixed(1):''}</td>`;
   }).join('') + '</tr>';
   document.getElementById('kpiBody').innerHTML = rows;
+}
+function monthPartsFromYm(ym){
+  const [y,m] = ym.split('-').map(Number);
+  return {year:y, month:m};
+}
+function recomputeAnnualRow(staffId, ym){
+  const {year, month} = monthPartsFromYm(ym);
+  const s = staff.find(x=>x.id===staffId);
+  if(!s) return;
+  const leave = kpiLeave[staffId+'|'+ym] || {};
+  const weekdays = countWeekdaysInMonth(year, month);
+  const holidays = countHolidayWeekdaysInMonth(year, month);
+  const annual = Number(leave.annual_leave_days)||0, sick = Number(leave.sick_leave_days)||0, other = Number(leave.other_leave_days)||0;
+  const totalDays = Math.max(0, weekdays - holidays - annual - sick - other);
+  let actualHours = 0;
+  const dim = daysInMonth(year, month);
+  for(let day=1; day<=dim; day++){
+    actualHours += dailyHoursForEntry(kpiEntries[staffId+'|'+isoDate(new Date(year, month-1, day))]);
+  }
+  const target = s.hours_per_day || 8;
+  const perDay = totalDays>0 ? actualHours/totalDays : null;
+  const perDayCls = perDay==null ? '' : (perDay < target ? 'kpi-under' : 'kpi-over');
+  const daysCell = document.querySelector(`[data-total-days="${staffId}|${ym}"]`);
+  const actualCell = document.querySelector(`[data-actual-hrs="${staffId}|${ym}"]`);
+  const perDayCell = document.querySelector(`[data-perday="${staffId}|${ym}"]`);
+  if(daysCell) daysCell.textContent = totalDays.toFixed(1);
+  if(actualCell) actualCell.textContent = actualHours.toFixed(1);
+  if(perDayCell){
+    perDayCell.textContent = perDay!=null ? perDay.toFixed(1) : '';
+    perDayCell.classList.remove('kpi-under','kpi-over');
+    if(perDayCls) perDayCell.classList.add(perDayCls);
+  }
+}
+function recomputeAnnualTotalsForStaff(staffId){
+  const s = staff.find(x=>x.id===staffId);
+  if(!s) return;
+  const fyStart = kpiFyStartYear(kpiFyOffset);
+  const months = kpiFyMonths(fyStart);
+  let days=0, actual=0, annual=0, sick=0, other=0;
+  months.forEach(({year,month})=>{
+    const ymKey = `${year}-${String(month).padStart(2,'0')}`;
+    const leave = kpiLeave[staffId+'|'+ymKey] || {};
+    const weekdays = countWeekdaysInMonth(year, month);
+    const holidays = countHolidayWeekdaysInMonth(year, month);
+    const a = Number(leave.annual_leave_days)||0, si = Number(leave.sick_leave_days)||0, o = Number(leave.other_leave_days)||0;
+    const totalDays = Math.max(0, weekdays - holidays - a - si - o);
+    let actualHours = 0;
+    const dim = daysInMonth(year, month);
+    for(let day=1; day<=dim; day++){
+      actualHours += dailyHoursForEntry(kpiEntries[staffId+'|'+isoDate(new Date(year, month-1, day))]);
+    }
+    days += totalDays; actual += actualHours; annual += a; sick += si; other += o;
+  });
+  const target = s.hours_per_day || 8;
+  const perDay = days>0 ? actual/days : null;
+  const perDayCls = perDay==null ? '' : (perDay < target ? 'kpi-under' : 'kpi-over');
+  const setText = (sel, text)=>{ const el = document.querySelector(sel); if(el) el.textContent = text; };
+  setText(`[data-total-annual="${staffId}"]`, annual.toFixed(1));
+  setText(`[data-total-sick="${staffId}"]`, sick.toFixed(1));
+  setText(`[data-total-other="${staffId}"]`, other.toFixed(1));
+  setText(`[data-total-days-sum="${staffId}"]`, days.toFixed(1));
+  setText(`[data-total-actual-sum="${staffId}"]`, actual.toFixed(1));
+  const perDayCell = document.querySelector(`[data-total-perday="${staffId}"]`);
+  if(perDayCell){
+    perDayCell.textContent = perDay!=null ? perDay.toFixed(1) : '';
+    perDayCell.classList.remove('kpi-under','kpi-over');
+    if(perDayCls) perDayCell.classList.add(perDayCls);
+  }
 }
 async function saveLeaveCell(el){
   const staffId = el.dataset.staff, ym = el.dataset.ym, field = el.dataset.field;
@@ -497,7 +571,8 @@ async function saveLeaveCell(el){
     row[field] = val;
     await sbFetch('timesheet_leave?on_conflict=staff_id,year_month', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[row] });
   }, 'Save failed — check connection');
-  renderKpiAnnual();
+  recomputeAnnualRow(staffId, ym);
+  recomputeAnnualTotalsForStaff(staffId);
 }
 
 document.getElementById('kpiDailyBtn').classList.add('active');

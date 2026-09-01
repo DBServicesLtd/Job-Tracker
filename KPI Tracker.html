@@ -62,7 +62,7 @@ tbody tr.kpi-weekend .staff-block-b td{background:#DEE4E7 !important;}
 .kpi-total-row td{border-top:3px solid var(--blue-deep);font-weight:700;}
 .kpi-target{width:46px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 4px;font-size:12px;margin-left:6px;}
 .day-cell{position:sticky;left:0;background:var(--panel);font-weight:700;padding:9px 14px;z-index:3;border-right:2px solid var(--line-strong);white-space:nowrap;min-width:100px;}
-.staff-name-hdr{font-size:56px !important;font-weight:800 !important;font-style:normal;font-family:'Open Sans',sans-serif !important;color:var(--blue) !important;border-bottom:2px solid var(--blue-deep) !important;padding:10px 8px;line-height:1;white-space:normal;}
+.staff-name-hdr{font-size:20px !important;font-weight:800 !important;font-style:normal;font-family:'Open Sans',sans-serif !important;color:var(--blue) !important;border-bottom:2px solid var(--blue-deep) !important;padding:10px 8px;line-height:1.1;white-space:normal;}
 .kpi-other-hdr{padding:2px 0 !important;}
 .kpi-holiday td{background:#FBEFD4 !important;}
 .kpi-holiday .staff-block-a td{background:#F6E8CB !important;}
@@ -78,15 +78,18 @@ tbody tr.kpi-weekend .staff-block-b td{background:#DEE4E7 !important;}
       <div class="brand-mark">DESIGN BUILDERS</div>
       <div>
         <h1>KPI Tracker</h1>
-        <p>Staff hours &amp; leave — standalone preview, not yet linked into the main Job Tracker</p>
+        <p>Staff hours &amp; leave tracking</p>
       </div>
     </div>
     <div class="sync">
       <span id="syncDot" class="sync-dot"></span>
       <span id="syncText">synced</span>
+      <button class="btn-refresh" id="personalLinksBtn" onclick="togglePersonalLinksMenu()" style="position:relative;">🔗 Personal links</button>
       <button class="btn-refresh" onclick="loadAndRenderKpi()">↻ Refresh</button>
     </div>
   </div>
+  <div id="personalLinksMenu" style="display:none;position:fixed;top:70px;right:28px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:10px;z-index:50;min-width:260px;max-height:320px;overflow-y:auto;"></div>
+  <div id="kpiWhoBanner" style="display:none;background:var(--blue-soft);color:var(--blue-deep);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px;"></div>
 
   <div class="week-nav">
     <button class="btn-ghost" id="kpiDailyBtn" onclick="setKpiViewMode('daily')">Daily Log</button>
@@ -222,6 +225,8 @@ function getNZHolidays(year){
 }
 
 let staff = [];
+const urlParams = new URLSearchParams(window.location.search);
+const LOCKED_WHO = urlParams.get('who') || '';
 let kpiViewMode = 'daily';
 let kpiMonthOffset = 0;
 let kpiFyOffset = 0;
@@ -307,6 +312,7 @@ async function loadStaff(){
   try{
     staff = await sbFetch('staff?select=*');
     staff.sort((a,b)=>a.name.localeCompare(b.name));
+    if(LOCKED_WHO) staff = staff.filter(s=>s.name===LOCKED_WHO);
   }catch(e){
     console.warn('failed to load staff', e);
     staff = [];
@@ -441,7 +447,12 @@ function kpiFyMonths(fyStart){
 function renderKpiAnnual(){
   const fyStart = kpiFyStartYear(kpiFyOffset);
   const months = kpiFyMonths(fyStart);
-  document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;" rowspan="2">Month</th>' + staff.map((s,idx)=>`<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} <input type="number" step="0.1" min="0" class="kpi-target" data-staff="${s.id}" value="${s.hours_per_day||8}" title="Target hours/day" onchange="saveStaffTarget(this)"></th>`).join('');
+  document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;" rowspan="2">Month</th>' + staff.map((s,idx)=>{
+    const targetHtml = LOCKED_WHO
+      ? `<span style="font-size:12px;color:var(--ink-faint);margin-left:6px;">(target ${s.hours_per_day||8}/day)</span>`
+      : `<input type="number" step="0.1" min="0" class="kpi-target" data-staff="${s.id}" value="${s.hours_per_day||8}" title="Target hours/day" onchange="saveStaffTarget(this)">`;
+    return `<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} ${targetHtml}</th>`;
+  }).join('');
   document.getElementById('kpiHeadRow2').innerHTML = staff.map((s,idx)=>{
     const cls = 'staff-block-'+(idx%2===0?'a':'b');
     return `<th class="${cls} staff-block-start">Ann. Lv</th><th class="${cls}">Sick Lv</th><th class="${cls}">Other Lv</th><th class="${cls}">Total Days</th><th class="${cls}">Actual Hrs</th><th class="${cls}">p/day</th>`;
@@ -575,6 +586,47 @@ async function saveLeaveCell(el){
   recomputeAnnualTotalsForStaff(staffId);
 }
 
+function togglePersonalLinksMenu(){
+  const menu = document.getElementById('personalLinksMenu');
+  const open = menu.style.display === 'block';
+  if(open){ menu.style.display = 'none'; return; }
+  renderPersonalLinksMenu();
+  menu.style.display = 'block';
+}
+async function renderPersonalLinksMenu(){
+  const menu = document.getElementById('personalLinksMenu');
+  let allStaff = [];
+  try{
+    allStaff = await sbFetch('staff?select=*');
+    allStaff.sort((a,b)=>a.name.localeCompare(b.name));
+  }catch(e){ menu.innerHTML = '<p style="font-size:12.5px;color:var(--ink-faint);">Could not load staff.</p>'; return; }
+  const base = window.location.href.split('?')[0];
+  menu.innerHTML = allStaff.map(s=>{
+    const url = base + '?who=' + encodeURIComponent(s.name);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--line);">
+      <span style="flex:1;font-size:13px;font-weight:600;">${esc(s.name)}</span>
+      <button class="btn-refresh" onclick="copyPersonalLink('${url.replace(/'/g,"\\'")}', this)">Copy link</button>
+    </div>`;
+  }).join('');
+}
+function copyPersonalLink(url, btn){
+  navigator.clipboard.writeText(url).then(()=>{
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>{ btn.textContent = original; }, 1500);
+  }).catch(()=> showToast('Could not copy — copy manually: ' + url));
+}
+document.addEventListener('click', e=>{
+  const menu = document.getElementById('personalLinksMenu');
+  const btn = document.getElementById('personalLinksBtn');
+  if(menu.style.display==='block' && !menu.contains(e.target) && e.target!==btn) menu.style.display = 'none';
+});
+if(LOCKED_WHO){
+  document.getElementById('personalLinksBtn').style.display = 'none';
+  const banner = document.getElementById('kpiWhoBanner');
+  banner.textContent = `Showing hours for ${LOCKED_WHO} only`;
+  banner.style.display = 'block';
+}
 document.getElementById('kpiDailyBtn').classList.add('active');
 loadAndRenderKpi();
 </script>

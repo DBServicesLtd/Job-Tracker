@@ -7,19 +7,29 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Open+Sans:wght@400;600;700&display=swap');
 :root{
-  --paper:#F4F4F2;--panel:#FFFFFF;--line:#E4E4E0;--line-strong:#D6D6D0;
+  --paper:#FAFAF9;--paper-line:rgba(1,0,58,0.06);--panel:#FFFFFF;--line:#E6E6E6;--line-strong:#C7CCD1;
   --ink:#01003A;--ink-soft:#5B6673;--ink-faint:#8A93A0;
   --blue:#006699;--blue-deep:#01003A;--blue-mid:#408CB2;--blue-soft:#C1DCEA;
-  --amber:#B5860A;--red:#B23A3A;
+  --amber:#B9791F;--amber-soft:#FBEEDB;--red:#AA3E3E;
+  --shadow: 0 1px 2px rgba(1,0,58,0.06), 0 1px 0 rgba(1,0,58,0.04);
 }
 *{box-sizing:border-box;}
-body{margin:0;background:var(--paper);font-family:'Open Sans',sans-serif;color:var(--ink);}
-.app{max-width:1600px;margin:0 auto;padding:24px 28px;}
-.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+body{margin:0;background:
+    linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/40px 40px,
+    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/40px 40px,
+    var(--paper);font-family:'Open Sans',sans-serif;color:var(--ink);}
+.app{width:100%;min-width:1400px;padding:24px 28px 60px;}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
 .brand{display:flex;align-items:center;gap:14px;}
-.brand-mark{background:var(--blue-deep);color:#fff;font-weight:700;font-size:11px;letter-spacing:.08em;padding:8px 10px;border-radius:6px;}
-h1{font-family:'DM Serif Display',serif;font-style:italic;font-size:26px;margin:0;color:var(--blue-deep);}
-.topbar p{margin:2px 0 0;color:var(--ink-soft);font-size:13px;}
+.brand-mark{
+  background:var(--blue-deep);border-radius:4px;padding:9px 13px;
+  font-family:'Open Sans',sans-serif;font-weight:700;font-size:12px;letter-spacing:.04em;color:#fff;
+  white-space:nowrap;box-shadow:var(--shadow);
+}
+.brand h1{
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:29px;margin:0;
+}
+.brand p{margin:2px 0 0;color:var(--ink-soft);font-size:12.5px;}
 .sync{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft);}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:#3A8A4A;}
 .sync-dot.busy{background:var(--amber);}
@@ -28,30 +38,41 @@ h1{font-family:'DM Serif Display',serif;font-style:italic;font-size:26px;margin:
 .btn-ghost{border:1px solid var(--line-strong);background:var(--panel);color:var(--ink-soft);border-radius:5px;padding:8px 12px;font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer;}
 .btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
 .btn-ghost.active{background:var(--blue-deep);color:#fff;border-color:var(--blue-deep);}
+.tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+.tabs-left{display:flex;gap:4px;}
+.tab{
+  padding:14px 10px;margin-right:26px;font-family:'DM Serif Display',serif;font-style:italic;font-weight:600;
+  font-size:23px;color:var(--ink-faint);border-bottom:2px solid transparent;cursor:pointer;
+  background:none;border-top:none;border-left:none;border-right:none;
+}
+.tab.active{color:var(--blue-deep);border-bottom-color:var(--blue-deep);}
 .week-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
 .week-label{font-weight:700;color:var(--blue-deep);font-size:14px;min-width:180px;text-align:center;}
 .hint{font-size:11.5px;color:var(--ink-faint);margin:0 0 14px 2px;}
-.table-wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;}
+.table-wrap{overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);}
 table.kpi-table{border-collapse:collapse;width:100%;min-width:900px;}
 table.kpi-table th{
-  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:13px;
-  color:var(--ink);text-align:left;padding:9px 10px;border-bottom:2px solid var(--line-strong);
-  border-right:1px solid var(--line-strong);background:var(--paper);white-space:nowrap;
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:16px;letter-spacing:.02em;
+  color:#F4F5F3;text-align:left;padding:11px 12px;border-bottom:1.5px solid var(--line-strong);
+  background:#01003A;white-space:nowrap;
 }
-table.kpi-table td{padding:0;border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:middle;font-size:13px;}
-table.kpi-table tbody tr:nth-child(even) td{background:#FAFAF8;}
+#kpiHeadRow1 th{position:sticky;top:0;z-index:6;}
+#kpiHeadRow2 th{position:sticky;z-index:6;}
+#kpiHeadRow3 th{position:sticky;z-index:6;}
+.day-cell{z-index:7 !important;}
+table.kpi-table td{padding:0;border-bottom:1px solid var(--line-strong);border-right:1px solid var(--paper-line);vertical-align:middle;font-size:13px;}
 table.kpi-table tbody tr:hover td{background:var(--blue-soft) !important;}
-.kpi-weekend td{background:#EDEDE9 !important;}
+.kpi-weekend td{background:#E9E9E7 !important;}
 .staff-block-a th, .staff-block-a td{background:#FFFFFF;}
 .staff-block-b th, .staff-block-b td{background:#F3F6F8;}
 tbody tr:nth-child(even) .staff-block-a td{background:#F7F7F5;}
 tbody tr:nth-child(even) .staff-block-b td{background:#EAEEF1;}
-tbody tr.kpi-weekend .staff-block-a td{background:#E9E9E5 !important;}
-tbody tr.kpi-weekend .staff-block-b td{background:#DEE4E7 !important;}
+tbody tr.kpi-weekend .staff-block-a td{background:#E2E2DF !important;}
+tbody tr.kpi-weekend .staff-block-b td{background:#C7CCD1 !important;}
 .staff-block-start{border-left:3px solid var(--blue-deep) !important;}
 .kpi-time, .kpi-lunch, .kpi-leave{border:none;background:none;font-size:12.5px;padding:8px 4px;font-family:'Open Sans',sans-serif;color:var(--ink);text-align:center;}
 .kpi-time{width:52px;}
-.kpi-lunch{width:42px;}
+.kpi-lunch{width:48px;}
 .kpi-leave{width:52px;}
 .kpi-time:focus, .kpi-lunch:focus, .kpi-leave:focus{outline:none;background:var(--blue-soft) !important;}
 .kpi-time.kpi-empty, .kpi-lunch.kpi-empty{color:#C3C7CC;}
@@ -68,11 +89,27 @@ tbody tr.kpi-weekend .staff-block-b td{background:#DEE4E7 !important;}
 .kpi-defaults-popover input{width:100%;border:1px solid var(--line-strong);border-radius:5px;padding:5px 7px;font-size:13px;}
 .kpi-defaults-popover .btn-refresh{margin-top:10px;width:100%;justify-content:center;}
 .day-cell{position:sticky;left:0;background:var(--panel);font-weight:700;padding:9px 14px;z-index:3;border-right:2px solid var(--line-strong);white-space:nowrap;min-width:100px;}
+th.day-cell{background:#01003A;color:#F4F5F3;}
 .staff-name-hdr{font-size:20px !important;font-weight:800 !important;font-style:normal;font-family:'Open Sans',sans-serif !important;color:var(--blue) !important;border-bottom:2px solid var(--blue-deep) !important;padding:10px 8px;line-height:1.1;white-space:normal;}
 .kpi-other-hdr{padding:2px 0 !important;}
-.kpi-holiday td{background:#FBEFD4 !important;}
-.kpi-holiday .staff-block-a td{background:#F6E8CB !important;}
-.kpi-holiday .staff-block-b td{background:#F0E0BE !important;}
+.kpi-holiday td{background:#FBF0C7 !important;}
+.kpi-holiday .staff-block-a td{background:#F8EABC !important;}
+.kpi-holiday .staff-block-b td{background:#F5E08C !important;}
+.kpi-leave-cell{width:100%;height:100%;padding:8px 4px;font-family:'Open Sans',sans-serif;font-size:12.5px;font-weight:700;text-align:center;cursor:pointer;user-select:none;border:none;background:none;display:block;}
+.kpi-start-leave-annual .kpi-leave-cell{color:#1F4A12;}
+.kpi-start-leave-sick .kpi-leave-cell{color:#A13B2A;}
+.kpi-start-leave-other .kpi-leave-cell{color:#5B3A96;}
+.kpi-armable{cursor:pointer;}
+.kpi-start-leave-annual{background:#B1D2A8 !important;border-left:4px solid #1F4A12;}
+.kpi-start-leave-sick{background:#FAD9D4 !important;border-left:4px solid #A13B2A;}
+.kpi-start-leave-other{background:#E5DCF4 !important;border-left:4px solid #5B3A96;}
+.kpi-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 8px 2px;}
+.kpi-legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-faint);}
+.kpi-legend-swatch{width:12px;height:12px;border-radius:3px;display:inline-block;}
+.kpi-legend-btn{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);background:var(--panel);border:1.5px solid var(--line);border-radius:20px;padding:4px 12px 4px 6px;cursor:pointer;font-family:'Open Sans',sans-serif;}
+.kpi-legend-btn:hover{border-color:var(--line-strong);}
+.kpi-legend-btn.armed{border-color:currentColor;background:var(--paper);font-weight:700;}
+.kpi-leave-hint{font-size:11.5px;color:var(--ink-faint);margin:0 0 14px 2px;min-height:16px;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--blue-deep);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
@@ -97,9 +134,13 @@ tbody tr.kpi-weekend .staff-block-b td{background:#DEE4E7 !important;}
   <div id="personalLinksMenu" style="display:none;position:fixed;top:70px;right:28px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:10px;z-index:50;min-width:260px;max-height:320px;overflow-y:auto;"></div>
   <div id="kpiWhoBanner" style="display:none;background:var(--blue-soft);color:var(--blue-deep);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px;"></div>
 
+  <div class="tabs">
+    <div class="tabs-left">
+      <button class="tab" id="kpiDailyBtn" onclick="setKpiViewMode('daily')">Daily Log</button>
+      <button class="tab" id="kpiAnnualBtn" onclick="setKpiViewMode('annual')">Annual Summary</button>
+    </div>
+  </div>
   <div class="week-nav">
-    <button class="btn-ghost" id="kpiDailyBtn" onclick="setKpiViewMode('daily')">Daily Log</button>
-    <button class="btn-ghost" id="kpiAnnualBtn" onclick="setKpiViewMode('annual')">Annual Summary</button>
     <span style="flex:1"></span>
     <button class="btn-ghost" onclick="shiftKpiPeriod(-1)">← Prev</button>
     <span class="week-label" id="kpiPeriodLabel"></span>
@@ -107,6 +148,15 @@ tbody tr.kpi-weekend .staff-block-b td{background:#DEE4E7 !important;}
     <button class="btn-ghost" onclick="shiftKpiPeriod(0,true)">This month</button>
   </div>
   <p class="hint">Green = at or above target hours/day, pink = under. Grey rows = weekends, gold rows 🎉 = NZ public holidays (no time entry on these). Filled-in times show dark, empty ones show light grey. Each person's target hours/day is set in Annual Summary, defaulting to 8.</p>
+  <div class="kpi-legend">
+    <span class="kpi-legend-btn" id="kpiArmBtn-annual" style="color:#1F4A12;" onclick="setArmedLeave('annual')"><span class="kpi-legend-swatch" style="background:#1F4A12;"></span>Annual leave</span>
+    <span class="kpi-legend-btn" id="kpiArmBtn-sick" style="color:#A13B2A;" onclick="setArmedLeave('sick')"><span class="kpi-legend-swatch" style="background:#A13B2A;"></span>Sick leave</span>
+    <span class="kpi-legend-btn" id="kpiArmBtn-other" style="color:#5B3A96;" onclick="setArmedLeave('other')"><span class="kpi-legend-swatch" style="background:#5B3A96;"></span>Other/unpaid leave</span>
+    <span class="kpi-legend-btn" id="kpiArmBtn-clear" style="color:var(--ink-faint);" onclick="setArmedLeave('__clear__')">✕ Clear</span>
+    <span class="kpi-legend-item"><span class="kpi-legend-swatch" style="background:#54524C;"></span>Weekend</span>
+    <span class="kpi-legend-item"><span class="kpi-legend-swatch" style="background:#8A6D00;"></span>Public holiday</span>
+  </div>
+  <p class="kpi-leave-hint" id="kpiLeaveHint"></p>
 
   <div class="table-wrap">
     <table class="kpi-table" id="kpiTable">
@@ -237,7 +287,8 @@ let kpiViewMode = 'daily';
 let kpiMonthOffset = 0;
 let kpiFyOffset = 0;
 let kpiEntries = {};
-let kpiLeave = {};
+let kpiLeaveDays = {};
+let kpiArmedLeave = '';
 
 function kpiMonthDate(offset){
   const d = new Date();
@@ -252,6 +303,25 @@ function kpiFyStartYear(fyOffset){
 }
 function daysInMonth(year, month){ return new Date(year, month, 0).getDate(); }
 function hhmm(t){ return t ? String(t).slice(0,5) : ''; }
+function minutesToHM(mins){
+  if(mins===null || mins===undefined || mins==='') return '';
+  const n = Number(mins);
+  if(isNaN(n)) return '';
+  const h = Math.floor(n/60), m = n%60;
+  return h + ':' + String(m).padStart(2,'0');
+}
+function parseLunchInput(v){
+  v = (v||'').trim();
+  if(!v) return null;
+  if(v.includes(':')){
+    const parts = v.split(':');
+    const h = parseInt(parts[0],10), m = parseInt(parts[1],10);
+    if(isNaN(h) || isNaN(m) || m<0 || m>59 || h<0) return NaN;
+    return h*60+m;
+  }
+  const n = parseInt(v,10);
+  return isNaN(n) ? NaN : n;
+}
 function normalizeTime(raw){
   const v = (raw||'').trim();
   if(!v) return '';
@@ -294,6 +364,24 @@ function countWeekdaysInMonth(year, month){
 function countHolidayWeekdaysInMonth(year, month){
   return getNZHolidays(year).filter(iso=> Number(iso.slice(5,7))===month).length;
 }
+function countLeaveDaysInMonth(staffId, year, month, type){
+  const dim = daysInMonth(year, month);
+  let count = 0;
+  for(let day=1; day<=dim; day++){
+    const iso = isoDate(new Date(year, month-1, day));
+    if(kpiLeaveDays[staffId+'|'+iso] === type) count++;
+  }
+  return count;
+}
+function totalLeaveDaysInMonth(staffId, year, month){
+  const dim = daysInMonth(year, month);
+  let count = 0;
+  for(let day=1; day<=dim; day++){
+    const iso = isoDate(new Date(year, month-1, day));
+    if(kpiLeaveDays[staffId+'|'+iso]) count++;
+  }
+  return count;
+}
 function setKpiViewMode(mode){
   kpiViewMode = mode;
   document.getElementById('kpiDailyBtn').classList.toggle('active', mode==='daily');
@@ -335,11 +423,17 @@ async function loadAndRenderKpi(){
     const first = `${year}-${String(month).padStart(2,'0')}-01`;
     const last = `${year}-${String(month).padStart(2,'0')}-${String(daysInMonth(year,month)).padStart(2,'0')}`;
     try{
-      const rows = await sbFetch(`timesheet_entries?select=*&entry_date=gte.${first}&entry_date=lte.${last}`);
+      const [rows, leaveRows] = await Promise.all([
+        sbFetch(`timesheet_entries?select=*&entry_date=gte.${first}&entry_date=lte.${last}`),
+        sbFetch(`daily_leave?select=*&entry_date=gte.${first}&entry_date=lte.${last}`)
+      ]);
       kpiEntries = {};
       rows.forEach(r=>{ kpiEntries[r.staff_id+'|'+r.entry_date] = r; });
+      kpiLeaveDays = {};
+      leaveRows.forEach(r=>{ kpiLeaveDays[r.staff_id+'|'+r.entry_date] = r.leave_type; });
     }catch(e){ console.warn('failed to load timesheet entries', e); }
     renderKpiDaily();
+    applyStickyHeaderOffsets();
   } else {
     const fy = kpiFyStartYear(kpiFyOffset);
     const first = `${fy}-04-01`;
@@ -347,14 +441,15 @@ async function loadAndRenderKpi(){
     try{
       const [entryRows, leaveRows] = await Promise.all([
         sbFetch(`timesheet_entries?select=*&entry_date=gte.${first}&entry_date=lte.${last}`),
-        sbFetch('timesheet_leave?select=*')
+        sbFetch(`daily_leave?select=*&entry_date=gte.${first}&entry_date=lte.${last}`)
       ]);
       kpiEntries = {};
       entryRows.forEach(r=>{ kpiEntries[r.staff_id+'|'+r.entry_date] = r; });
-      kpiLeave = {};
-      leaveRows.forEach(r=>{ kpiLeave[r.staff_id+'|'+r.year_month] = r; });
+      kpiLeaveDays = {};
+      leaveRows.forEach(r=>{ kpiLeaveDays[r.staff_id+'|'+r.entry_date] = r.leave_type; });
     }catch(e){ console.warn('failed to load KPI annual data', e); }
     renderKpiAnnual();
+    applyStickyHeaderOffsets();
   }
 }
 async function saveStaffTarget(el){
@@ -366,6 +461,16 @@ async function saveStaffTarget(el){
     await sbFetch('staff?id=eq.' + encodeURIComponent(staffId), { method:'PATCH', body:{hours_per_day: val} });
   }, 'Save failed — check connection');
   if(kpiViewMode==='daily') renderKpiDaily(); else renderKpiAnnual();
+}
+function applyStickyHeaderOffsets(){
+  const r1 = document.getElementById('kpiHeadRow1');
+  const r2 = document.getElementById('kpiHeadRow2');
+  const r3 = document.getElementById('kpiHeadRow3');
+  if(!r1 || !r2 || !r3) return;
+  const h1 = r1.offsetHeight;
+  const h2 = r2.offsetHeight;
+  Array.from(r2.children).forEach(th=>{ th.style.top = h1 + 'px'; });
+  Array.from(r3.children).forEach(th=>{ th.style.top = (h1+h2) + 'px'; });
 }
 function renderKpiDaily(){
   const d = kpiMonthDate(kpiMonthOffset);
@@ -396,12 +501,17 @@ function renderKpiDaily(){
         rows += `<td class="${cls} staff-block-start"></td><td class="${cls}"></td><td class="${cls}"></td><td class="${cls}"></td><td class="${cls}"></td><td></td>`;
         return;
       }
+      const leaveType = kpiLeaveDays[s.id+'|'+iso] || '';
       const e = kpiEntries[s.id+'|'+iso] || {};
       const dayTotal = dailyHoursForEntry(e);
       const f = v=> v ? 'kpi-filled' : 'kpi-empty';
-      rows += `<td class="${cls} staff-block-start"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.start_time)}" data-staff="${s.id}" data-date="${iso}" data-field="start_time" value="${hhmm(e.start_time)}" onblur="saveTimesheetCell(this)"></td>
+      const startLeaveCls = leaveType ? ` kpi-start-leave-${leaveType}` : '';
+      const startCell = leaveType
+        ? `<button type="button" class="kpi-leave-cell" data-staff="${s.id}" data-date="${iso}" onclick="handleLeaveCellClick(this)">${leaveType==='annual'?'Annual':leaveType==='sick'?'Sick':'Other'}</button>`
+        : `<input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.start_time)}" data-staff="${s.id}" data-date="${iso}" data-field="start_time" value="${hhmm(e.start_time)}" onmousedown="handleStartMouseDown(event,this)" onblur="saveTimesheetCell(this)">`;
+      rows += `<td class="${cls} staff-block-start${startLeaveCls}" style="padding:0;">${startCell}</td>
         <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.finish_time)}" data-staff="${s.id}" data-date="${iso}" data-field="finish_time" value="${hhmm(e.finish_time)}" onblur="saveTimesheetCell(this)"></td>
-        <td class="${cls}"><input type="number" min="0" step="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${e.lunch_minutes||''}" onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${minutesToHM(e.lunch_minutes)}" onblur="saveTimesheetCell(this)"></td>
         <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_start)}" data-staff="${s.id}" data-date="${iso}" data-field="other_start" value="${hhmm(e.other_start)}" onblur="saveTimesheetCell(this)"></td>
         <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_finish)}" data-staff="${s.id}" data-date="${iso}" data-field="other_finish" value="${hhmm(e.other_finish)}" onblur="saveTimesheetCell(this)"></td>
         <td class="kpi-total" data-staff="${s.id}" data-date="${iso}">${dayTotal ? dayTotal.toFixed(2) : ''}</td>`;
@@ -410,7 +520,46 @@ function renderKpiDaily(){
   }
   document.getElementById('kpiBody').innerHTML = rows;
 }
+function handleStartMouseDown(e, el){
+  if(kpiArmedLeave){ e.preventDefault(); handleLeaveCellClick(el); }
+}
+function setArmedLeave(type){
+  kpiArmedLeave = (kpiArmedLeave === type) ? '' : type;
+  ['annual','sick','other','clear'].forEach(t=>{
+    const btn = document.getElementById('kpiArmBtn-'+t);
+    if(!btn) return;
+    btn.classList.toggle('armed', kpiArmedLeave === (t==='clear' ? '__clear__' : t));
+  });
+  const hint = document.getElementById('kpiLeaveHint');
+  if(kpiArmedLeave === '__clear__'){
+    hint.textContent = 'Click a day below to clear its leave marking. Click the button again to stop.';
+  } else if(kpiArmedLeave){
+    const label = kpiArmedLeave==='annual'?'Annual leave':kpiArmedLeave==='sick'?'Sick leave':'Other/unpaid leave';
+    hint.textContent = `Click a day below to mark it as ${label}. Click the button again to stop.`;
+  } else {
+    hint.textContent = '';
+  }
+}
+async function handleLeaveCellClick(el){
+  if(!kpiArmedLeave) return;
+  const staffId = el.dataset.staff, date = el.dataset.date;
+  const type = kpiArmedLeave === '__clear__' ? '' : kpiArmedLeave;
+  await saveLeaveDay(staffId, date, type);
+}
 function emptyOrNull(v){ return v || null; }
+async function saveLeaveDay(staffId, date, type){
+  const key = staffId+'|'+date;
+  await withSync(async ()=>{
+    if(type){
+      await sbFetch('daily_leave?on_conflict=staff_id,entry_date', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{staff_id:staffId, entry_date:date, leave_type:type}] });
+      kpiLeaveDays[key] = type;
+    } else {
+      await sbFetch(`daily_leave?staff_id=eq.${encodeURIComponent(staffId)}&entry_date=eq.${date}`, { method:'DELETE' });
+      delete kpiLeaveDays[key];
+    }
+  }, 'Save failed — check connection');
+  renderKpiDaily();
+}
 async function saveTimesheetCell(el){
   const staffId = el.dataset.staff, date = el.dataset.date, field = el.dataset.field;
   const key = staffId+'|'+date;
@@ -421,9 +570,18 @@ async function saveTimesheetCell(el){
   if(field==='lunch_minutes'){
     if(isEmpty && s && s.default_lunch_minutes){
       val = s.default_lunch_minutes;
-      el.value = val;
+      el.value = minutesToHM(val);
+    } else if(isEmpty){
+      val = null;
     } else {
-      val = val ? parseInt(val,10) : null;
+      const parsed = parseLunchInput(val);
+      if(parsed===null || isNaN(parsed)){
+        showToast('Enter lunch as H:MM, e.g. 0:30');
+        el.value = minutesToHM(kpiEntries[key][field]);
+        return;
+      }
+      val = parsed;
+      el.value = minutesToHM(val);
     }
   } else {
     if(isEmpty){
@@ -546,10 +704,11 @@ function renderKpiAnnual(){
     rows += `<tr><td class="day-cell">${label} '${String(year).slice(2)}</td>`;
     staff.forEach((s,idx)=>{
       const cls = 'staff-block-'+(idx%2===0?'a':'b');
-      const leave = kpiLeave[s.id+'|'+ymKey] || {};
       const weekdays = countWeekdaysInMonth(year, month);
       const holidays = countHolidayWeekdaysInMonth(year, month);
-      const annual = Number(leave.annual_leave_days)||0, sick = Number(leave.sick_leave_days)||0, other = Number(leave.other_leave_days)||0;
+      const annual = countLeaveDaysInMonth(s.id, year, month, 'annual');
+      const sick = countLeaveDaysInMonth(s.id, year, month, 'sick');
+      const other = countLeaveDaysInMonth(s.id, year, month, 'other');
       const totalDays = Math.max(0, weekdays - holidays - annual - sick - other);
       let actualHours = 0;
       const dim = daysInMonth(year, month);
@@ -564,9 +723,9 @@ function renderKpiAnnual(){
       totals[s.id].annual += annual;
       totals[s.id].sick += sick;
       totals[s.id].other += other;
-      rows += `<td class="${cls} staff-block-start"><input type="number" min="0" step="0.5" class="kpi-leave" data-staff="${s.id}" data-ym="${ymKey}" data-field="annual_leave_days" value="${leave.annual_leave_days||''}" onchange="saveLeaveCell(this)"></td>
-        <td class="${cls}"><input type="number" min="0" step="0.5" class="kpi-leave" data-staff="${s.id}" data-ym="${ymKey}" data-field="sick_leave_days" value="${leave.sick_leave_days||''}" onchange="saveLeaveCell(this)"></td>
-        <td class="${cls}"><input type="number" min="0" step="0.5" class="kpi-leave" data-staff="${s.id}" data-ym="${ymKey}" data-field="other_leave_days" value="${leave.other_leave_days||''}" onchange="saveLeaveCell(this)"></td>
+      rows += `<td class="${cls} staff-block-start" style="text-align:center;" data-annual-lv="${s.id}|${ymKey}">${annual||''}</td>
+        <td class="${cls}" style="text-align:center;" data-sick-lv="${s.id}|${ymKey}">${sick||''}</td>
+        <td class="${cls}" style="text-align:center;" data-other-lv="${s.id}|${ymKey}">${other||''}</td>
         <td class="${cls}" style="text-align:center;" data-total-days="${s.id}|${ymKey}">${totalDays.toFixed(1)}</td>
         <td class="${cls}" style="text-align:center;" data-actual-hrs="${s.id}|${ymKey}">${actualHours.toFixed(1)}</td>
         <td class="${perDayCls}" data-perday="${s.id}|${ymKey}">${perDay!=null ? perDay.toFixed(1) : ''}</td>`;
@@ -591,10 +750,11 @@ function recomputeAnnualRow(staffId, ym){
   const {year, month} = monthPartsFromYm(ym);
   const s = staff.find(x=>x.id===staffId);
   if(!s) return;
-  const leave = kpiLeave[staffId+'|'+ym] || {};
   const weekdays = countWeekdaysInMonth(year, month);
   const holidays = countHolidayWeekdaysInMonth(year, month);
-  const annual = Number(leave.annual_leave_days)||0, sick = Number(leave.sick_leave_days)||0, other = Number(leave.other_leave_days)||0;
+  const annual = countLeaveDaysInMonth(staffId, year, month, 'annual');
+  const sick = countLeaveDaysInMonth(staffId, year, month, 'sick');
+  const other = countLeaveDaysInMonth(staffId, year, month, 'other');
   const totalDays = Math.max(0, weekdays - holidays - annual - sick - other);
   let actualHours = 0;
   const dim = daysInMonth(year, month);
@@ -604,9 +764,15 @@ function recomputeAnnualRow(staffId, ym){
   const target = s.hours_per_day || 8;
   const perDay = totalDays>0 ? actualHours/totalDays : null;
   const perDayCls = perDay==null ? '' : (perDay < target ? 'kpi-under' : 'kpi-over');
+  const annualCell = document.querySelector(`[data-annual-lv="${staffId}|${ym}"]`);
+  const sickCell = document.querySelector(`[data-sick-lv="${staffId}|${ym}"]`);
+  const otherCell = document.querySelector(`[data-other-lv="${staffId}|${ym}"]`);
   const daysCell = document.querySelector(`[data-total-days="${staffId}|${ym}"]`);
   const actualCell = document.querySelector(`[data-actual-hrs="${staffId}|${ym}"]`);
   const perDayCell = document.querySelector(`[data-perday="${staffId}|${ym}"]`);
+  if(annualCell) annualCell.textContent = annual||'';
+  if(sickCell) sickCell.textContent = sick||'';
+  if(otherCell) otherCell.textContent = other||'';
   if(daysCell) daysCell.textContent = totalDays.toFixed(1);
   if(actualCell) actualCell.textContent = actualHours.toFixed(1);
   if(perDayCell){
@@ -622,11 +788,11 @@ function recomputeAnnualTotalsForStaff(staffId){
   const months = kpiFyMonths(fyStart);
   let days=0, actual=0, annual=0, sick=0, other=0;
   months.forEach(({year,month})=>{
-    const ymKey = `${year}-${String(month).padStart(2,'0')}`;
-    const leave = kpiLeave[staffId+'|'+ymKey] || {};
     const weekdays = countWeekdaysInMonth(year, month);
     const holidays = countHolidayWeekdaysInMonth(year, month);
-    const a = Number(leave.annual_leave_days)||0, si = Number(leave.sick_leave_days)||0, o = Number(leave.other_leave_days)||0;
+    const a = countLeaveDaysInMonth(staffId, year, month, 'annual');
+    const si = countLeaveDaysInMonth(staffId, year, month, 'sick');
+    const o = countLeaveDaysInMonth(staffId, year, month, 'other');
     const totalDays = Math.max(0, weekdays - holidays - a - si - o);
     let actualHours = 0;
     const dim = daysInMonth(year, month);
@@ -651,21 +817,6 @@ function recomputeAnnualTotalsForStaff(staffId){
     if(perDayCls) perDayCell.classList.add(perDayCls);
   }
 }
-async function saveLeaveCell(el){
-  const staffId = el.dataset.staff, ym = el.dataset.ym, field = el.dataset.field;
-  const key = staffId+'|'+ym;
-  if(!kpiLeave[key]) kpiLeave[key] = {staff_id:staffId, year_month:ym};
-  const val = el.value ? parseFloat(el.value) : 0;
-  kpiLeave[key][field] = val;
-  await withSync(async ()=>{
-    const row = {staff_id:staffId, year_month:ym};
-    row[field] = val;
-    await sbFetch('timesheet_leave?on_conflict=staff_id,year_month', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[row] });
-  }, 'Save failed — check connection');
-  recomputeAnnualRow(staffId, ym);
-  recomputeAnnualTotalsForStaff(staffId);
-}
-
 function togglePersonalLinksMenu(){
   const menu = document.getElementById('personalLinksMenu');
   const open = menu.style.display === 'block';

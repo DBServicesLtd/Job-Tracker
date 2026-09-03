@@ -371,7 +371,7 @@ table.kpi-table{border-collapse:collapse;width:100%;min-width:900px;}
 .kpi-sub-tab:hover{color:var(--ink);}
 table.kpi-table th{
   font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:16px;letter-spacing:.02em;
-  color:#F4F5F3;text-align:left;padding:11px 10px;border-bottom:1.5px solid var(--line-strong);
+  color:#F4F5F3;text-align:left;padding:5px 10px;border-bottom:1.5px solid var(--line-strong);
   background:#01003A;white-space:nowrap;
 }
 table.kpi-table th:hover{color:#C9A227;}
@@ -412,7 +412,7 @@ th.day-cell{background:#01003A;color:#F4F5F3;}
 .staff-name-hdr{
   font-family:'DM Serif Display',serif !important;font-style:italic !important;font-weight:400 !important;
   font-size:18px !important;color:var(--blue-deep) !important;background:var(--paper) !important;
-  border-bottom:2px solid var(--blue-deep) !important;padding:8px 10px;line-height:1.2;white-space:normal;
+  border-bottom:2px solid var(--blue-deep) !important;padding:5px 10px;line-height:1.2;white-space:normal;
   letter-spacing:.01em;
 }
 .kpi-other-hdr{padding:1px 0 !important;}
@@ -529,7 +529,6 @@ th.day-cell{background:#01003A;color:#F4F5F3;}
       <button class="btn-ghost" onclick="shiftWeek(0,true)">This week</button>
       <span style="flex:1"></span>
       <button class="btn-ghost" onclick="window.print()">🖶 Print view</button>
-      <button class="btn-ghost" onclick="switchTab('kpi')">📊 KPI Tracker</button>
     </div>
     <div class="staff-add">
       <input id="newStaffName" placeholder="Add team member…" onkeydown="if(event.key==='Enter')addStaff()">
@@ -1984,7 +1983,7 @@ const TABLE_COLS = [
   {key:'jobNumber',label:'Job #',w:80,fit:true},
   {key:'jobName',label:'Client / Job',w:160,fit:true,min:140,max:400},
   {key:'stage',label:'Stage',w:95,fit:true},
-  {key:'who',label:'Who',w:105,fit:true},
+  {key:'who',label:'Who',w:120,fit:true},
   {key:'status',label:'State',w:150,fit:true},
   {key:'notes',label:'Task Notes',w:420,fit:false},
   {key:'planning',label:'Planning',w:100,fit:true,min:100,max:340},
@@ -2292,7 +2291,7 @@ function renderTable(list){
       ${isColHidden('jobNumber') ? '<td class="col-collapsed"></td>' : `<td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>`}
       ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td><strong>${esc(j.jobName||'Untitled')}</strong></td>`}
       ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td><span class="stamp ${stageClass(j.stage)}">${esc(j.stage)}</span></td>`}
-      ${isColHidden('who') ? '<td class="col-collapsed"></td>' : `<td>${esc(j.who||'')}</td>`}
+      ${isColHidden('who') ? '<td class="col-collapsed"></td>' : `<td style="white-space:nowrap;">${esc(j.who||'')}</td>`}
       ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>`}
       ${richTextCell(j,'notes')}
       ${richTextCell(j,'planning')}
@@ -3063,7 +3062,7 @@ function renderKpiDaily(){
   const d = kpiMonthDate(kpiMonthOffset);
   const year = d.getFullYear(), month = d.getMonth()+1;
   const total = daysInMonth(year, month);
-  document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;" rowspan="3">Day</th>' + staff.map((s,idx)=>`<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} <span class="kpi-defaults-btn" onclick="openDefaultsPopover(this,'${s.id}')" title="Set default times">⚙</span></th>`).join('');
+  document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;" rowspan="3">Day</th>' + staff.map((s,idx)=>`<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)}</th>`).join('');
   document.getElementById('kpiHeadRow2').innerHTML = staff.map((s,idx)=>{
     const cls = 'staff-block-'+(idx%2===0?'a':'b');
     return `<th class="${cls} staff-block-start" rowspan="2">Start</th><th class="${cls}" rowspan="2">Finish</th><th class="${cls}" rowspan="2">Lunch</th><th class="${cls} kpi-other-hdr" colspan="2" style="text-align:center;">Other</th><th class="${cls}" rowspan="2">Total</th>`;

@@ -84,10 +84,10 @@ a{color:var(--blue);}
 .colvis-wrap .settings-menu{right:auto;left:0;max-height:280px;overflow-y:auto;}
 .views-wrap{position:relative;display:inline-block;}
 .settings-btn{
-  display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;
-  color:var(--ink-soft);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px;
+  display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line-strong);cursor:pointer;
+  color:var(--ink-soft);font-size:14px;font-weight:600;padding:8px 14px;border-radius:8px;
 }
-.settings-btn:hover{background:var(--panel-soft);color:var(--ink);}
+.settings-btn:hover{background:var(--panel-soft);color:var(--ink);border-color:var(--blue);}
 .settings-menu{
   position:absolute;right:0;top:calc(100% + 4px);background:var(--panel);border:1px solid var(--line);
   border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;display:none;flex-direction:column;
@@ -468,8 +468,8 @@ th.day-cell{background:#01003A;color:#F4F5F3;}
     <div class="tabs-left" id="mainTabsLeft">
       <button class="tab active" data-tab="jobs" onclick="switchTab('jobs')">Job Board</button>
       <button class="tab" data-tab="workload" onclick="switchTab('workload')">Staff Workload</button>
-      <button class="tab" data-tab="stagetimes" onclick="switchTab('stagetimes')">Stage Times</button>
       <button class="tab" data-tab="kpi" onclick="switchTab('kpi')">KPI Tracker</button>
+      <button class="tab" data-tab="stagetimes" onclick="switchTab('stagetimes')">Stage Times</button>
     </div>
     <div class="settings-wrap">
       <button class="settings-btn" id="settingsBtn" onclick="toggleSettingsMenu()">⚙ Settings</button>
@@ -2581,7 +2581,7 @@ function toggleColHidden(key, visible){
 function openMyWorkLinksModal(){
   const list = document.getElementById('myWorkLinksList');
   const names = staff.map(s=>s.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
-  const everyoneUrl = baseUrl() + '?view=readonly';
+  const everyoneUrl = baseUrl();
   let html = `<div class="region-link-row">
     <div>
       <div class="region-link-name">Everyone (view only)</div>

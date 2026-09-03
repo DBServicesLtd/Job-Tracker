@@ -1492,6 +1492,7 @@ const SUPABASE_URL = 'https://jeztkwnvfewhnaadaazh.supabase.co';
 const urlParams = new URLSearchParams(window.location.search);
 const LOCKED_REGION = urlParams.get('region') || '';
 const LOCKED_WHO = urlParams.get('who') || '';
+const LOCKED_TAB = urlParams.get('tab') || '';
 const VIEW_ALL_READONLY = urlParams.get('view') === 'readonly';
 const READ_ONLY = !!LOCKED_REGION || !!LOCKED_WHO || VIEW_ALL_READONLY;
 const SUPABASE_KEY = 'sb_publishable_SydrZ17z4xJGOVT7B7yZAA_UrG6qJSV';
@@ -3436,6 +3437,12 @@ function applyReadOnlyMode(){
   }
 }
 document.getElementById('kpiDailyBtn').classList.add('active');
+if(LOCKED_TAB){
+  switchTab(LOCKED_TAB);
+  document.querySelectorAll('#mainTabsLeft .tab').forEach(t=>{
+    if(t.dataset.tab !== LOCKED_TAB) t.style.display = 'none';
+  });
+}
 applyReadOnlyMode();
 loadAll(true);
 </script>

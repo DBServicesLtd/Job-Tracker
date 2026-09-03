@@ -363,6 +363,7 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
   .board{overflow:visible;flex-wrap:wrap;}
 }
 
+#view-kpi .table-wrap{max-height:calc(100vh - 280px);overflow:auto;}
 table.kpi-table{border-collapse:collapse;width:100%;min-width:900px;}
 .kpi-sub-tab{
   font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:17px;color:var(--ink-faint);
@@ -409,7 +410,12 @@ tbody tr.kpi-weekend .staff-block-b td{background:#C7CCD1 !important;}
 .kpi-defaults-popover .btn-refresh{margin-top:10px;width:100%;justify-content:center;}
 .day-cell{position:sticky;left:0;background:var(--panel);font-weight:700;padding:9px 14px;z-index:3;border-right:2px solid var(--line-strong);white-space:nowrap;min-width:100px;}
 th.day-cell{background:#01003A;color:#F4F5F3;}
-.staff-name-hdr{font-size:13px !important;font-weight:700 !important;font-style:normal;font-family:'Open Sans',sans-serif !important;color:var(--ink) !important;background:var(--paper) !important;border-bottom:1px solid var(--line-strong) !important;padding:6px 8px;line-height:1.2;white-space:normal;}
+.staff-name-hdr{
+  font-family:'DM Serif Display',serif !important;font-style:italic !important;font-weight:400 !important;
+  font-size:18px !important;color:var(--blue-deep) !important;background:var(--paper) !important;
+  border-bottom:2px solid var(--blue-deep) !important;padding:8px 10px;line-height:1.2;white-space:normal;
+  letter-spacing:.01em;
+}
 .kpi-other-hdr{padding:1px 0 !important;}
 .kpi-holiday td{background:#FBF0C7 !important;}
 .kpi-holiday .staff-block-a td{background:#F8EABC !important;}

@@ -8,7 +8,7 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Open+Sans:wght@400;600;700&display=swap');
 
 :root{
-  --paper:#F4F5F3;
+  --paper:#FAFAF9;
   --paper-line: rgba(1,0,58,0.06);
   --panel:#FFFFFF;
   --ink:#01003A;
@@ -160,18 +160,21 @@ select.select, .toolbar select{
 }
 .stage-SP{color:#01003A;} .stage-PD{color:#180F5E;} .stage-WD{color:#006699;} .stage-OnSite{color:#408CB2;}
 .pill{
-  font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-block;white-space:nowrap;
+  font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;display:inline-block;white-space:nowrap;
 }
 .pill-InProgress{background:#FBF0C7;color:#8A6D00;}
 .pill-Completed{background:#E9E9E7;color:#54524C;}
 .pill-OnHold{background:none;color:var(--ink-soft);padding:2px 0;}
-.pill-state-onSiteChanges{background:#FBE1C7;color:#95530A;}
-.pill-state-rfi{background:#FAD9D4;color:#A13B2A;}
-.pill-state-consent{background:#E8E7D2;color:#6B6830;}
-.pill-state-vetting{background:#E5DCF4;color:#5B3A96;}
-.pill-state-onSite{background:#DCEFD6;color:#3A6B2A;}
-.pill-state-withServices{background:#F9DCE6;color:#B84D7B;}
-.pill-state-default{background:#D2EEE9;color:#0F6B5C;}
+.pill-state-onSiteChanges,.pill-state-rfi,.pill-state-consent,.pill-state-vetting,.pill-state-onSite,.pill-state-withServices,.pill-state-default{
+  width:128px;text-align:center;
+}
+.pill-state-onSiteChanges{background:#EEC799;color:#7A3D08;}
+.pill-state-rfi{background:#EDB1AB;color:#7A2318;}
+.pill-state-consent{background:#D1CFAC;color:#4A4720;}
+.pill-state-vetting{background:#C7B5E3;color:#3B2360;}
+.pill-state-onSite{background:#B1D2A8;color:#1F4A12;}
+.pill-state-withServices{background:#EBB5C8;color:#7A1F42;}
+.pill-state-default{background:#A1D6CC;color:#0B4A3E;}
 
 .board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
 .col{
@@ -221,13 +224,13 @@ table.jobs-table th{position:relative;user-select:none;}
 .col-collapsed .col-eye{margin-left:0;opacity:.8;}
 .col-resize-handle:hover{background:var(--blue-soft);}
 table.jobs-table th{
-  text-align:left;font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:15px;
-  color:var(--ink);text-transform:uppercase;letter-spacing:.03em;padding:10px 12px;
-  border-bottom:1.5px solid var(--line-strong);border-right:1px solid var(--line);background:var(--paper);position:sticky;top:0;cursor:pointer;
+  text-align:left;font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:16px;
+  color:#F4F5F3;letter-spacing:.02em;padding:11px 12px;
+  border-bottom:1.5px solid var(--line-strong);border-right:1px solid #1A1A5C;background:#01003A;position:sticky;top:0;cursor:pointer;
   white-space:nowrap;user-select:none;
 }
-table.jobs-table th:hover{color:var(--blue);}
-table.jobs-table td{padding:10px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:top;font-size:13px;}
+table.jobs-table th:hover{color:#C9A227;}
+table.jobs-table td{padding:10px 12px;border-bottom:1px solid var(--line-strong);border-right:1px solid var(--line);vertical-align:top;font-size:13px;}
 table.jobs-table tbody tr{cursor:pointer;}
 table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .td-notes{white-space:normal;word-break:break-word;color:var(--ink-soft);}
@@ -295,11 +298,11 @@ table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .workload-wrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto;box-shadow:var(--shadow);}
 table.wl-table{border-collapse:collapse;width:100%;min-width:1100px;}
 table.wl-table th{
-  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:15px;text-transform:uppercase;letter-spacing:.03em;
-  color:var(--ink);text-align:left;padding:10px 12px;border-bottom:1.5px solid var(--line-strong);
-  background:var(--paper);position:sticky;top:0;white-space:nowrap;
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:16px;letter-spacing:.02em;
+  color:#F4F5F3;text-align:left;padding:11px 12px;border-bottom:1.5px solid var(--line-strong);
+  background:#01003A;position:sticky;top:0;white-space:nowrap;
 }
-table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var(--paper-line);vertical-align:top;padding:0;}
+table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px solid var(--paper-line);vertical-align:top;padding:0;}
 .wl-name{
   padding:12px;font-weight:600;font-size:13px;color:var(--ink);white-space:nowrap;background:var(--panel);
   position:sticky;left:0;border-right:1px solid var(--line);
@@ -359,6 +362,67 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
   .col{max-height:none;}
   .board{overflow:visible;flex-wrap:wrap;}
 }
+
+table.kpi-table{border-collapse:collapse;width:100%;min-width:900px;}
+table.kpi-table th{
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:16px;letter-spacing:.02em;
+  color:#F4F5F3;text-align:left;padding:11px 12px;border-bottom:1.5px solid var(--line-strong);
+  background:#01003A;white-space:nowrap;
+}
+#kpiHeadRow1 th{position:sticky;top:0;z-index:6;}
+#kpiHeadRow2 th{position:sticky;z-index:6;}
+#kpiHeadRow3 th{position:sticky;z-index:6;}
+.day-cell{z-index:7 !important;}
+table.kpi-table td{padding:0;border-bottom:1px solid var(--line-strong);border-right:1px solid var(--paper-line);vertical-align:middle;font-size:13px;}
+table.kpi-table tbody tr:hover td{background:var(--blue-soft) !important;}
+.kpi-weekend td{background:#E9E9E7 !important;}
+.staff-block-a th, .staff-block-a td{background:#FFFFFF;}
+.staff-block-b th, .staff-block-b td{background:#F3F6F8;}
+tbody tr:nth-child(even) .staff-block-a td{background:#F7F7F5;}
+tbody tr:nth-child(even) .staff-block-b td{background:#EAEEF1;}
+tbody tr.kpi-weekend .staff-block-a td{background:#E2E2DF !important;}
+tbody tr.kpi-weekend .staff-block-b td{background:#C7CCD1 !important;}
+.staff-block-start{border-left:3px solid var(--blue-deep) !important;}
+.kpi-time, .kpi-lunch, .kpi-leave{border:none;background:none;font-size:12.5px;padding:8px 4px;font-family:'Open Sans',sans-serif;color:var(--ink);text-align:center;}
+.kpi-time{width:52px;}
+.kpi-lunch{width:48px;}
+.kpi-leave{width:52px;}
+.kpi-time:focus, .kpi-lunch:focus, .kpi-leave:focus{outline:none;background:var(--blue-soft) !important;}
+.kpi-time.kpi-empty, .kpi-lunch.kpi-empty{color:#C3C7CC;}
+.kpi-time.kpi-filled, .kpi-lunch.kpi-filled{color:var(--ink);font-weight:600;}
+.kpi-total{font-weight:700;text-align:center;padding:8px 6px;background:#EAF1F6 !important;color:var(--blue-deep);width:52px;}
+.kpi-under{background:#FFC7CE !important;color:#9C0006;font-weight:700;text-align:center;padding:8px 6px;width:52px;}
+.kpi-over{background:#C6EFCE !important;color:#006100;font-weight:700;text-align:center;padding:8px 6px;width:52px;}
+.kpi-total-row td{border-top:3px solid var(--blue-deep);font-weight:700;}
+.kpi-target{width:46px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 4px;font-size:12px;margin-left:6px;}
+.kpi-defaults-btn{cursor:pointer;font-size:14px;margin-left:4px;opacity:.7;}
+.kpi-defaults-btn:hover{opacity:1;}
+.kpi-defaults-popover{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px;z-index:60;font-size:13px;min-width:220px;}
+.kpi-defaults-popover label{display:block;font-size:11px;color:var(--ink-soft);margin:6px 0 2px;font-weight:600;}
+.kpi-defaults-popover input{width:100%;border:1px solid var(--line-strong);border-radius:5px;padding:5px 7px;font-size:13px;}
+.kpi-defaults-popover .btn-refresh{margin-top:10px;width:100%;justify-content:center;}
+.day-cell{position:sticky;left:0;background:var(--panel);font-weight:700;padding:9px 14px;z-index:3;border-right:2px solid var(--line-strong);white-space:nowrap;min-width:100px;}
+th.day-cell{background:#01003A;color:#F4F5F3;}
+.staff-name-hdr{font-size:20px !important;font-weight:800 !important;font-style:normal;font-family:'Open Sans',sans-serif !important;color:var(--blue) !important;border-bottom:2px solid var(--blue-deep) !important;padding:10px 8px;line-height:1.1;white-space:normal;}
+.kpi-other-hdr{padding:2px 0 !important;}
+.kpi-holiday td{background:#FBF0C7 !important;}
+.kpi-holiday .staff-block-a td{background:#F8EABC !important;}
+.kpi-holiday .staff-block-b td{background:#F5E08C !important;}
+.kpi-leave-cell{width:100%;height:100%;padding:8px 4px;font-family:'Open Sans',sans-serif;font-size:12.5px;font-weight:700;text-align:center;cursor:pointer;user-select:none;border:none;background:none;display:block;}
+.kpi-start-leave-annual .kpi-leave-cell{color:#1F4A12;}
+.kpi-start-leave-sick .kpi-leave-cell{color:#A13B2A;}
+.kpi-start-leave-other .kpi-leave-cell{color:#5B3A96;}
+.kpi-armable{cursor:pointer;}
+.kpi-start-leave-annual{background:#B1D2A8 !important;border-left:4px solid #1F4A12;}
+.kpi-start-leave-sick{background:#FAD9D4 !important;border-left:4px solid #A13B2A;}
+.kpi-start-leave-other{background:#E5DCF4 !important;border-left:4px solid #5B3A96;}
+.kpi-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 8px 2px;}
+.kpi-legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-faint);}
+.kpi-legend-swatch{width:12px;height:12px;border-radius:3px;display:inline-block;}
+.kpi-legend-btn{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);background:var(--panel);border:1.5px solid var(--line);border-radius:20px;padding:4px 12px 4px 6px;cursor:pointer;font-family:'Open Sans',sans-serif;}
+.kpi-legend-btn:hover{border-color:var(--line-strong);}
+.kpi-legend-btn.armed{border-color:currentColor;background:var(--paper);font-weight:700;}
+.kpi-leave-hint{font-size:11.5px;color:var(--ink-faint);margin:0 0 14px 2px;min-height:16px;}
 </style>
 </head>
 <body>
@@ -390,13 +454,13 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
   </div>
 
   <div class="tabs">
-    <div class="tabs-left">
+    <div class="tabs-left" id="mainTabsLeft">
       <button class="tab active" data-tab="jobs" onclick="switchTab('jobs')">Job Board</button>
       <button class="tab" data-tab="workload" onclick="switchTab('workload')">Staff Workload</button>
       <button class="tab" data-tab="stagetimes" onclick="switchTab('stagetimes')">Stage Times</button>
+      <button class="tab" data-tab="kpi" onclick="switchTab('kpi')">KPI Tracker</button>
     </div>
     <div class="settings-wrap">
-      <a href="KPI%20Tracker.html?v=8" target="_blank" class="settings-btn" style="text-decoration:none;">📊 KPI Tracker</a>
       <button class="settings-btn" id="settingsBtn" onclick="toggleSettingsMenu()">⚙ Settings</button>
       <div class="settings-menu" id="settingsMenu">
         <button onclick="closeSettingsMenu(); openRegionLinksModal()">🔗 Region links</button>
@@ -427,14 +491,6 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
         <button data-v="board" onclick="setJobView('board')">Board</button>
         <button class="active" data-v="table" onclick="setJobView('table')">Table</button>
       </div>
-      <select class="select" id="groupBy" onchange="renderJobs()">
-        <option value="stage">Group by stage</option>
-        <option value="region">Group by region</option>
-      </select>
-      <div class="views-wrap" id="viewsWrap">
-        <button class="btn-ghost" id="viewsBtn" onclick="toggleViewsMenu()">📌 Views</button>
-        <div class="settings-menu" id="viewsMenu" style="min-width:240px;"></div>
-      </div>
       <button class="btn-ghost" id="turnaroundGuideBtn" onclick="openGuideModal()">⏱ Turnaround guide</button>
       <button class="btn-primary" id="newJobBtn" onclick="openJobModal()" style="flex:1 1 200px;justify-content:center;">+ New job</button>
     </div>
@@ -462,7 +518,7 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
       <button class="btn-ghost" onclick="shiftWeek(0,true)">This week</button>
       <span style="flex:1"></span>
       <button class="btn-ghost" onclick="window.print()">🖶 Print view</button>
-      <a class="btn-ghost" href="KPI%20Tracker.html?v=8" target="_blank" style="text-decoration:none;">📊 KPI Tracker</a>
+      <button class="btn-ghost" onclick="switchTab('kpi')">📊 KPI Tracker</button>
     </div>
     <div class="staff-add">
       <input id="newStaffName" placeholder="Add team member…" onkeydown="if(event.key==='Enter')addStaff()">
@@ -488,6 +544,39 @@ table.wl-table td{border-bottom:1px solid var(--line);border-right:1px solid var
           <th>SP (days)</th><th>PD (days)</th><th>WD (days)</th><th>Current stage</th>
         </tr></thead>
         <tbody id="stageTimesBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="view" id="view-kpi">
+    <div id="kpiWhoBanner" style="display:none;background:var(--blue-soft);color:var(--blue-deep);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px;"></div>
+    <div class="tabs">
+      <div class="tabs-left">
+        <button class="tab" id="kpiDailyBtn" onclick="setKpiViewMode('daily')">Daily Log</button>
+        <button class="tab" id="kpiAnnualBtn" onclick="setKpiViewMode('annual')">Annual Summary</button>
+      </div>
+    </div>
+    <div class="week-nav">
+      <span style="flex:1"></span>
+      <button class="btn-ghost" onclick="shiftKpiPeriod(-1)">← Prev</button>
+      <span class="week-label" id="kpiPeriodLabel"></span>
+      <button class="btn-ghost" onclick="shiftKpiPeriod(1)">Next →</button>
+      <button class="btn-ghost" onclick="shiftKpiPeriod(0,true)">This month</button>
+    </div>
+    <p class="hint">Green = at or above target hours/day, pink = under. Grey rows = weekends, gold rows 🎉 = NZ public holidays (no time entry on these). Filled-in times show dark, empty ones show light grey. Each person's target hours/day is set in Annual Summary, defaulting to 8.</p>
+    <div class="kpi-legend">
+      <span class="kpi-legend-btn" id="kpiArmBtn-annual" style="color:#1F4A12;" onclick="setArmedLeave('annual')"><span class="kpi-legend-swatch" style="background:#1F4A12;"></span>Annual leave</span>
+      <span class="kpi-legend-btn" id="kpiArmBtn-sick" style="color:#A13B2A;" onclick="setArmedLeave('sick')"><span class="kpi-legend-swatch" style="background:#A13B2A;"></span>Sick leave</span>
+      <span class="kpi-legend-btn" id="kpiArmBtn-other" style="color:#5B3A96;" onclick="setArmedLeave('other')"><span class="kpi-legend-swatch" style="background:#5B3A96;"></span>Other/unpaid leave</span>
+      <span class="kpi-legend-btn" id="kpiArmBtn-clear" style="color:var(--ink-faint);" onclick="setArmedLeave('__clear__')">✕ Clear</span>
+      <span class="kpi-legend-item"><span class="kpi-legend-swatch" style="background:#54524C;"></span>Weekend</span>
+      <span class="kpi-legend-item"><span class="kpi-legend-swatch" style="background:#8A6D00;"></span>Public holiday</span>
+    </div>
+    <p class="kpi-leave-hint" id="kpiLeaveHint"></p>
+    <div class="table-wrap">
+      <table class="kpi-table" id="kpiTable">
+        <thead><tr id="kpiHeadRow1"></tr><tr id="kpiHeadRow2"></tr><tr id="kpiHeadRow3"></tr></thead>
+        <tbody id="kpiBody"></tbody>
       </table>
     </div>
   </div>
@@ -1569,6 +1658,7 @@ function manualRefresh(){
   loadAll(false);
   workloadCache = {};
   loadWorkloadForCurrentWeek();
+  loadAndRenderKpi();
 }
 function isEditingNow(){
   const el = document.activeElement;
@@ -1647,12 +1737,14 @@ function copyAsTable(){
 }
 
 function switchTab(name){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('#mainTabsLeft .tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
   document.getElementById('view-jobs').classList.toggle('active', name==='jobs');
   document.getElementById('view-workload').classList.toggle('active', name==='workload');
   document.getElementById('view-stagetimes').classList.toggle('active', name==='stagetimes');
+  document.getElementById('view-kpi').classList.toggle('active', name==='kpi');
   if(name==='workload') renderWorkload();
   if(name==='stagetimes') loadAndRenderStageTimes();
+  if(name==='kpi') loadAndRenderKpi();
 }
 let stageHistory = [];
 async function loadAndRenderStageTimes(){
@@ -1851,7 +1943,7 @@ function renderJobs(){
 
 const STAGE_ORDER = ['SP','PD','WD','On Site'];
 function renderBoard(list){
-  const groupBy = document.getElementById('groupBy').value;
+  const groupBy = 'stage';
   const wrap = document.getElementById('boardWrap');
   let groups = [];
   const STAGE_COLORS = { SP:'#01003A', PD:'#180F5E', WD:'#006699', 'On Site':'#408CB2' };
@@ -1887,8 +1979,8 @@ const TABLE_COLS = [
   {key:'region',label:'Region',w:110,fit:true},
   {key:'jobNumber',label:'Job #',w:80,fit:true},
   {key:'jobName',label:'Client / Job',w:160,fit:true,min:140,max:400},
-  {key:'stage',label:'Stage',w:70,fit:true},
-  {key:'who',label:'Who',w:90,fit:true},
+  {key:'stage',label:'Stage',w:95,fit:true},
+  {key:'who',label:'Who',w:105,fit:true},
   {key:'status',label:'State',w:150,fit:true},
   {key:'notes',label:'Task Notes',w:420,fit:false},
   {key:'planning',label:'Planning',w:100,fit:true,min:100,max:340},
@@ -2461,68 +2553,7 @@ document.addEventListener('click', e=>{
   if(wrap && !wrap.contains(e.target)) closeSettingsMenu();
   const colWrap = document.getElementById('colVisWrap');
   if(colWrap && !colWrap.contains(e.target)) closeColVisMenu();
-  const viewsWrap = document.getElementById('viewsWrap');
-  if(viewsWrap && !viewsWrap.contains(e.target)) closeViewsMenu();
 });
-const SAVED_VIEWS_KEY = 'jobTrackerSavedViews';
-function getSavedViews(){
-  try{ return JSON.parse(localStorage.getItem(SAVED_VIEWS_KEY) || '[]'); }catch(e){ return []; }
-}
-function setSavedViews(list){ localStorage.setItem(SAVED_VIEWS_KEY, JSON.stringify(list)); }
-function toggleViewsMenu(){
-  document.getElementById('viewsMenu').classList.toggle('open');
-  renderViewsMenu();
-}
-function closeViewsMenu(){ document.getElementById('viewsMenu').classList.remove('open'); }
-function renderViewsMenu(){
-  const menu = document.getElementById('viewsMenu');
-  const views = getSavedViews();
-  const list = views.map((v,i)=>`<div style="display:flex;align-items:center;gap:6px;">
-    <button style="flex:1;text-align:left;" onclick="applySavedView(${i})">${esc(v.name)}</button>
-    <button style="padding:6px 8px;color:var(--red);" title="Delete" onclick="event.stopPropagation(); deleteSavedView(${i})">✕</button>
-  </div>`).join('');
-  menu.innerHTML = (list || '<p style="padding:6px 10px;color:var(--ink-faint);font-size:12.5px;margin:0;">No saved views yet.</p>')
-    + `<div style="border-top:1px solid var(--line);margin-top:4px;padding-top:6px;display:flex;gap:6px;padding-left:10px;padding-right:10px;">
-      <input type="text" id="newViewName" placeholder="Name this view…" style="flex:1;border:1px solid var(--line-strong);border-radius:6px;padding:5px 8px;font-size:12.5px;" onclick="event.stopPropagation()">
-      <button class="btn-ghost" onclick="event.stopPropagation(); saveCurrentView()">Save</button>
-    </div>`;
-}
-function saveCurrentView(){
-  const input = document.getElementById('newViewName');
-  const name = input.value.trim();
-  if(!name) return;
-  const views = getSavedViews();
-  views.push({
-    name,
-    region: document.getElementById('regionFilter').value,
-    stage: document.getElementById('stageFilter').value,
-    showCompleted: document.getElementById('showCompleted').checked,
-    showArchived: document.getElementById('showArchived').checked,
-    sortCol, sortDir
-  });
-  setSavedViews(views);
-  renderViewsMenu();
-}
-function applySavedView(i){
-  const v = getSavedViews()[i];
-  if(!v) return;
-  document.getElementById('regionFilter').value = v.region || '';
-  document.getElementById('stageFilter').value = v.stage || '';
-  document.getElementById('showCompleted').checked = !!v.showCompleted;
-  document.getElementById('showArchived').checked = !!v.showArchived;
-  sortCol = v.sortCol || sortCol;
-  sortDir = v.sortDir || 1;
-  localStorage.setItem('jobTrackerSortCol', sortCol);
-  localStorage.setItem('jobTrackerSortDir', String(sortDir));
-  closeViewsMenu();
-  renderJobs();
-}
-function deleteSavedView(i){
-  const views = getSavedViews();
-  views.splice(i,1);
-  setSavedViews(views);
-  renderViewsMenu();
-}
 const COL_VIS_KEY = LOCKED_WHO ? 'whoColHidden:' + LOCKED_WHO : null;
 let hiddenCols = new Set();
 if(COL_VIS_KEY){
@@ -2843,15 +2874,538 @@ async function removeStaff(id){
   }, 'Delete failed — check connection');
 }
 
+let kpiViewMode = 'daily';
+let kpiMonthOffset = 0;
+let kpiFyOffset = 0;
+let kpiEntries = {};
+let kpiLeaveDays = {};
+let kpiArmedLeave = '';
+function kpiStaffList(){
+  return (LOCKED_WHO ? staff.filter(s=>s.name===LOCKED_WHO) : staff.slice()).sort((a,b)=>a.name.localeCompare(b.name));
+}
+function kpiMonthDate(offset){
+  const d = new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth()+offset);
+  return d;
+}
+function kpiFyStartYear(fyOffset){
+  const now = new Date();
+  let year = (now.getMonth()+1) >= 4 ? now.getFullYear() : now.getFullYear()-1;
+  return year + fyOffset;
+}
+function daysInMonth(year, month){ return new Date(year, month, 0).getDate(); }
+function hhmm(t){ return t ? String(t).slice(0,5) : ''; }
+function minutesToHM(mins){
+  if(mins===null || mins===undefined || mins==='') return '';
+  const n = Number(mins);
+  if(isNaN(n)) return '';
+  const h = Math.floor(n/60), m = n%60;
+  return h + ':' + String(m).padStart(2,'0');
+}
+function parseLunchInput(v){
+  v = (v||'').trim();
+  if(!v) return null;
+  if(v.includes(':')){
+    const parts = v.split(':');
+    const h = parseInt(parts[0],10), m = parseInt(parts[1],10);
+    if(isNaN(h) || isNaN(m) || m<0 || m>59 || h<0) return NaN;
+    return h*60+m;
+  }
+  const n = parseInt(v,10);
+  return isNaN(n) ? NaN : n;
+}
+function normalizeTime(raw){
+  const v = (raw||'').trim();
+  if(!v) return '';
+  if(/^\d{1,2}$/.test(v)){
+    const h = parseInt(v,10);
+    if(h>23) return null;
+    return String(h).padStart(2,'0')+':00';
+  }
+  const m = v.match(/^(\d{1,2}):?(\d{2})$/);
+  if(!m) return null;
+  const h = parseInt(m[1],10), mm = parseInt(m[2],10);
+  if(h>23 || mm>59) return null;
+  return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+}
+function timeStrToDecimal(t){
+  if(!t) return null;
+  const parts = String(t).split(':').map(Number);
+  return parts[0] + (parts[1]||0)/60;
+}
+function dailyHoursForEntry(e){
+  if(!e) return 0;
+  let total = 0;
+  if(e.start_time && e.finish_time){
+    total += (timeStrToDecimal(e.finish_time) - timeStrToDecimal(e.start_time)) - ((e.lunch_minutes||0)/60);
+  }
+  if(e.other_start && e.other_finish){
+    total += (timeStrToDecimal(e.other_finish) - timeStrToDecimal(e.other_start));
+  }
+  return total>0 ? total : 0;
+}
+function countWeekdaysInMonth(year, month){
+  const total = daysInMonth(year, month);
+  let count = 0;
+  for(let d=1; d<=total; d++){
+    const dow = new Date(year, month-1, d).getDay();
+    if(dow!==0 && dow!==6) count++;
+  }
+  return count;
+}
+function countHolidayWeekdaysInMonth(year, month){
+  return getNZHolidays(year).filter(iso=> Number(iso.slice(5,7))===month).length;
+}
+function countLeaveDaysInMonth(staffId, year, month, type){
+  const dim = daysInMonth(year, month);
+  let count = 0;
+  for(let day=1; day<=dim; day++){
+    const iso = isoDate(new Date(year, month-1, day));
+    if(kpiLeaveDays[staffId+'|'+iso] === type) count++;
+  }
+  return count;
+}
+function totalLeaveDaysInMonth(staffId, year, month){
+  const dim = daysInMonth(year, month);
+  let count = 0;
+  for(let day=1; day<=dim; day++){
+    const iso = isoDate(new Date(year, month-1, day));
+    if(kpiLeaveDays[staffId+'|'+iso]) count++;
+  }
+  return count;
+}
+function setKpiViewMode(mode){
+  kpiViewMode = mode;
+  document.getElementById('kpiDailyBtn').classList.toggle('active', mode==='daily');
+  document.getElementById('kpiAnnualBtn').classList.toggle('active', mode==='annual');
+  loadAndRenderKpi();
+}
+function shiftKpiPeriod(delta, reset){
+  if(kpiViewMode==='daily') kpiMonthOffset = reset ? 0 : kpiMonthOffset+delta;
+  else kpiFyOffset = reset ? 0 : kpiFyOffset+delta;
+  loadAndRenderKpi();
+}
+function renderKpiPeriodLabel(){
+  const label = document.getElementById('kpiPeriodLabel');
+  if(kpiViewMode==='daily'){
+    label.textContent = kpiMonthDate(kpiMonthOffset).toLocaleDateString('en-NZ', {month:'long', year:'numeric'});
+  } else {
+    const fy = kpiFyStartYear(kpiFyOffset);
+    label.textContent = `FY ${fy}/${fy+1} (Apr ${fy} – Mar ${fy+1})`;
+  }
+}
+async function loadAndRenderKpi(){
+  document.getElementById('kpiDailyBtn').classList.toggle('active', kpiViewMode==='daily');
+  document.getElementById('kpiAnnualBtn').classList.toggle('active', kpiViewMode==='annual');
+  renderKpiPeriodLabel();
+  if(kpiViewMode==='daily'){
+    const d = kpiMonthDate(kpiMonthOffset);
+    const year = d.getFullYear(), month = d.getMonth()+1;
+    const first = `${year}-${String(month).padStart(2,'0')}-01`;
+    const last = `${year}-${String(month).padStart(2,'0')}-${String(daysInMonth(year,month)).padStart(2,'0')}`;
+    try{
+      const [rows, leaveRows] = await Promise.all([
+        sbFetch(`timesheet_entries?select=*&entry_date=gte.${first}&entry_date=lte.${last}`),
+        sbFetch(`daily_leave?select=*&entry_date=gte.${first}&entry_date=lte.${last}`)
+      ]);
+      kpiEntries = {};
+      rows.forEach(r=>{ kpiEntries[r.staff_id+'|'+r.entry_date] = r; });
+      kpiLeaveDays = {};
+      leaveRows.forEach(r=>{ kpiLeaveDays[r.staff_id+'|'+r.entry_date] = r.leave_type; });
+    }catch(e){ console.warn('failed to load timesheet entries', e); }
+    renderKpiDaily();
+    applyStickyHeaderOffsets();
+  } else {
+    const fy = kpiFyStartYear(kpiFyOffset);
+    const first = `${fy}-04-01`;
+    const last = `${fy+1}-03-31`;
+    try{
+      const [entryRows, leaveRows] = await Promise.all([
+        sbFetch(`timesheet_entries?select=*&entry_date=gte.${first}&entry_date=lte.${last}`),
+        sbFetch(`daily_leave?select=*&entry_date=gte.${first}&entry_date=lte.${last}`)
+      ]);
+      kpiEntries = {};
+      entryRows.forEach(r=>{ kpiEntries[r.staff_id+'|'+r.entry_date] = r; });
+      kpiLeaveDays = {};
+      leaveRows.forEach(r=>{ kpiLeaveDays[r.staff_id+'|'+r.entry_date] = r.leave_type; });
+    }catch(e){ console.warn('failed to load KPI annual data', e); }
+    renderKpiAnnual();
+    applyStickyHeaderOffsets();
+  }
+}
+async function saveStaffTarget(el){
+  const staffId = el.dataset.staff;
+  const val = parseFloat(el.value) || 8;
+  const s = staff.find(x=>x.id===staffId);
+  if(s) s.hours_per_day = val;
+  await withSync(async ()=>{
+    await sbFetch('staff?id=eq.' + encodeURIComponent(staffId), { method:'PATCH', body:{hours_per_day: val} });
+  }, 'Save failed — check connection');
+  if(kpiViewMode==='daily') renderKpiDaily(); else renderKpiAnnual();
+}
+function applyStickyHeaderOffsets(){
+  const r1 = document.getElementById('kpiHeadRow1');
+  const r2 = document.getElementById('kpiHeadRow2');
+  const r3 = document.getElementById('kpiHeadRow3');
+  if(!r1 || !r2 || !r3) return;
+  const h1 = r1.offsetHeight;
+  const h2 = r2.offsetHeight;
+  Array.from(r2.children).forEach(th=>{ th.style.top = h1 + 'px'; });
+  Array.from(r3.children).forEach(th=>{ th.style.top = (h1+h2) + 'px'; });
+}
+function renderKpiDaily(){
+  const staff = kpiStaffList();
+  const d = kpiMonthDate(kpiMonthOffset);
+  const year = d.getFullYear(), month = d.getMonth()+1;
+  const total = daysInMonth(year, month);
+  document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;" rowspan="3">Day</th>' + staff.map((s,idx)=>`<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} <span class="kpi-defaults-btn" onclick="openDefaultsPopover(this,'${s.id}')" title="Set default times">⚙</span></th>`).join('');
+  document.getElementById('kpiHeadRow2').innerHTML = staff.map((s,idx)=>{
+    const cls = 'staff-block-'+(idx%2===0?'a':'b');
+    return `<th class="${cls} staff-block-start" rowspan="2">Start</th><th class="${cls}" rowspan="2">Finish</th><th class="${cls}" rowspan="2">Lunch</th><th class="${cls} kpi-other-hdr" colspan="2" style="text-align:center;">Other</th><th class="${cls}" rowspan="2">Total</th>`;
+  }).join('');
+  document.getElementById('kpiHeadRow3').innerHTML = staff.map((s,idx)=>{
+    const cls = 'staff-block-'+(idx%2===0?'a':'b');
+    return `<th class="${cls}">Start</th><th class="${cls}">Finish</th>`;
+  }).join('');
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const holidaySet = new Set(getNZHolidays(year));
+  let rows = '';
+  for(let day=1; day<=total; day++){
+    const dateObj = new Date(year, month-1, day);
+    const iso = isoDate(dateObj);
+    const dow = dateObj.getDay();
+    const isWeekend = dow===0||dow===6;
+    const isHoliday = holidaySet.has(iso);
+    rows += `<tr class="${isHoliday?'kpi-holiday':(isWeekend?'kpi-weekend':'')}"><td class="day-cell">${dayNames[dow]} ${day}${isHoliday?' 🎉':''}</td>`;
+    staff.forEach((s,idx)=>{
+      const cls = 'staff-block-'+(idx%2===0?'a':'b');
+      if(isWeekend || isHoliday){
+        rows += `<td class="${cls} staff-block-start"></td><td class="${cls}"></td><td class="${cls}"></td><td class="${cls}"></td><td class="${cls}"></td><td></td>`;
+        return;
+      }
+      const leaveType = kpiLeaveDays[s.id+'|'+iso] || '';
+      const e = kpiEntries[s.id+'|'+iso] || {};
+      const dayTotal = dailyHoursForEntry(e);
+      const f = v=> v ? 'kpi-filled' : 'kpi-empty';
+      const startLeaveCls = leaveType ? ` kpi-start-leave-${leaveType}` : '';
+      const startCell = leaveType
+        ? `<button type="button" class="kpi-leave-cell" data-staff="${s.id}" data-date="${iso}" onclick="handleLeaveCellClick(this)">${leaveType==='annual'?'Annual':leaveType==='sick'?'Sick':'Other'}</button>`
+        : `<input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.start_time)}" data-staff="${s.id}" data-date="${iso}" data-field="start_time" value="${hhmm(e.start_time)}" onmousedown="handleStartMouseDown(event,this)" onblur="saveTimesheetCell(this)">`;
+      rows += `<td class="${cls} staff-block-start${startLeaveCls}" style="padding:0;">${startCell}</td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.finish_time)}" data-staff="${s.id}" data-date="${iso}" data-field="finish_time" value="${hhmm(e.finish_time)}" onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${minutesToHM(e.lunch_minutes)}" onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_start)}" data-staff="${s.id}" data-date="${iso}" data-field="other_start" value="${hhmm(e.other_start)}" onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_finish)}" data-staff="${s.id}" data-date="${iso}" data-field="other_finish" value="${hhmm(e.other_finish)}" onblur="saveTimesheetCell(this)"></td>
+        <td class="kpi-total" data-staff="${s.id}" data-date="${iso}">${dayTotal ? dayTotal.toFixed(2) : ''}</td>`;
+    });
+    rows += '</tr>';
+  }
+  document.getElementById('kpiBody').innerHTML = rows;
+}
+function handleStartMouseDown(e, el){
+  if(kpiArmedLeave){ e.preventDefault(); handleLeaveCellClick(el); }
+}
+function setArmedLeave(type){
+  kpiArmedLeave = (kpiArmedLeave === type) ? '' : type;
+  ['annual','sick','other','clear'].forEach(t=>{
+    const btn = document.getElementById('kpiArmBtn-'+t);
+    if(!btn) return;
+    btn.classList.toggle('armed', kpiArmedLeave === (t==='clear' ? '__clear__' : t));
+  });
+  const hint = document.getElementById('kpiLeaveHint');
+  if(kpiArmedLeave === '__clear__'){
+    hint.textContent = 'Click a day below to clear its leave marking. Click the button again to stop.';
+  } else if(kpiArmedLeave){
+    const label = kpiArmedLeave==='annual'?'Annual leave':kpiArmedLeave==='sick'?'Sick leave':'Other/unpaid leave';
+    hint.textContent = `Click a day below to mark it as ${label}. Click the button again to stop.`;
+  } else {
+    hint.textContent = '';
+  }
+}
+async function handleLeaveCellClick(el){
+  if(!kpiArmedLeave) return;
+  const staffId = el.dataset.staff, date = el.dataset.date;
+  const type = kpiArmedLeave === '__clear__' ? '' : kpiArmedLeave;
+  await saveLeaveDay(staffId, date, type);
+}
+function emptyOrNull(v){ return v || null; }
+async function saveLeaveDay(staffId, date, type){
+  const key = staffId+'|'+date;
+  await withSync(async ()=>{
+    if(type){
+      await sbFetch('daily_leave?on_conflict=staff_id,entry_date', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{staff_id:staffId, entry_date:date, leave_type:type}] });
+      kpiLeaveDays[key] = type;
+    } else {
+      await sbFetch(`daily_leave?staff_id=eq.${encodeURIComponent(staffId)}&entry_date=eq.${date}`, { method:'DELETE' });
+      delete kpiLeaveDays[key];
+    }
+  }, 'Save failed — check connection');
+  renderKpiDaily();
+}
+async function saveTimesheetCell(el){
+  const staffId = el.dataset.staff, date = el.dataset.date, field = el.dataset.field;
+  const key = staffId+'|'+date;
+  if(!kpiEntries[key]) kpiEntries[key] = {staff_id:staffId, entry_date:date};
+  const s = staff.find(x=>x.id===staffId);
+  let val = el.value;
+  const isEmpty = !val || !val.trim();
+  if(field==='lunch_minutes'){
+    if(isEmpty && s && s.default_lunch_minutes){
+      val = s.default_lunch_minutes;
+      el.value = minutesToHM(val);
+    } else if(isEmpty){
+      val = null;
+    } else {
+      const parsed = parseLunchInput(val);
+      if(parsed===null || isNaN(parsed)){
+        showToast('Enter lunch as H:MM, e.g. 0:30');
+        el.value = minutesToHM(kpiEntries[key][field]);
+        return;
+      }
+      val = parsed;
+      el.value = minutesToHM(val);
+    }
+  } else {
+    if(isEmpty){
+      const defaultVal = field==='start_time' ? s?.default_start : field==='finish_time' ? s?.default_finish : null;
+      val = defaultVal ? hhmm(defaultVal) : '';
+      if(defaultVal) el.value = val;
+    } else {
+      const normalized = normalizeTime(val);
+      if(normalized===null){
+        showToast('Enter a time like 08:00 (24-hour)');
+        el.value = hhmm(kpiEntries[key][field]);
+        return;
+      }
+      val = normalized;
+      el.value = val;
+    }
+  }
+  if(emptyOrNull(kpiEntries[key][field]) === emptyOrNull(val)) return;
+  kpiEntries[key][field] = val || null;
+  await withSync(async ()=>{
+    const row = {staff_id:staffId, entry_date:date};
+    row[field] = val || null;
+    await sbFetch('timesheet_entries?on_conflict=staff_id,entry_date', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[row] });
+  }, 'Save failed — check connection');
+  el.classList.toggle('kpi-filled', !!val);
+  el.classList.toggle('kpi-empty', !val);
+  const totalCell = document.querySelector(`td.kpi-total[data-staff="${staffId}"][data-date="${date}"]`);
+  if(totalCell){
+    const dayTotal = dailyHoursForEntry(kpiEntries[key]);
+    totalCell.textContent = dayTotal ? dayTotal.toFixed(2) : '';
+  }
+}
+function openDefaultsPopover(triggerEl, staffId){
+  closeDefaultsPopover();
+  const s = staff.find(x=>x.id===staffId);
+  if(!s) return;
+  const rect = triggerEl.getBoundingClientRect();
+  const pop = document.createElement('div');
+  pop.className = 'kpi-defaults-popover';
+  pop.id = 'kpiDefaultsPopover';
+  pop.innerHTML = `<div style="font-weight:700;margin-bottom:4px;">${esc(s.name)}'s defaults</div>
+    <label>Default start</label>
+    <input type="text" inputmode="numeric" maxlength="5" id="defStart" value="${hhmm(s.default_start)}" placeholder="e.g. 8">
+    <label>Default finish</label>
+    <input type="text" inputmode="numeric" maxlength="5" id="defFinish" value="${hhmm(s.default_finish)}" placeholder="e.g. 17">
+    <label>Default lunch (min)</label>
+    <input type="number" min="0" step="5" id="defLunch" value="${s.default_lunch_minutes||''}" placeholder="e.g. 30">
+    <button class="btn-refresh" onclick="saveDefaults('${staffId}')">Save defaults</button>`;
+  document.body.appendChild(pop);
+  const top = Math.min(window.innerHeight - 240, rect.bottom + 6);
+  const left = Math.max(6, Math.min(window.innerWidth - 240, rect.left));
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+  setTimeout(()=>{ document.addEventListener('click', closeDefaultsPopoverOnClickOutside); }, 0);
+}
+function closeDefaultsPopoverOnClickOutside(e){
+  const pop = document.getElementById('kpiDefaultsPopover');
+  if(pop && !pop.contains(e.target) && !e.target.classList.contains('kpi-defaults-btn')){
+    closeDefaultsPopover();
+  }
+}
+function closeDefaultsPopover(){
+  const pop = document.getElementById('kpiDefaultsPopover');
+  if(pop) pop.remove();
+  document.removeEventListener('click', closeDefaultsPopoverOnClickOutside);
+}
+async function saveDefaults(staffId){
+  const start = normalizeTime(document.getElementById('defStart').value);
+  const finish = normalizeTime(document.getElementById('defFinish').value);
+  const lunch = parseInt(document.getElementById('defLunch').value,10) || null;
+  const s = staff.find(x=>x.id===staffId);
+  if(s){
+    s.default_start = start || null;
+    s.default_finish = finish || null;
+    s.default_lunch_minutes = lunch;
+  }
+  await withSync(async ()=>{
+    await sbFetch('staff?id=eq.' + encodeURIComponent(staffId), { method:'PATCH', body:{
+      default_start: start || null,
+      default_finish: finish || null,
+      default_lunch_minutes: lunch
+    }});
+  }, 'Save failed — check connection');
+  closeDefaultsPopover();
+}
+function kpiFyMonths(fyStart){
+  const months = [];
+  for(let i=0;i<12;i++){
+    const m = 4+i;
+    if(m<=12) months.push({year:fyStart, month:m});
+    else months.push({year:fyStart+1, month:m-12});
+  }
+  return months;
+}
+function renderKpiAnnual(){
+  const staff = kpiStaffList();
+  const fyStart = kpiFyStartYear(kpiFyOffset);
+  const months = kpiFyMonths(fyStart);
+  document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;" rowspan="2">Month</th>' + staff.map((s,idx)=>{
+    const cls = 'staff-block-'+(idx%2===0?'a':'b');
+    const targetHtml = LOCKED_WHO
+      ? `<span style="font-size:12px;color:var(--ink-soft);">Target: ${s.hours_per_day||8}h/day</span>`
+      : `<span style="font-size:12px;color:var(--ink-soft);">Target: </span><input type="number" min="1" max="24" step="0.5" class="kpi-target" data-staff="${s.id}" value="${s.hours_per_day||8}" onchange="saveStaffTarget(this)">`;
+    return `<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} <span class="kpi-defaults-btn" onclick="openDefaultsPopover(this,'${s.id}')" title="Set default times">⚙</span> ${targetHtml}</th>`;
+  }).join('');
+  document.getElementById('kpiHeadRow2').innerHTML = staff.map((s,idx)=>{
+    const cls = 'staff-block-'+(idx%2===0?'a':'b');
+    return `<th class="${cls} staff-block-start">Ann. Lv</th><th class="${cls}">Sick Lv</th><th class="${cls}">Other Lv</th><th class="${cls}">Total Days</th><th class="${cls}">Actual Hrs</th><th class="${cls}">p/day</th>`;
+  }).join('');
+  document.getElementById('kpiHeadRow3').innerHTML = '';
+  const totals = {};
+  staff.forEach(s=>{ totals[s.id] = {days:0, actual:0, annual:0, sick:0, other:0}; });
+  let rows = '';
+  months.forEach(({year,month})=>{
+    const ymKey = `${year}-${String(month).padStart(2,'0')}`;
+    rows += `<tr><td class="day-cell">${new Date(year,month-1,1).toLocaleDateString('en-NZ',{month:'long',year:'numeric'})}</td>`;
+    staff.forEach((s,idx)=>{
+      const cls = 'staff-block-'+(idx%2===0?'a':'b');
+      const weekdays = countWeekdaysInMonth(year, month);
+      const holidays = countHolidayWeekdaysInMonth(year, month);
+      const annual = countLeaveDaysInMonth(s.id, year, month, 'annual');
+      const sick = countLeaveDaysInMonth(s.id, year, month, 'sick');
+      const other = countLeaveDaysInMonth(s.id, year, month, 'other');
+      const totalDays = Math.max(0, weekdays - holidays - annual - sick - other);
+      let actualHours = 0;
+      const dim = daysInMonth(year, month);
+      for(let day=1; day<=dim; day++){
+        actualHours += dailyHoursForEntry(kpiEntries[s.id+'|'+isoDate(new Date(year, month-1, day))]);
+      }
+      const target = s.hours_per_day || 8;
+      const perDay = totalDays>0 ? actualHours/totalDays : null;
+      const perDayCls = perDay==null ? cls : (perDay < target ? 'kpi-under' : 'kpi-over');
+      totals[s.id].days += totalDays;
+      totals[s.id].actual += actualHours;
+      totals[s.id].annual += annual;
+      totals[s.id].sick += sick;
+      totals[s.id].other += other;
+      rows += `<td class="${cls} staff-block-start" style="text-align:center;" data-annual-lv="${s.id}|${ymKey}">${annual||''}</td>
+        <td class="${cls}" style="text-align:center;" data-sick-lv="${s.id}|${ymKey}">${sick||''}</td>
+        <td class="${cls}" style="text-align:center;" data-other-lv="${s.id}|${ymKey}">${other||''}</td>
+        <td class="${cls}" style="text-align:center;" data-total-days="${s.id}|${ymKey}">${totalDays.toFixed(1)}</td>
+        <td class="${cls}" style="text-align:center;" data-actual-hrs="${s.id}|${ymKey}">${actualHours.toFixed(1)}</td>
+        <td class="${perDayCls}" data-perday="${s.id}|${ymKey}">${perDay!=null ? perDay.toFixed(1) : ''}</td>`;
+    });
+    rows += '</tr>';
+  });
+  rows += '<tr class="kpi-total-row"><td class="day-cell">Total</td>' + staff.map((s,idx)=>{
+    const cls = 'staff-block-'+(idx%2===0?'a':'b');
+    const t = totals[s.id];
+    const target = s.hours_per_day || 8;
+    const perDay = t.days>0 ? t.actual/t.days : null;
+    const perDayCls = perDay==null ? '' : (perDay < target ? 'kpi-under' : 'kpi-over');
+    return `<td class="${cls} staff-block-start" data-total-annual="${s.id}">${t.annual.toFixed(1)}</td><td class="${cls}" data-total-sick="${s.id}">${t.sick.toFixed(1)}</td><td class="${cls}" data-total-other="${s.id}">${t.other.toFixed(1)}</td><td class="${cls}" style="text-align:center;" data-total-days-sum="${s.id}">${t.days.toFixed(1)}</td><td class="${cls}" style="text-align:center;" data-total-actual-sum="${s.id}">${t.actual.toFixed(1)}</td><td class="${perDayCls}" data-total-perday="${s.id}">${perDay!=null?perDay.toFixed(1):''}</td>`;
+  }).join('') + '</tr>';
+  document.getElementById('kpiBody').innerHTML = rows;
+}
+function monthPartsFromYm(ym){
+  const [y,m] = ym.split('-').map(Number);
+  return {year:y, month:m};
+}
+function recomputeAnnualRow(staffId, ym){
+  const {year, month} = monthPartsFromYm(ym);
+  const s = staff.find(x=>x.id===staffId);
+  if(!s) return;
+  const weekdays = countWeekdaysInMonth(year, month);
+  const holidays = countHolidayWeekdaysInMonth(year, month);
+  const annual = countLeaveDaysInMonth(staffId, year, month, 'annual');
+  const sick = countLeaveDaysInMonth(staffId, year, month, 'sick');
+  const other = countLeaveDaysInMonth(staffId, year, month, 'other');
+  const totalDays = Math.max(0, weekdays - holidays - annual - sick - other);
+  let actualHours = 0;
+  const dim = daysInMonth(year, month);
+  for(let day=1; day<=dim; day++){
+    actualHours += dailyHoursForEntry(kpiEntries[staffId+'|'+isoDate(new Date(year, month-1, day))]);
+  }
+  const target = s.hours_per_day || 8;
+  const perDay = totalDays>0 ? actualHours/totalDays : null;
+  const perDayCls = perDay==null ? '' : (perDay < target ? 'kpi-under' : 'kpi-over');
+  const annualCell = document.querySelector(`[data-annual-lv="${staffId}|${ym}"]`);
+  const sickCell = document.querySelector(`[data-sick-lv="${staffId}|${ym}"]`);
+  const otherCell = document.querySelector(`[data-other-lv="${staffId}|${ym}"]`);
+  const daysCell = document.querySelector(`[data-total-days="${staffId}|${ym}"]`);
+  const actualCell = document.querySelector(`[data-actual-hrs="${staffId}|${ym}"]`);
+  const perDayCell = document.querySelector(`[data-perday="${staffId}|${ym}"]`);
+  if(annualCell) annualCell.textContent = annual||'';
+  if(sickCell) sickCell.textContent = sick||'';
+  if(otherCell) otherCell.textContent = other||'';
+  if(daysCell) daysCell.textContent = totalDays.toFixed(1);
+  if(actualCell) actualCell.textContent = actualHours.toFixed(1);
+  if(perDayCell){
+    perDayCell.textContent = perDay!=null ? perDay.toFixed(1) : '';
+    perDayCell.classList.remove('kpi-under','kpi-over');
+    if(perDayCls) perDayCell.classList.add(perDayCls);
+  }
+}
+function recomputeAnnualTotalsForStaff(staffId){
+  const s = staff.find(x=>x.id===staffId);
+  if(!s) return;
+  const fyStart = kpiFyStartYear(kpiFyOffset);
+  const months = kpiFyMonths(fyStart);
+  let days=0, actual=0, annual=0, sick=0, other=0;
+  months.forEach(({year,month})=>{
+    const weekdays = countWeekdaysInMonth(year, month);
+    const holidays = countHolidayWeekdaysInMonth(year, month);
+    const a = countLeaveDaysInMonth(staffId, year, month, 'annual');
+    const si = countLeaveDaysInMonth(staffId, year, month, 'sick');
+    const o = countLeaveDaysInMonth(staffId, year, month, 'other');
+    const totalDays = Math.max(0, weekdays - holidays - a - si - o);
+    let actualHours = 0;
+    const dim = daysInMonth(year, month);
+    for(let day=1; day<=dim; day++){
+      actualHours += dailyHoursForEntry(kpiEntries[staffId+'|'+isoDate(new Date(year, month-1, day))]);
+    }
+    days += totalDays; actual += actualHours; annual += a; sick += si; other += o;
+  });
+  const target = s.hours_per_day || 8;
+  const perDay = days>0 ? actual/days : null;
+  const perDayCls = perDay==null ? '' : (perDay < target ? 'kpi-under' : 'kpi-over');
+  const setText = (sel, text)=>{ const el = document.querySelector(sel); if(el) el.textContent = text; };
+  setText(`[data-total-annual="${staffId}"]`, annual.toFixed(1));
+  setText(`[data-total-sick="${staffId}"]`, sick.toFixed(1));
+  setText(`[data-total-other="${staffId}"]`, other.toFixed(1));
+  setText(`[data-total-days-sum="${staffId}"]`, days.toFixed(1));
+  setText(`[data-total-actual-sum="${staffId}"]`, actual.toFixed(1));
+  const perDayCell = document.querySelector(`[data-total-perday="${staffId}"]`);
+  if(perDayCell){
+    perDayCell.textContent = perDay!=null ? perDay.toFixed(1) : '';
+    perDayCell.classList.remove('kpi-under','kpi-over');
+    if(perDayCls) perDayCell.classList.add(perDayCls);
+  }
+}
+
 function applyReadOnlyMode(){
   if(!READ_ONLY) return;
   document.getElementById('newJobBtn').style.display = 'none';
   document.getElementById('turnaroundGuideBtn').style.display = 'none';
-  document.getElementById('viewsWrap').style.display = 'none';
   document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
   document.getElementById('undoBtn').style.display = 'none';
   document.querySelector('[data-tab="workload"]').style.display = 'none';
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
+  if(!LOCKED_WHO) document.querySelector('[data-tab="kpi"]').style.display = 'none';
   document.getElementById('showArchived').closest('label').style.display = 'none';
   document.body.classList.add('readonly-mode');
   const banner = document.getElementById('readOnlyBanner');
@@ -2865,8 +3419,12 @@ function applyReadOnlyMode(){
   if(LOCKED_WHO){
     document.getElementById('colVisWrap').style.display = 'block';
     renderColVisMenu();
+    const kpiBanner = document.getElementById('kpiWhoBanner');
+    kpiBanner.textContent = `Showing hours for ${LOCKED_WHO} only`;
+    kpiBanner.style.display = 'block';
   }
 }
+document.getElementById('kpiDailyBtn').classList.add('active');
 applyReadOnlyMode();
 loadAll(true);
 </script>

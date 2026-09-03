@@ -291,10 +291,6 @@ table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .foot-left{display:flex;gap:8px;}
 
 .week-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
-.week-nav button{
-  border:1px solid var(--line-strong);background:var(--panel);border-radius:5px;padding:6px 11px;font-size:13px;color:var(--ink-soft);
-}
-.week-nav button:hover{border-color:var(--blue);color:var(--blue);}
 .week-label{font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:15px;color:var(--blue-deep);}
 .workload-wrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto;box-shadow:var(--shadow);}
 table.wl-table{border-collapse:collapse;width:100%;min-width:1100px;}
@@ -527,9 +523,9 @@ th.day-cell{background:#01003A;color:#F4F5F3;}
 
   <div class="view" id="view-workload">
     <div class="week-nav">
-      <button onclick="shiftWeek(-1)">← Prev week</button>
+      <button class="btn-ghost" onclick="shiftWeek(-1)">← Prev week</button>
       <span class="week-label" id="weekLabel"></span>
-      <button onclick="shiftWeek(1)">Next week →</button>
+      <button class="btn-ghost" onclick="shiftWeek(1)">Next week →</button>
       <button class="btn-ghost" onclick="shiftWeek(0,true)">This week</button>
       <span style="flex:1"></span>
       <button class="btn-ghost" onclick="window.print()">🖶 Print view</button>
@@ -1687,13 +1683,13 @@ setInterval(()=>{
 }, 6000);
 
 const STATE_PILL_COLORS = {
-  onSiteChanges: {bg:'#FBE1C7', fg:'#95530A'},
-  rfi: {bg:'#FAD9D4', fg:'#A13B2A'},
-  consent: {bg:'#E8E7D2', fg:'#6B6830'},
-  vetting: {bg:'#E5DCF4', fg:'#5B3A96'},
-  onSite: {bg:'#DCEFD6', fg:'#3A6B2A'},
-  withServices: {bg:'#F9DCE6', fg:'#B84D7B'},
-  default: {bg:'#D2EEE9', fg:'#0F6B5C'}
+  onSiteChanges: {bg:'#EEC799', fg:'#7A3D08'},
+  rfi: {bg:'#EDB1AB', fg:'#7A2318'},
+  consent: {bg:'#D1CFAC', fg:'#4A4720'},
+  vetting: {bg:'#C7B5E3', fg:'#3B2360'},
+  onSite: {bg:'#B1D2A8', fg:'#1F4A12'},
+  withServices: {bg:'#EBB5C8', fg:'#7A1F42'},
+  default: {bg:'#A1D6CC', fg:'#0B4A3E'}
 };
 const TASK_PILL_COLORS = {
   'In Progress': {bg:'#FBF0C7', fg:'#8A6D00'},
@@ -1703,7 +1699,7 @@ const TASK_PILL_COLORS = {
 function inlinePillHtml(text, colors){
   if(!text) return '';
   if(!colors) return esc(text);
-  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:600;padding:3px 10px;border-radius:14px;">${esc(text)}</span>`;
+  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:700;padding:3px 10px;border-radius:4px;width:128px;text-align:center;">${esc(text)}</span>`;
 }
 function copyAsTable(){
   const list = getFiltered().slice().sort((a,b)=>{
@@ -1956,18 +1952,12 @@ function renderJobs(){
 }
 
 const STAGE_ORDER = ['SP','PD','WD','On Site'];
+const STAGE_COLORS = { SP:'#01003A', PD:'#180F5E', WD:'#006699', 'On Site':'#408CB2' };
 function renderBoard(list){
-  const groupBy = 'stage';
   const wrap = document.getElementById('boardWrap');
-  let groups = [];
-  const STAGE_COLORS = { SP:'#01003A', PD:'#180F5E', WD:'#006699', 'On Site':'#408CB2' };
-  if(groupBy==='stage'){
-    groups = STAGE_ORDER.map(s=>({key:s,label: s==='On Site'?'On Site':s+' — '+({SP:'Concept',PD:'Preliminary',WD:'Working Dwgs'}[s]||''),color:STAGE_COLORS[s]}));
-  } else {
-    groups = regions.map(r=>({key:r,label:r,color:'var(--blue-deep)'}));
-  }
+  const groups = STAGE_ORDER.map(s=>({key:s,label: s==='On Site'?'On Site':s+' — '+({SP:'Concept',PD:'Preliminary',WD:'Working Dwgs'}[s]||''),color:STAGE_COLORS[s]}));
   wrap.innerHTML = groups.map(g=>{
-    const items = list.filter(j=> (groupBy==='stage' ? j.stage : j.region) === g.key)
+    const items = list.filter(j=>j.stage===g.key)
                        .sort((a,b)=> (a.latestEstimatedCompletion||'9999').localeCompare(b.latestEstimatedCompletion||'9999'));
     return `<div class="col">
       <div class="col-head" style="background:${g.color};color:#fff;"><span>${esc(g.label)}</span><span class="col-count">${items.length}</span></div>

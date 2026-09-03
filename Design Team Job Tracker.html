@@ -364,9 +364,15 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 }
 
 table.kpi-table{border-collapse:collapse;width:100%;min-width:900px;}
+.kpi-sub-tab{
+  font-family:'Open Sans',sans-serif;font-size:13px;font-weight:600;color:var(--ink-faint);
+  background:none;border:none;border-bottom:2px solid transparent;padding:6px 14px;cursor:pointer;
+}
+.kpi-sub-tab.active{color:var(--blue-deep);border-bottom-color:var(--blue-deep);}
+.kpi-sub-tab:hover{color:var(--ink);}
 table.kpi-table th{
-  font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:16px;letter-spacing:.02em;
-  color:#F4F5F3;text-align:left;padding:11px 12px;border-bottom:1.5px solid var(--line-strong);
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:13px;letter-spacing:.02em;
+  color:#F4F5F3;text-align:left;padding:4px 10px;border-bottom:1.5px solid var(--line-strong);
   background:#01003A;white-space:nowrap;
 }
 #kpiHeadRow1 th{position:sticky;top:0;z-index:6;}
@@ -403,8 +409,8 @@ tbody tr.kpi-weekend .staff-block-b td{background:#C7CCD1 !important;}
 .kpi-defaults-popover .btn-refresh{margin-top:10px;width:100%;justify-content:center;}
 .day-cell{position:sticky;left:0;background:var(--panel);font-weight:700;padding:9px 14px;z-index:3;border-right:2px solid var(--line-strong);white-space:nowrap;min-width:100px;}
 th.day-cell{background:#01003A;color:#F4F5F3;}
-.staff-name-hdr{font-size:20px !important;font-weight:800 !important;font-style:normal;font-family:'Open Sans',sans-serif !important;color:var(--blue) !important;border-bottom:2px solid var(--blue-deep) !important;padding:10px 8px;line-height:1.1;white-space:normal;}
-.kpi-other-hdr{padding:2px 0 !important;}
+.staff-name-hdr{font-size:13px !important;font-weight:700 !important;font-style:normal;font-family:'Open Sans',sans-serif !important;color:var(--ink) !important;background:var(--paper) !important;border-bottom:1px solid var(--line-strong) !important;padding:6px 8px;line-height:1.2;white-space:normal;}
+.kpi-other-hdr{padding:1px 0 !important;}
 .kpi-holiday td{background:#FBF0C7 !important;}
 .kpi-holiday .staff-block-a td{background:#F8EABC !important;}
 .kpi-holiday .staff-block-b td{background:#F5E08C !important;}
@@ -550,18 +556,17 @@ th.day-cell{background:#01003A;color:#F4F5F3;}
 
   <div class="view" id="view-kpi">
     <div id="kpiWhoBanner" style="display:none;background:var(--blue-soft);color:var(--blue-deep);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px;"></div>
-    <div class="tabs">
-      <div class="tabs-left">
-        <button class="tab" id="kpiDailyBtn" onclick="setKpiViewMode('daily')">Daily Log</button>
-        <button class="tab" id="kpiAnnualBtn" onclick="setKpiViewMode('annual')">Annual Summary</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:10px;">
+      <div style="display:flex;gap:4px;">
+        <button class="kpi-sub-tab" id="kpiDailyBtn" onclick="setKpiViewMode('daily')">Daily Log</button>
+        <button class="kpi-sub-tab" id="kpiAnnualBtn" onclick="setKpiViewMode('annual')">Annual Summary</button>
       </div>
-    </div>
-    <div class="week-nav">
-      <span style="flex:1"></span>
-      <button class="btn-ghost" onclick="shiftKpiPeriod(-1)">← Prev</button>
-      <span class="week-label" id="kpiPeriodLabel"></span>
-      <button class="btn-ghost" onclick="shiftKpiPeriod(1)">Next →</button>
-      <button class="btn-ghost" onclick="shiftKpiPeriod(0,true)">This month</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-ghost" onclick="shiftKpiPeriod(-1)">← Prev</button>
+        <span class="week-label" id="kpiPeriodLabel"></span>
+        <button class="btn-ghost" onclick="shiftKpiPeriod(1)">Next →</button>
+        <button class="btn-ghost" onclick="shiftKpiPeriod(0,true)">This month</button>
+      </div>
     </div>
     <p class="hint">Green = at or above target hours/day, pink = under. Grey rows = weekends, gold rows 🎉 = NZ public holidays (no time entry on these). Filled-in times show dark, empty ones show light grey. Each person's target hours/day is set in Annual Summary, defaulting to 8.</p>
     <div class="kpi-legend">

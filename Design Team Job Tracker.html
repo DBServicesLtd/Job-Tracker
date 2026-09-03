@@ -2884,7 +2884,15 @@ let kpiEntries = {};
 let kpiLeaveDays = {};
 let kpiArmedLeave = '';
 function kpiStaffList(){
-  return (LOCKED_WHO ? staff.filter(s=>s.name===LOCKED_WHO) : staff.slice()).sort((a,b)=>a.name.localeCompare(b.name));
+  const last = ['Aaron','Hayley'];
+  const list = LOCKED_WHO ? staff.filter(s=>s.name===LOCKED_WHO) : staff.slice();
+  return list.sort((a,b)=>{
+    const aLast = last.some(n=>a.name.startsWith(n));
+    const bLast = last.some(n=>b.name.startsWith(n));
+    if(aLast && !bLast) return 1;
+    if(!aLast && bLast) return -1;
+    return a.name.localeCompare(b.name);
+  });
 }
 function kpiMonthDate(offset){
   const d = new Date();

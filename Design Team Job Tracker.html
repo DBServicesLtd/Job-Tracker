@@ -241,10 +241,14 @@ table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .cell-text:focus{outline:none;background:var(--blue-soft);}
 .cell-rich{width:100%;min-height:38px;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);outline:none;white-space:pre-wrap;}
 .my-note-wrap{border-top:2px solid #54524C;border-left:4px solid #54524C;padding:7px 10px 9px;background:#F1F1F0;margin-top:2px;}
-.my-note-label{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#54524C;margin-bottom:4px;display:flex;align-items:center;gap:5px;}
+.my-note-label{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#54524C;margin-bottom:4px;display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;}
 .my-note-label::before{content:'📌';font-size:12px;}
+.my-note-label::after{content:'▾';font-size:10px;margin-left:auto;opacity:.6;}
+.my-note-label.collapsed::after{content:'▸';}
 .my-note{width:100%;min-height:32px;border:none;background:none;padding:0;font-family:'Open Sans',sans-serif;font-size:12.5px;color:var(--ink);resize:none;overflow:hidden;display:block;}
 .my-note:focus{outline:none;}
+.my-note-body{display:none;}
+.my-note-body.open{display:block;}
 .cell-rich:focus{background:var(--blue-soft);}
 .cell-rich mark, .cell-rich-view mark{background:#FFF3B0;padding:0 2px;border-radius:2px;}
 .rich-toolbar{position:fixed;display:none;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.18);padding:4px;z-index:60;}
@@ -361,7 +365,7 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
   .board{overflow:visible;flex-wrap:wrap;}
 }
 
-#view-kpi .table-wrap{max-height:calc(100vh - 280px);overflow:auto;}
+#view-kpi .table-wrap{max-height:calc(100vh - 280px);overflow:auto;width:fit-content;max-width:100%;}
 table.kpi-table{border-collapse:collapse;width:100%;min-width:900px;}
 .kpi-sub-tab{
   font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:17px;color:var(--ink-faint);
@@ -2139,7 +2143,10 @@ function autoGrow(el){
   el.style.height = el.scrollHeight + 'px';
 }
 const RIGHT_DIVIDER_KEYS = new Set(['notes','planning','earliestEstimatedCompletion','latestEstimatedCompletion','engineer','updatesSent','taskStatus']);
-function isColHidden(key){ return LOCKED_WHO && hiddenCols.has(key); }
+function isColHidden(key){
+  if(LOCKED_WHO && key==='who') return true;
+  return LOCKED_WHO && hiddenCols.has(key);
+}
 function dateCell(j, field){
   if(isColHidden(field)) return '<td class="col-collapsed"></td>';
   const urgency = (field==='earliestEstimatedCompletion' || field==='latestEstimatedCompletion') ? dateUrgencyClass(j[field]) : '';
@@ -2203,8 +2210,9 @@ function richTextCell(j, field){
   if(isColHidden(field)) return '<td class="col-collapsed"></td>';
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
   const html = sanitizeRich(j[field]||'');
+  const myNoteVal = personalNotes[j.id]||'';
   const myNote = (field==='notes' && LOCKED_WHO)
-    ? `<div class="my-note-wrap"><div class="my-note-label">My Note</div><textarea class="cell-text my-note" data-id="${j.id}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="savePersonalNote(this)" placeholder="Just for you…">${esc(personalNotes[j.id]||'')}</textarea></div>`
+    ? `<div class="my-note-wrap"><div class="my-note-label${myNoteVal ? '' : ' collapsed'}" onclick="toggleMyNote(this)" style="margin-bottom:0;">My Note</div><div class="my-note-body${myNoteVal ? ' open' : ''}"><textarea class="cell-text my-note" data-id="${j.id}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="savePersonalNote(this)" placeholder="Just for you…">${esc(myNoteVal)}</textarea></div></div>`
     : '';
   if(READ_ONLY) return `<td class="td-notes ${divider}"><div class="cell-rich-view">${html}</div>${myNote}</td>`;
   return `<td class="td-notes td-editable ${divider}"><div class="cell-rich" contenteditable="true" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" onblur="saveRichCell(this)" onkeydown="handleGridNavKey(event)">${html}</div>${myNote}</td>`;
@@ -2836,6 +2844,15 @@ function renderWorkload(){
       <td class="wl-cell"><textarea data-staff="${s.id}" data-day="upcoming" onblur="saveWorkloadCell(this)" placeholder="Upcoming / to lodge…">${esc(row.upcoming||'')}</textarea></td>
     </tr>`;
   }).join('') || `<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--ink-faint);">No team members yet — add one above.</td></tr>`;
+}
+function toggleMyNote(label){
+  label.classList.toggle('collapsed');
+  const body = label.nextElementSibling;
+  body.classList.toggle('open');
+  if(body.classList.contains('open')){
+    const ta = body.querySelector('textarea');
+    if(ta){ autoGrow(ta); ta.focus(); }
+  }
 }
 async function savePersonalNote(el){
   if(!LOCKED_WHO) return;

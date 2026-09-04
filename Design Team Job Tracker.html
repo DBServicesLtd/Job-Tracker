@@ -82,7 +82,6 @@ a{color:var(--blue);}
 .settings-wrap{position:relative;padding-bottom:6px;}
 .colvis-wrap{position:relative;display:inline-block;}
 .colvis-wrap .settings-menu{right:auto;left:0;max-height:280px;overflow-y:auto;}
-.views-wrap{position:relative;display:inline-block;}
 .settings-btn{
   display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line-strong);cursor:pointer;
   color:var(--ink-soft);font-size:14px;font-weight:600;padding:8px 14px;border-radius:8px;
@@ -713,7 +712,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <button class="modal-close" onclick="closeMyWorkLinksModal()">✕</button>
     </div>
     <div class="modal-body" style="grid-template-columns:1fr;">
-      <p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Each link opens the tracker locked to that person's own jobs only — view-only, no editing, no other tabs. Click Copy and paste it straight into an email or message.</p>
+      <p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Each link opens the tracker locked to that person's own jobs and KPI time entry — editable, no other tabs. Click Copy and paste it straight into an email or message.</p>
       <div id="myWorkLinksList"></div>
     </div>
     <div class="modal-foot">
@@ -785,7 +784,7 @@ const SEED_JOBS = [
     "jobNumber": "25009",
     "jobName": "Cheong",
     "stage": "WD",
-    "status": "Council RFI-\nW/Services",
+    "status": "Council RFI- W/Services",
     "who": "Hannah",
     "taskStatus": "In Progress",
     "stageStartDate": "",
@@ -800,7 +799,7 @@ const SEED_JOBS = [
     "jobNumber": "26032",
     "jobName": "Lot 13 Sullivan Rd",
     "stage": "WD",
-    "status": "Council RFI-\nW/Services",
+    "status": "Council RFI- W/Services",
     "who": "Sarah",
     "taskStatus": "In Progress",
     "stageStartDate": "",
@@ -2599,7 +2598,7 @@ function openMyWorkLinksModal(){
   const everyoneUrl = baseUrl();
   let html = `<div class="region-link-row">
     <div>
-      <div class="region-link-name">Everyone (view only)</div>
+      <div class="region-link-name">Everyone</div>
       <div class="region-link-url">${esc(everyoneUrl)}</div>
     </div>
     <button class="btn-ghost" onclick="copyRegionLink('${esc(everyoneUrl).replace(/'/g,"\\'")}', this)">Copy</button>
@@ -3460,7 +3459,7 @@ function applyReadOnlyMode(){
   if(LOCKED_REGION) parts.push(LOCKED_REGION);
   if(LOCKED_WHO) parts.push(LOCKED_WHO + "'s");
   banner.textContent = VIEW_ALL_READONLY
-    ? '👁 Viewing all jobs — view only, no changes can be made here.'
+    ? '👁 Viewing all jobs — changes you make are shared with the whole team.'
     : '👁 Viewing ' + parts.join(' / ') + ' jobs — view only, no changes can be made here.';
   banner.style.display = 'block';
   if(LOCKED_WHO){

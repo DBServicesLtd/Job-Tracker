@@ -480,6 +480,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <div class="settings-menu" id="settingsMenu">
         <button onclick="closeSettingsMenu(); openRegionLinksModal()">🔗 Region links</button>
         <button id="myWorkLinksBtn" onclick="closeSettingsMenu(); openMyWorkLinksModal()">🔗 My Work links</button>
+        <button onclick="closeSettingsMenu(); navigator.clipboard.writeText(baseUrl()+'?tab=kpi').then(()=>showToast('KPI Tracker link copied'))">📊 Copy KPI Tracker link</button>
         <button onclick="closeSettingsMenu(); copyAsTable()">📋 Copy as table</button>
         <button onclick="closeSettingsMenu(); window.print()">🖶 Print view</button>
       </div>
@@ -3464,6 +3465,7 @@ if(LOCKED_TAB){
   document.querySelectorAll('#mainTabsLeft .tab').forEach(t=>{
     if(t.dataset.tab !== LOCKED_TAB) t.style.display = 'none';
   });
+  document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
 }
 applyReadOnlyMode();
 loadAll(true);

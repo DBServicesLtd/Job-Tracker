@@ -428,9 +428,9 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
 .kpi-start-leave-sick .kpi-leave-cell{color:#A13B2A;}
 .kpi-start-leave-other .kpi-leave-cell{color:#5B3A96;}
 .kpi-armable{cursor:pointer;}
-.kpi-start-leave-annual{background:#B1D2A8 !important;border-left:4px solid #1F4A12;}
-.kpi-start-leave-sick{background:#FAD9D4 !important;border-left:4px solid #A13B2A;}
-.kpi-start-leave-other{background:#E5DCF4 !important;border-left:4px solid #5B3A96;}
+.kpi-start-leave-annual{background:#B1D2A8 !important;}
+.kpi-start-leave-sick{background:#FAD9D4 !important;}
+.kpi-start-leave-other{background:#E5DCF4 !important;}
 .kpi-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 8px 2px;}
 .kpi-legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-faint);}
 .kpi-legend-swatch{width:12px;height:12px;border-radius:3px;display:inline-block;}
@@ -2969,6 +2969,11 @@ function timeStrToDecimal(t){
   const parts = String(t).split(':').map(Number);
   return parts[0] + (parts[1]||0)/60;
 }
+function decimalToHM(h){
+  if(!h) return '';
+  const hrs = Math.floor(h), mins = Math.round((h-hrs)*60);
+  return hrs + ':' + String(mins).padStart(2,'0');
+}
 function dailyHoursForEntry(e){
   if(!e) return 0;
   let total = 0;
@@ -3123,16 +3128,16 @@ function renderKpiDaily(){
       const e = kpiEntries[s.id+'|'+iso] || {};
       const dayTotal = dailyHoursForEntry(e);
       const f = v=> v ? 'kpi-filled' : 'kpi-empty';
-      const startLeaveCls = leaveType ? ` kpi-start-leave-${leaveType}` : '';
+      const leaveCls = leaveType ? ` kpi-start-leave-${leaveType}` : '';
       const startCell = leaveType
         ? `<button type="button" class="kpi-leave-cell" data-staff="${s.id}" data-date="${iso}" onclick="handleLeaveCellClick(this)">${leaveType==='annual'?'Annual':leaveType==='sick'?'Sick':'Other'}</button>`
         : `<input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.start_time)}" data-staff="${s.id}" data-date="${iso}" data-field="start_time" value="${hhmm(e.start_time)}" onmousedown="handleStartMouseDown(event,this)" onblur="saveTimesheetCell(this)">`;
-      rows += `<td class="${cls} staff-block-start${startLeaveCls}" style="padding:0;">${startCell}</td>
-        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.finish_time)}" data-staff="${s.id}" data-date="${iso}" data-field="finish_time" value="${hhmm(e.finish_time)}" onblur="saveTimesheetCell(this)"></td>
-        <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${minutesToHM(e.lunch_minutes)}" onblur="saveTimesheetCell(this)"></td>
+      rows += `<td class="${cls} staff-block-start${leaveCls}" style="padding:0;">${startCell}</td>
+        <td class="${cls}${leaveCls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.finish_time)}" data-staff="${s.id}" data-date="${iso}" data-field="finish_time" value="${leaveType ? '' : hhmm(e.finish_time)}" ${leaveType ? 'disabled' : ''} onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}${leaveCls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${leaveType ? '' : minutesToHM(e.lunch_minutes)}" ${leaveType ? 'disabled' : ''} onblur="saveTimesheetCell(this)"></td>
         <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_start)}" data-staff="${s.id}" data-date="${iso}" data-field="other_start" value="${hhmm(e.other_start)}" onblur="saveTimesheetCell(this)"></td>
         <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_finish)}" data-staff="${s.id}" data-date="${iso}" data-field="other_finish" value="${hhmm(e.other_finish)}" onblur="saveTimesheetCell(this)"></td>
-        <td class="kpi-total" data-staff="${s.id}" data-date="${iso}">${dayTotal ? dayTotal.toFixed(2) : ''}</td>`;
+        <td class="kpi-total" data-staff="${s.id}" data-date="${iso}">${decimalToHM(dayTotal)}</td>`;
     });
     rows += '</tr>';
   }
@@ -3163,6 +3168,7 @@ async function handleLeaveCellClick(el){
   const staffId = el.dataset.staff, date = el.dataset.date;
   const type = kpiArmedLeave === '__clear__' ? '' : kpiArmedLeave;
   await saveLeaveDay(staffId, date, type);
+  if(kpiArmedLeave === '__clear__') setArmedLeave('');
 }
 function emptyOrNull(v){ return v || null; }
 async function saveLeaveDay(staffId, date, type){
@@ -3171,6 +3177,11 @@ async function saveLeaveDay(staffId, date, type){
     if(type){
       await sbFetch('daily_leave?on_conflict=staff_id,entry_date', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{staff_id:staffId, entry_date:date, leave_type:type}] });
       kpiLeaveDays[key] = type;
+      if(kpiEntries[key]){
+        kpiEntries[key].finish_time = null;
+        kpiEntries[key].lunch_minutes = null;
+        await sbFetch('timesheet_entries?on_conflict=staff_id,entry_date', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{staff_id:staffId, entry_date:date, finish_time:null, lunch_minutes:null}] });
+      }
     } else {
       await sbFetch(`daily_leave?staff_id=eq.${encodeURIComponent(staffId)}&entry_date=eq.${date}`, { method:'DELETE' });
       delete kpiLeaveDays[key];
@@ -3229,7 +3240,7 @@ async function saveTimesheetCell(el){
   const totalCell = document.querySelector(`td.kpi-total[data-staff="${staffId}"][data-date="${date}"]`);
   if(totalCell){
     const dayTotal = dailyHoursForEntry(kpiEntries[key]);
-    totalCell.textContent = dayTotal ? dayTotal.toFixed(2) : '';
+    totalCell.textContent = decimalToHM(dayTotal);
   }
 }
 function openDefaultsPopover(triggerEl, staffId){

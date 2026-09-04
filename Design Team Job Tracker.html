@@ -3036,6 +3036,7 @@ function renderKpiPeriodLabel(){
   }
 }
 async function loadAndRenderKpi(){
+  if(!staff.length) return;
   document.getElementById('kpiDailyBtn').classList.toggle('active', kpiViewMode==='daily');
   document.getElementById('kpiAnnualBtn').classList.toggle('active', kpiViewMode==='annual');
   renderKpiPeriodLabel();
@@ -3077,7 +3078,7 @@ async function loadAndRenderKpi(){
 async function saveStaffTarget(el){
   const staffId = el.dataset.staff;
   const val = parseFloat(el.value) || 8;
-  const s = staff.find(x=>x.id===staffId);
+  const s = staff.find(x=>String(x.id)===String(staffId));
   if(s) s.hours_per_day = val;
   await withSync(async ()=>{
     await sbFetch('staff?id=eq.' + encodeURIComponent(staffId), { method:'PATCH', body:{hours_per_day: val} });
@@ -3193,7 +3194,7 @@ async function saveTimesheetCell(el){
   const staffId = el.dataset.staff, date = el.dataset.date, field = el.dataset.field;
   const key = staffId+'|'+date;
   if(!kpiEntries[key]) kpiEntries[key] = {staff_id:staffId, entry_date:date};
-  const s = staff.find(x=>x.id===staffId);
+  const s = staff.find(x=>String(x.id)===String(staffId));
   let val = el.value;
   const isEmpty = !val || !val.trim();
   if(field==='lunch_minutes'){
@@ -3245,7 +3246,7 @@ async function saveTimesheetCell(el){
 }
 function openDefaultsPopover(triggerEl, staffId){
   closeDefaultsPopover();
-  const s = staff.find(x=>x.id===staffId);
+  const s = staff.find(x=>String(x.id)===String(staffId));
   if(!s) return;
   const rect = triggerEl.getBoundingClientRect();
   const pop = document.createElement('div');
@@ -3281,7 +3282,7 @@ async function saveDefaults(staffId){
   const start = normalizeTime(document.getElementById('defStart').value);
   const finish = normalizeTime(document.getElementById('defFinish').value);
   const lunch = parseInt(document.getElementById('defLunch').value,10) || null;
-  const s = staff.find(x=>x.id===staffId);
+  const s = staff.find(x=>String(x.id)===String(staffId));
   if(s){
     s.default_start = start || null;
     s.default_finish = finish || null;
@@ -3373,7 +3374,7 @@ function monthPartsFromYm(ym){
 }
 function recomputeAnnualRow(staffId, ym){
   const {year, month} = monthPartsFromYm(ym);
-  const s = staff.find(x=>x.id===staffId);
+  const s = staff.find(x=>String(x.id)===String(staffId));
   if(!s) return;
   const weekdays = countWeekdaysInMonth(year, month);
   const holidays = countHolidayWeekdaysInMonth(year, month);
@@ -3407,7 +3408,7 @@ function recomputeAnnualRow(staffId, ym){
   }
 }
 function recomputeAnnualTotalsForStaff(staffId){
-  const s = staff.find(x=>x.id===staffId);
+  const s = staff.find(x=>String(x.id)===String(staffId));
   if(!s) return;
   const fyStart = kpiFyStartYear(kpiFyOffset);
   const months = kpiFyMonths(fyStart);
@@ -3472,14 +3473,15 @@ function applyReadOnlyMode(){
 }
 document.getElementById('kpiDailyBtn').classList.add('active');
 if(LOCKED_TAB){
-  switchTab(LOCKED_TAB);
   document.querySelectorAll('#mainTabsLeft .tab').forEach(t=>{
     if(t.dataset.tab !== LOCKED_TAB) t.style.display = 'none';
   });
   document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
 }
 applyReadOnlyMode();
-loadAll(true);
+loadAll(true).then(()=>{
+  if(LOCKED_TAB) switchTab(LOCKED_TAB);
+});
 </script>
 </body>
 </html>

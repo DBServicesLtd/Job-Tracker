@@ -2055,7 +2055,10 @@ async function saveInlineField(el){
   if(field==='planning' || field==='engineer') renderJobs();
 }
 function applyTableWidth(){
-  const total = columnWidths.reduce((sum,w,i)=> sum + ((LOCKED_WHO && hiddenCols.has(TABLE_COLS[i].key)) ? HIDDEN_COL_WIDTH : w), 0);
+  const total = columnWidths.reduce((sum,w,i)=> {
+    if(LOCKED_WHO && TABLE_COLS[i].key==='who') return sum;
+    return sum + ((LOCKED_WHO && hiddenCols.has(TABLE_COLS[i].key)) ? HIDDEN_COL_WIDTH : w);
+  }, 0);
   const table = document.getElementById('jobsTable');
   if(table) table.style.width = total + 'px';
   syncToolbarWidth();
@@ -2081,6 +2084,7 @@ document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncToo
 const HIDDEN_COL_WIDTH = 30;
 function renderColgroup(){
   document.getElementById('tableColgroup').innerHTML = columnWidths.map((w,i)=>{
+    if(LOCKED_WHO && TABLE_COLS[i].key==='who') return '';
     const collapsed = LOCKED_WHO && hiddenCols.has(TABLE_COLS[i].key);
     return `<col style="width:${collapsed ? HIDDEN_COL_WIDTH : w}px">`;
   }).join('');
@@ -2282,6 +2286,7 @@ function renderTable(list){
   renderColgroup();
   const head = document.getElementById('tableHeadRow');
   head.innerHTML = TABLE_COLS.map((c,i)=>{
+    if(LOCKED_WHO && c.key==='who') return '';
     const collapsed = LOCKED_WHO && hiddenCols.has(c.key);
     if(collapsed){
       return `<th class="col-collapsed" title="${esc(c.label)} (hidden)"><span class="col-eye" onclick="event.stopPropagation(); toggleColHidden('${c.key}', true)">🙈</span></th>`;
@@ -2300,7 +2305,7 @@ function renderTable(list){
       ${isColHidden('jobNumber') ? '<td class="col-collapsed"></td>' : `<td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>`}
       ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td><strong>${esc(j.jobName||'Untitled')}</strong></td>`}
       ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td><span class="stamp ${stageClass(j.stage)}">${esc(j.stage)}</span></td>`}
-      ${isColHidden('who') ? '<td class="col-collapsed"></td>' : `<td style="white-space:nowrap;">${esc(j.who||'')}</td>`}
+      ${isColHidden('who') ? '' : `<td style="white-space:nowrap;">${esc(j.who||'')}</td>`}
       ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>`}
       ${richTextCell(j,'notes')}
       ${richTextCell(j,'planning')}

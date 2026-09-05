@@ -166,7 +166,7 @@ select.select, .toolbar select{
 .pill-Completed{background:#E9E9E7;color:#54524C;}
 .pill-OnHold{background:none;color:var(--ink-soft);padding:2px 0;}
 .pill-state-onSiteChanges,.pill-state-rfi,.pill-state-consent,.pill-state-vetting,.pill-state-onSite,.pill-state-withServices,.pill-state-default{
-  min-width:128px;text-align:center;
+  width:168px;text-align:center;
 }
 .pill-state-onSiteChanges{background:#EEC799;color:#7A3D08;}
 .pill-state-rfi{background:#EDB1AB;color:#7A2318;}
@@ -1701,7 +1701,7 @@ const TASK_PILL_COLORS = {
 function inlinePillHtml(text, colors){
   if(!text) return '';
   if(!colors) return esc(text);
-  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:700;padding:3px 10px;border-radius:4px;min-width:128px;text-align:center;">${esc(text)}</span>`;
+  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:700;padding:3px 10px;border-radius:4px;width:168px;text-align:center;">${esc(text)}</span>`;
 }
 function copyAsTable(){
   const list = getFiltered().slice().sort((a,b)=>{

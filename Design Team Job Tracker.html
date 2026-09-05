@@ -583,7 +583,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <span class="kpi-legend-item"><span class="kpi-legend-swatch" style="background:#8A6D00;"></span>Public holiday</span>
     </div>
     <p class="kpi-leave-hint" id="kpiLeaveHint"></p>
-    <div style="overflow:auto;max-height:calc(100vh - 260px);border:1px solid var(--line);border-radius:6px;">
+    <div id="kpiScroll" style="overflow:auto;border:1px solid var(--line);border-radius:6px;">
       <table class="kpi-table" id="kpiTable">
         <thead><tr id="kpiHeadRow1"></tr><tr id="kpiHeadRow2"></tr><tr id="kpiHeadRow3"></tr></thead>
         <tbody id="kpiBody"></tbody>
@@ -1755,7 +1755,7 @@ function switchTab(name){
   document.getElementById('view-kpi').classList.toggle('active', name==='kpi');
   if(name==='workload') renderWorkload();
   if(name==='stagetimes') loadAndRenderStageTimes();
-  if(name==='kpi') loadAndRenderKpi();
+  if(name==='kpi') loadAndRenderKpi().then(sizeKpiScroll);
 }
 let stageHistory = [];
 async function loadAndRenderStageTimes(){
@@ -3086,6 +3086,12 @@ async function saveStaffTarget(el){
   }, 'Save failed — check connection');
   if(kpiViewMode==='daily') renderKpiDaily(); else renderKpiAnnual();
 }
+function sizeKpiScroll(){
+  const el = document.getElementById('kpiScroll');
+  if(!el || !document.getElementById('view-kpi').classList.contains('active')) return;
+  const top = el.getBoundingClientRect().top;
+  el.style.height = (window.innerHeight - top - 24) + 'px';
+}
 function setStickyOffsets(){
   const r1 = document.getElementById('kpiHeadRow1');
   const r2 = document.getElementById('kpiHeadRow2');
@@ -3146,7 +3152,7 @@ function renderKpiDaily(){
     rows += '</tr>';
   }
   document.getElementById('kpiBody').innerHTML = rows;
-  requestAnimationFrame(setStickyOffsets);
+  requestAnimationFrame(()=>{ setStickyOffsets(); sizeKpiScroll(); });
 }
 function handleStartMouseDown(e, el){
   if(kpiArmedLeave){ e.preventDefault(); handleLeaveCellClick(el); }
@@ -3371,7 +3377,7 @@ function renderKpiAnnual(){
     return `<td class="${cls} staff-block-start" data-total-annual="${s.id}">${t.annual.toFixed(1)}</td><td class="${cls}" data-total-sick="${s.id}">${t.sick.toFixed(1)}</td><td class="${cls}" data-total-other="${s.id}">${t.other.toFixed(1)}</td><td class="${cls}" style="text-align:center;" data-total-days-sum="${s.id}">${t.days.toFixed(1)}</td><td class="${cls}" style="text-align:center;" data-total-actual-sum="${s.id}">${t.actual.toFixed(1)}</td><td class="${perDayCls}" data-total-perday="${s.id}">${perDay!=null?perDay.toFixed(1):''}</td>`;
   }).join('') + '</tr>';
   document.getElementById('kpiBody').innerHTML = rows;
-  requestAnimationFrame(setStickyOffsets);
+  requestAnimationFrame(()=>{ setStickyOffsets(); sizeKpiScroll(); });
 }
 function monthPartsFromYm(ym){
   const [y,m] = ym.split('-').map(Number);
@@ -3491,7 +3497,7 @@ if(LOCKED_TAB){
   document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
 }
 applyReadOnlyMode();
-window.addEventListener('resize', setStickyOffsets);
+window.addEventListener('resize', ()=>{ setStickyOffsets(); sizeKpiScroll(); });
 loadAll(true).then(()=>{
   setStickyOffsets();
   if(LOCKED_TAB) switchTab(LOCKED_TAB);

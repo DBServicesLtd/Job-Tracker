@@ -227,7 +227,7 @@ table.jobs-table th{position:relative;user-select:none;}
 table.jobs-table th{
   text-align:left;font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:16px;
   color:#F4F5F3;letter-spacing:.02em;padding:11px 12px;
-  border-bottom:1.5px solid var(--line-strong);border-right:1px solid var(--line-strong);background:#01003A;position:sticky;top:0;cursor:pointer;
+  border-bottom:1.5px solid var(--line-strong);border-right:1px solid var(--line-strong);background:#01003A;position:sticky;top:var(--header-top,110px);cursor:pointer;
   white-space:nowrap;user-select:none;
 }
 table.jobs-table th:hover{color:#C9A227;}
@@ -301,7 +301,7 @@ table.wl-table{border-collapse:collapse;width:100%;min-width:1100px;}
 table.wl-table th{
   font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:16px;letter-spacing:.02em;
   color:#F4F5F3;text-align:left;padding:11px 12px;border-bottom:1.5px solid var(--line-strong);
-  background:#01003A;position:sticky;top:0;white-space:nowrap;
+  background:#01003A;position:sticky;top:var(--header-top,110px);white-space:nowrap;
 }
 table.wl-table th:hover{color:#C9A227;}
 table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px solid var(--line);vertical-align:top;padding:0;}
@@ -3093,11 +3093,10 @@ function setStickyOffsets(){
   const tabs = document.querySelector('.tabs');
   if(!topbar || !tabs) return;
   const topbarH = topbar.offsetHeight;
-  tabs.style.top = topbarH + 'px';
   const tabsH = tabs.offsetHeight;
+  tabs.style.top = topbarH + 'px';
   const headerTop = topbarH + tabsH;
-  document.querySelectorAll('table.jobs-table th').forEach(th=>{ th.style.top = headerTop + 'px'; });
-  document.querySelectorAll('table.wl-table th').forEach(th=>{ th.style.top = headerTop + 'px'; });
+  document.documentElement.style.setProperty('--header-top', headerTop + 'px');
   const r1 = document.getElementById('kpiHeadRow1');
   const r2 = document.getElementById('kpiHeadRow2');
   const r3 = document.getElementById('kpiHeadRow3');

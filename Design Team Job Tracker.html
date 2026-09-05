@@ -364,7 +364,6 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
   .board{overflow:visible;flex-wrap:wrap;}
 }
 
-#view-kpi .table-wrap{overflow-x:auto;overflow-y:visible;}
 table.kpi-table{border-collapse:collapse;width:auto;}
 .kpi-sub-tab{
   font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:17px;color:var(--ink-faint);
@@ -584,7 +583,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <span class="kpi-legend-item"><span class="kpi-legend-swatch" style="background:#8A6D00;"></span>Public holiday</span>
     </div>
     <p class="kpi-leave-hint" id="kpiLeaveHint"></p>
-    <div class="table-wrap">
+    <div style="overflow-x:auto;">
       <table class="kpi-table" id="kpiTable">
         <thead><tr id="kpiHeadRow1"></tr><tr id="kpiHeadRow2"></tr><tr id="kpiHeadRow3"></tr></thead>
         <tbody id="kpiBody"></tbody>

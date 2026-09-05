@@ -2578,7 +2578,7 @@ function toggleColVisMenu(){ document.getElementById('colVisMenu').classList.tog
 function closeColVisMenu(){ document.getElementById('colVisMenu').classList.remove('open'); }
 function renderColVisMenu(){
   const menu = document.getElementById('colVisMenu');
-  menu.innerHTML = TABLE_COLS.map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:13px;cursor:pointer;white-space:nowrap;">
+  menu.innerHTML = TABLE_COLS.filter(c=>!(LOCKED_WHO && c.key==='who')).map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:13px;cursor:pointer;white-space:nowrap;">
     <input type="checkbox" ${hiddenCols.has(c.key)?'':'checked'} onchange="toggleColHidden('${c.key}', this.checked)">
     ${esc(c.label)}
   </label>`).join('');
@@ -3447,22 +3447,29 @@ function recomputeAnnualTotalsForStaff(staffId){
 
 function applyReadOnlyMode(){
   if(!READ_ONLY) return;
-  document.getElementById('newJobBtn').style.display = 'none';
-  document.getElementById('turnaroundGuideBtn').style.display = 'none';
+  const isWhoOnly = !!LOCKED_WHO && !LOCKED_REGION && !VIEW_ALL_READONLY;
+  if(!isWhoOnly){
+    document.getElementById('newJobBtn').style.display = 'none';
+    document.getElementById('turnaroundGuideBtn').style.display = 'none';
+    document.getElementById('undoBtn').style.display = 'none';
+    document.getElementById('showArchived').closest('label').style.display = 'none';
+    document.body.classList.add('readonly-mode');
+  }
   document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
-  document.getElementById('undoBtn').style.display = 'none';
   document.querySelector('[data-tab="workload"]').style.display = 'none';
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
   if(!LOCKED_WHO) document.querySelector('[data-tab="kpi"]').style.display = 'none';
-  document.getElementById('showArchived').closest('label').style.display = 'none';
-  document.body.classList.add('readonly-mode');
   const banner = document.getElementById('readOnlyBanner');
   const parts = [];
   if(LOCKED_REGION) parts.push(LOCKED_REGION);
   if(LOCKED_WHO) parts.push(LOCKED_WHO + "'s");
-  banner.textContent = VIEW_ALL_READONLY
-    ? '👁 Viewing all jobs — changes you make are shared with the whole team.'
-    : '👁 Viewing ' + parts.join(' / ') + ' jobs — view only, no changes can be made here.';
+  if(isWhoOnly){
+    banner.textContent = '👤 Showing ' + LOCKED_WHO + "'s jobs — editable.";
+  } else if(VIEW_ALL_READONLY){
+    banner.textContent = '👁 Viewing all jobs — changes you make are shared with the whole team.';
+  } else {
+    banner.textContent = '👁 Viewing ' + parts.join(' / ') + ' jobs — view only, no changes can be made here.';
+  }
   banner.style.display = 'block';
   if(LOCKED_WHO){
     document.getElementById('colVisWrap').style.display = 'block';

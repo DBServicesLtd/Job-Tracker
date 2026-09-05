@@ -428,13 +428,13 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
 .kpi-start-leave-annual{background:#B1D2A8 !important;}
 .kpi-start-leave-sick{background:#FAD9D4 !important;}
 .kpi-start-leave-other{background:#E5DCF4 !important;}
-.kpi-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 8px 2px;}
-.kpi-legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-faint);}
-.kpi-legend-swatch{width:12px;height:12px;border-radius:3px;display:inline-block;}
-.kpi-legend-btn{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);background:var(--panel);border:1.5px solid var(--line);border-radius:20px;padding:4px 12px 4px 6px;cursor:pointer;font-family:'Open Sans',sans-serif;}
+.kpi-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 4px 0;}
+.kpi-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-faint);}
+.kpi-legend-swatch{width:10px;height:10px;border-radius:3px;display:inline-block;}
+.kpi-legend-btn{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-soft);background:var(--panel);border:1.5px solid var(--line);border-radius:20px;padding:3px 10px 3px 6px;cursor:pointer;font-family:'Open Sans',sans-serif;}
 .kpi-legend-btn:hover{border-color:var(--line-strong);}
 .kpi-legend-btn.armed{border-color:currentColor;background:var(--paper);font-weight:700;}
-.kpi-leave-hint{font-size:11.5px;color:var(--ink-faint);margin:0 0 14px 2px;min-height:16px;}
+.kpi-leave-hint{font-size:11px;color:var(--ink-faint);margin:0 0 4px 0;min-height:0;}
 </style>
 </head>
 <body>
@@ -561,7 +561,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
 
   <div class="view" id="view-kpi">
     <div id="kpiWhoBanner" style="display:none;background:var(--blue-soft);color:var(--blue-deep);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px;"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;border-bottom:1px solid var(--line);padding-bottom:6px;">
       <div style="display:flex;gap:4px;">
         <button class="kpi-sub-tab" id="kpiDailyBtn" onclick="setKpiViewMode('daily')">Daily Log</button>
         <button class="kpi-sub-tab" id="kpiAnnualBtn" onclick="setKpiViewMode('annual')">Annual Summary</button>
@@ -573,7 +573,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <button class="btn-ghost" onclick="shiftKpiPeriod(0,true)">This month</button>
       </div>
     </div>
-    <p class="hint">Green = at or above target hours/day, pink = under. Grey rows = weekends, gold rows 🎉 = NZ public holidays (no time entry on these). Filled-in times show dark, empty ones show light grey. Each person's target hours/day is set in Annual Summary, defaulting to 8.</p>
+    <p class="hint" style="font-size:11px;margin:4px 0 4px;">Green = at/above target, pink = under. Grey = weekends, gold 🎉 = public holidays. Target hours/day set in Annual Summary.</p>
     <div class="kpi-legend">
       <span class="kpi-legend-btn" id="kpiArmBtn-annual" style="color:#1F4A12;" onclick="setArmedLeave('annual')"><span class="kpi-legend-swatch" style="background:#1F4A12;"></span>Annual leave</span>
       <span class="kpi-legend-btn" id="kpiArmBtn-sick" style="color:#A13B2A;" onclick="setArmedLeave('sick')"><span class="kpi-legend-swatch" style="background:#A13B2A;"></span>Sick leave</span>

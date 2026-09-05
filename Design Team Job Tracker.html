@@ -2607,12 +2607,16 @@ function openMyWorkLinksModal(){
   } else {
     html += names.map(n=>{
       const url = baseUrl() + '?who=' + encodeURIComponent(n);
+      const kpiUrl = baseUrl() + '?who=' + encodeURIComponent(n) + '&tab=kpi';
       return `<div class="region-link-row">
         <div>
           <div class="region-link-name">${esc(n)}</div>
           <div class="region-link-url">${esc(url)}</div>
         </div>
-        <button class="btn-ghost" onclick="copyRegionLink('${esc(url).replace(/'/g,"\\'")}', this)">Copy</button>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-ghost" onclick="copyRegionLink('${esc(url).replace(/'/g,"\\'")}', this)">Copy</button>
+          <button class="btn-ghost" onclick="copyRegionLink('${esc(kpiUrl).replace(/'/g,"\\'")}', this)" title="Copy KPI-only link for ${esc(n)}">📊 KPI</button>
+        </div>
       </div>`;
     }).join('');
   }

@@ -52,8 +52,7 @@ a{color:var(--blue);}
 .app{width:100%;min-width:1400px;padding:24px 28px 60px;}
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
-  gap:16px;margin-bottom:0;flex-wrap:wrap;
-  position:sticky;top:0;z-index:30;background:var(--paper);padding-top:16px;padding-bottom:8px;
+  gap:16px;margin-bottom:22px;flex-wrap:wrap;
 }
 .brand{display:flex;align-items:center;gap:14px;}
 .brand-mark{
@@ -78,7 +77,7 @@ a{color:var(--blue);}
 .btn-refresh:disabled{opacity:.4;cursor:default;}
 .btn-refresh:disabled:hover{border-color:var(--line-strong);color:var(--ink-soft);}
 
-.tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);position:sticky;z-index:29;background:var(--paper);}
+.tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
 .tabs-left{display:flex;gap:4px;}
 .settings-wrap{position:relative;padding-bottom:6px;}
 .colvis-wrap{position:relative;display:inline-block;}
@@ -227,7 +226,7 @@ table.jobs-table th{position:relative;user-select:none;}
 table.jobs-table th{
   text-align:left;font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:16px;
   color:#F4F5F3;letter-spacing:.02em;padding:11px 12px;
-  border-bottom:1.5px solid var(--line-strong);border-right:1px solid var(--line-strong);background:#01003A;position:sticky;top:var(--header-top,110px);cursor:pointer;
+  border-bottom:1.5px solid var(--line-strong);border-right:1px solid var(--line-strong);background:#01003A;position:sticky;top:0;cursor:pointer;
   white-space:nowrap;user-select:none;
 }
 table.jobs-table th:hover{color:#C9A227;}
@@ -301,7 +300,7 @@ table.wl-table{border-collapse:collapse;width:100%;min-width:1100px;}
 table.wl-table th{
   font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:16px;letter-spacing:.02em;
   color:#F4F5F3;text-align:left;padding:11px 12px;border-bottom:1.5px solid var(--line-strong);
-  background:#01003A;position:sticky;top:var(--header-top,110px);white-space:nowrap;
+  background:#01003A;position:sticky;top:0;white-space:nowrap;
 }
 table.wl-table th:hover{color:#C9A227;}
 table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px solid var(--line);vertical-align:top;padding:0;}
@@ -379,7 +378,7 @@ table.kpi-table th{
   background:#1A3A5C;white-space:nowrap;
 }
 table.kpi-table th:hover{color:#C9A227;}
-#kpiHeadRow1 th{position:sticky;z-index:6;}
+#kpiHeadRow1 th{position:sticky;top:0;z-index:6;}
 #kpiHeadRow2 th{position:sticky;z-index:6;}
 #kpiHeadRow3 th{position:sticky;z-index:6;}
 table.kpi-table td{padding:0;border-bottom:1px solid var(--line-strong);border-right:1px solid var(--line);vertical-align:middle;font-size:13px;}
@@ -3089,24 +3088,15 @@ async function saveStaffTarget(el){
   if(kpiViewMode==='daily') renderKpiDaily(); else renderKpiAnnual();
 }
 function setStickyOffsets(){
-  const topbar = document.querySelector('.topbar');
-  const tabs = document.querySelector('.tabs');
-  if(!topbar || !tabs) return;
-  const topbarH = topbar.offsetHeight;
-  const tabsH = tabs.offsetHeight;
-  tabs.style.top = topbarH + 'px';
-  const headerTop = topbarH + tabsH;
-  document.documentElement.style.setProperty('--header-top', headerTop + 'px');
   const r1 = document.getElementById('kpiHeadRow1');
   const r2 = document.getElementById('kpiHeadRow2');
   const r3 = document.getElementById('kpiHeadRow3');
-  if(r1 && r2 && r3){
-    Array.from(r1.children).forEach(th=>{ th.style.top = headerTop + 'px'; });
-    const r1H = r1.offsetHeight;
-    Array.from(r2.children).forEach(th=>{ th.style.top = (headerTop + r1H) + 'px'; });
-    const r2H = r2.offsetHeight;
-    Array.from(r3.children).forEach(th=>{ th.style.top = (headerTop + r1H + r2H) + 'px'; });
-  }
+  if(!r1 || !r2 || !r3) return;
+  Array.from(r1.children).forEach(th=>{ th.style.top = '0px'; });
+  const r1H = r1.offsetHeight;
+  Array.from(r2.children).forEach(th=>{ th.style.top = r1H + 'px'; });
+  const r2H = r2.offsetHeight;
+  Array.from(r3.children).forEach(th=>{ th.style.top = (r1H + r2H) + 'px'; });
 }
 function applyStickyHeaderOffsets(){ setStickyOffsets(); }
 function renderKpiDaily(){

@@ -52,7 +52,8 @@ a{color:var(--blue);}
 .app{width:100%;min-width:1400px;padding:24px 28px 60px;}
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
-  gap:16px;margin-bottom:22px;flex-wrap:wrap;
+  gap:16px;margin-bottom:0;flex-wrap:wrap;
+  position:sticky;top:0;z-index:30;background:var(--paper);padding-top:16px;padding-bottom:8px;
 }
 .brand{display:flex;align-items:center;gap:14px;}
 .brand-mark{
@@ -77,7 +78,7 @@ a{color:var(--blue);}
 .btn-refresh:disabled{opacity:.4;cursor:default;}
 .btn-refresh:disabled:hover{border-color:var(--line-strong);color:var(--ink-soft);}
 
-.tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+.tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);position:sticky;z-index:29;background:var(--paper);}
 .tabs-left{display:flex;gap:4px;}
 .settings-wrap{position:relative;padding-bottom:6px;}
 .colvis-wrap{position:relative;display:inline-block;}
@@ -378,9 +379,9 @@ table.kpi-table th{
   background:#1A3A5C;white-space:nowrap;
 }
 table.kpi-table th:hover{color:#C9A227;}
-#kpiHeadRow1 th{z-index:2;}
-#kpiHeadRow2 th{z-index:2;}
-#kpiHeadRow3 th{z-index:2;}
+#kpiHeadRow1 th{position:sticky;z-index:6;}
+#kpiHeadRow2 th{position:sticky;z-index:6;}
+#kpiHeadRow3 th{position:sticky;z-index:6;}
 table.kpi-table td{padding:0;border-bottom:1px solid var(--line-strong);border-right:1px solid var(--line);vertical-align:middle;font-size:13px;}
 table.kpi-table tbody tr:hover td{background:var(--blue-soft) !important;}
 .kpi-weekend td{background:#E9E9E7 !important;}
@@ -1951,6 +1952,7 @@ function renderJobs(){
   document.getElementById('tableWrap').style.display = (jobView==='table' && jobs.length>0) ? 'block' : 'none';
   if(jobs.length===0) return;
   if(jobView==='board') renderBoard(filtered); else renderTable(filtered);
+  requestAnimationFrame(setStickyOffsets);
 }
 
 const STAGE_ORDER = ['SP','PD','WD','On Site'];
@@ -3086,16 +3088,28 @@ async function saveStaffTarget(el){
   }, 'Save failed — check connection');
   if(kpiViewMode==='daily') renderKpiDaily(); else renderKpiAnnual();
 }
-function applyStickyHeaderOffsets(){
+function setStickyOffsets(){
+  const topbar = document.querySelector('.topbar');
+  const tabs = document.querySelector('.tabs');
+  if(!topbar || !tabs) return;
+  const topbarH = topbar.offsetHeight;
+  tabs.style.top = topbarH + 'px';
+  const tabsH = tabs.offsetHeight;
+  const headerTop = topbarH + tabsH;
+  document.querySelectorAll('table.jobs-table th').forEach(th=>{ th.style.top = headerTop + 'px'; });
+  document.querySelectorAll('table.wl-table th').forEach(th=>{ th.style.top = headerTop + 'px'; });
   const r1 = document.getElementById('kpiHeadRow1');
   const r2 = document.getElementById('kpiHeadRow2');
   const r3 = document.getElementById('kpiHeadRow3');
-  if(!r1 || !r2 || !r3) return;
-  const h1 = r1.offsetHeight;
-  const h2 = r2.offsetHeight;
-  Array.from(r2.children).forEach(th=>{ th.style.top = h1 + 'px'; });
-  Array.from(r3.children).forEach(th=>{ th.style.top = (h1+h2) + 'px'; });
+  if(r1 && r2 && r3){
+    Array.from(r1.children).forEach(th=>{ th.style.top = headerTop + 'px'; });
+    const r1H = r1.offsetHeight;
+    Array.from(r2.children).forEach(th=>{ th.style.top = (headerTop + r1H) + 'px'; });
+    const r2H = r2.offsetHeight;
+    Array.from(r3.children).forEach(th=>{ th.style.top = (headerTop + r1H + r2H) + 'px'; });
+  }
 }
+function applyStickyHeaderOffsets(){ setStickyOffsets(); }
 function renderKpiDaily(){
   const staff = kpiStaffList();
   const d = kpiMonthDate(kpiMonthOffset);
@@ -3144,6 +3158,7 @@ function renderKpiDaily(){
     rows += '</tr>';
   }
   document.getElementById('kpiBody').innerHTML = rows;
+  requestAnimationFrame(setStickyOffsets);
 }
 function handleStartMouseDown(e, el){
   if(kpiArmedLeave){ e.preventDefault(); handleLeaveCellClick(el); }
@@ -3368,6 +3383,7 @@ function renderKpiAnnual(){
     return `<td class="${cls} staff-block-start" data-total-annual="${s.id}">${t.annual.toFixed(1)}</td><td class="${cls}" data-total-sick="${s.id}">${t.sick.toFixed(1)}</td><td class="${cls}" data-total-other="${s.id}">${t.other.toFixed(1)}</td><td class="${cls}" style="text-align:center;" data-total-days-sum="${s.id}">${t.days.toFixed(1)}</td><td class="${cls}" style="text-align:center;" data-total-actual-sum="${s.id}">${t.actual.toFixed(1)}</td><td class="${perDayCls}" data-total-perday="${s.id}">${perDay!=null?perDay.toFixed(1):''}</td>`;
   }).join('') + '</tr>';
   document.getElementById('kpiBody').innerHTML = rows;
+  requestAnimationFrame(setStickyOffsets);
 }
 function monthPartsFromYm(ym){
   const [y,m] = ym.split('-').map(Number);
@@ -3487,7 +3503,9 @@ if(LOCKED_TAB){
   document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
 }
 applyReadOnlyMode();
+window.addEventListener('resize', setStickyOffsets);
 loadAll(true).then(()=>{
+  setStickyOffsets();
   if(LOCKED_TAB) switchTab(LOCKED_TAB);
 });
 </script>

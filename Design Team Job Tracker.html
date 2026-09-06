@@ -2329,9 +2329,12 @@ function measureAndLockStaticColumnWidths(){
   table.style.width = 'auto';
   cg.innerHTML = '';
   const headerCells = document.querySelectorAll('#tableHeadRow th');
+  let thIdx = 0;
   TABLE_COLS.forEach((c,i)=>{
-    if(CONTENT_MIN_KEYS.includes(c.key) && headerCells[i]){
-      columnWidths[i] = Math.ceil(headerCells[i].getBoundingClientRect().width) + 2;
+    if((LOCKED_WHO && c.key==='who') || (LOCKED_REGION && c.key==='region')) return;
+    const th = headerCells[thIdx++];
+    if(CONTENT_MIN_KEYS.includes(c.key) && th){
+      columnWidths[i] = Math.ceil(th.getBoundingClientRect().width) + 2;
     } else if(HEADER_MIN_KEYS.includes(c.key)){
       columnWidths[i] = fitColumnWidth(c, []);
     }

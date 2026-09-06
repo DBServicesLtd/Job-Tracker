@@ -166,7 +166,7 @@ select.select, .toolbar select{
 .pill-Completed{background:#E9E9E7;color:#54524C;}
 .pill-OnHold{background:none;color:var(--ink-soft);padding:2px 0;}
 .pill-state-onSiteChanges,.pill-state-rfi,.pill-state-consent,.pill-state-vetting,.pill-state-onSite,.pill-state-withServices,.pill-state-default{
-  width:168px;text-align:center;
+  min-width:100px;text-align:center;
 }
 .pill-state-onSiteChanges{background:#EEC799;color:#7A3D08;}
 .pill-state-rfi{background:#EDB1AB;color:#7A2318;}
@@ -781,7 +781,7 @@ const SEED_JOBS = [
     "jobNumber": "25009",
     "jobName": "Cheong",
     "stage": "WD",
-    "status": "Council RFI- W/Services",
+    "status": "RFI W/Services",
     "who": "Hannah",
     "taskStatus": "In Progress",
     "stageStartDate": "",
@@ -796,7 +796,7 @@ const SEED_JOBS = [
     "jobNumber": "26032",
     "jobName": "Lot 13 Sullivan Rd",
     "stage": "WD",
-    "status": "Council RFI- W/Services",
+    "status": "RFI W/Services",
     "who": "Sarah",
     "taskStatus": "In Progress",
     "stageStartDate": "",
@@ -1700,7 +1700,7 @@ const TASK_PILL_COLORS = {
 function inlinePillHtml(text, colors){
   if(!text) return '';
   if(!colors) return esc(text);
-  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:700;padding:3px 10px;border-radius:4px;width:168px;text-align:center;">${esc(text)}</span>`;
+  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:700;padding:3px 10px;border-radius:4px;min-width:100px;text-align:center;">${esc(text)}</span>`;
 }
 function copyAsTable(){
   const list = getFiltered().slice().sort((a,b)=>{
@@ -1845,7 +1845,7 @@ function stateCategory(s){
   if(t.includes('on site changes')) return 'onSiteChanges';
   if(t.includes('rfi')) return 'rfi';
   if(t.includes('consent processing')) return 'consent';
-  if(t.includes('council vetting')) return 'vetting';
+  if(t.includes('vetting')) return 'vetting';
   if(t.includes('on site')) return 'onSite';
   if(t.includes('with services')) return 'withServices';
   return 'default';
@@ -2358,7 +2358,7 @@ function sortBy(col){
 const STATE_OPTIONS_BY_STAGE = {
   SP: ['SP with Region','SP with Services'],
   PD: ['PD with Region','PD with Services'],
-  WD: ['WD with Region','WD with Services','Consent Processing','Council Vetting','Council RFI- W/Services','Council RFI- W/Consultant','Council RFI- W/Region','With Consultant'],
+  WD: ['WD with Region','WD with Services','Consent Processing','Vetting','RFI W/Services','RFI W/Consultant','RFI W/Region','With Consultant'],
   'On Site': ['On Site','On Site Changes','Site RFI']
 };
 function populateStateOptions(stage, currentValue, preserveCurrent){

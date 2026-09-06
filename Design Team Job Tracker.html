@@ -2053,6 +2053,7 @@ async function saveInlineField(el){
 function applyTableWidth(){
   const total = columnWidths.reduce((sum,w,i)=> {
     if(LOCKED_WHO && TABLE_COLS[i].key==='who') return sum;
+    if(LOCKED_REGION && TABLE_COLS[i].key==='region') return sum;
     return sum + ((LOCKED_WHO && hiddenCols.has(TABLE_COLS[i].key)) ? HIDDEN_COL_WIDTH : w);
   }, 0);
   const table = document.getElementById('jobsTable');
@@ -2081,6 +2082,7 @@ const HIDDEN_COL_WIDTH = 30;
 function renderColgroup(){
   document.getElementById('tableColgroup').innerHTML = columnWidths.map((w,i)=>{
     if(LOCKED_WHO && TABLE_COLS[i].key==='who') return '';
+    if(LOCKED_REGION && TABLE_COLS[i].key==='region') return '';
     const collapsed = LOCKED_WHO && hiddenCols.has(TABLE_COLS[i].key);
     return `<col style="width:${collapsed ? HIDDEN_COL_WIDTH : w}px">`;
   }).join('');
@@ -2145,6 +2147,7 @@ function autoGrow(el){
 const RIGHT_DIVIDER_KEYS = new Set(['notes','planning','earliestEstimatedCompletion','latestEstimatedCompletion','engineer','updatesSent','taskStatus']);
 function isColHidden(key){
   if(LOCKED_WHO && key==='who') return true;
+  if(LOCKED_REGION && key==='region') return true;
   return LOCKED_WHO && hiddenCols.has(key);
 }
 function dateCell(j, field){
@@ -2283,6 +2286,7 @@ function renderTable(list){
   const head = document.getElementById('tableHeadRow');
   head.innerHTML = TABLE_COLS.map((c,i)=>{
     if(LOCKED_WHO && c.key==='who') return '';
+    if(LOCKED_REGION && c.key==='region') return '';
     const collapsed = LOCKED_WHO && hiddenCols.has(c.key);
     if(collapsed){
       return `<th class="col-collapsed" title="${esc(c.label)} (hidden)"><span class="col-eye" onclick="event.stopPropagation(); toggleColHidden('${c.key}', true)">🙈</span></th>`;
@@ -2297,7 +2301,7 @@ function renderTable(list){
   });
   document.getElementById('tableBody').innerHTML = list.map(j=>`
     <tr onclick="openJobModal('${j.id}')">
-      ${isColHidden('region') ? '<td class="col-collapsed"></td>' : `<td>${esc(j.region||'')}</td>`}
+      ${isColHidden('region') ? '' : `<td>${esc(j.region||'')}</td>`}
       ${isColHidden('jobNumber') ? '<td class="col-collapsed"></td>' : `<td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>`}
       ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td><strong>${esc(j.jobName||'Untitled')}</strong></td>`}
       ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td><span class="stamp ${stageClass(j.stage)}">${esc(j.stage)}</span></td>`}
@@ -2576,7 +2580,7 @@ function toggleColVisMenu(){ document.getElementById('colVisMenu').classList.tog
 function closeColVisMenu(){ document.getElementById('colVisMenu').classList.remove('open'); }
 function renderColVisMenu(){
   const menu = document.getElementById('colVisMenu');
-  menu.innerHTML = TABLE_COLS.filter(c=>!(LOCKED_WHO && c.key==='who')).map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:13px;cursor:pointer;white-space:nowrap;">
+  menu.innerHTML = TABLE_COLS.filter(c=>!(LOCKED_WHO && c.key==='who') && !(LOCKED_REGION && c.key==='region')).map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:13px;cursor:pointer;white-space:nowrap;">
     <input type="checkbox" ${hiddenCols.has(c.key)?'':'checked'} onchange="toggleColHidden('${c.key}', this.checked)">
     ${esc(c.label)}
   </label>`).join('');

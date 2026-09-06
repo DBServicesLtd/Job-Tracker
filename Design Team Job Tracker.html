@@ -293,7 +293,10 @@ table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .foot-right{display:flex;gap:8px;}
 .foot-left{display:flex;gap:8px;}
 
-.week-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.week-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:10px 12px;box-shadow:var(--shadow);
+}
 .week-label{font-family:'DM Serif Display',serif;font-style:italic;font-weight:700;font-size:15px;color:var(--blue-deep);}
 .workload-wrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto;box-shadow:var(--shadow);}
 table.wl-table{border-collapse:collapse;width:100%;min-width:1100px;}
@@ -317,8 +320,6 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 }
 .wl-cell textarea:focus{outline:none;background:var(--blue-soft);}
 .wl-cell.today{background:var(--amber-soft);}
-.staff-add{display:flex;gap:8px;margin-bottom:14px;}
-.staff-add input{flex:0 0 220px;padding:8px 10px;border:1px solid var(--line);border-radius:5px;}
 
 .toast{
   position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
@@ -475,6 +476,13 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <button onclick="closeSettingsMenu(); navigator.clipboard.writeText(baseUrl()+'?tab=kpi').then(()=>showToast('KPI Tracker link copied'))">📊 Copy KPI Tracker link</button>
         <button onclick="closeSettingsMenu(); copyAsTable()">📋 Copy as table</button>
         <button onclick="closeSettingsMenu(); window.print()">🖶 Print view</button>
+        <div style="border-top:1px solid var(--line);margin:4px 0;padding:8px 10px 4px;">
+          <div style="font-size:11px;color:var(--ink-faint);font-weight:600;margin-bottom:6px;">ADD TEAM MEMBER</div>
+          <div style="display:flex;gap:6px;">
+            <input id="newStaffName" placeholder="Name…" style="flex:1;padding:6px 8px;border:1px solid var(--line-strong);border-radius:5px;font-size:13px;" onkeydown="if(event.key==='Enter')addStaff()">
+            <button class="btn-ghost" onclick="addStaff()">+ Add</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -527,10 +535,6 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <span style="flex:1"></span>
       <button class="btn-ghost" onclick="window.print()">🖶 Print view</button>
     </div>
-    <div class="staff-add">
-      <input id="newStaffName" placeholder="Add team member…" onkeydown="if(event.key==='Enter')addStaff()">
-      <button class="btn-primary" onclick="addStaff()">+ Add</button>
-    </div>
     <div class="workload-wrap">
       <table class="wl-table">
         <thead>
@@ -557,7 +561,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
 
   <div class="view" id="view-kpi">
     <div id="kpiWhoBanner" style="display:none;background:var(--blue-soft);color:var(--blue-deep);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px;"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;border-bottom:1px solid var(--line);padding-bottom:6px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--shadow);">
       <div style="display:flex;gap:4px;">
         <button class="kpi-sub-tab" id="kpiDailyBtn" onclick="setKpiViewMode('daily')">Daily Log</button>
         <button class="kpi-sub-tab" id="kpiAnnualBtn" onclick="setKpiViewMode('annual')">Annual Summary</button>
@@ -2891,9 +2895,13 @@ async function addStaff(){
   const id = (crypto.randomUUID ? crypto.randomUUID() : 's'+Date.now());
   await withSync(async ()=>{
     await sbFetch('staff', { method:'POST', headers:{'Prefer':'return=representation'}, body:[{id, name}] });
-    staff.push({id, name});
+    staff.push({id, name, show_in_workload:true});
+    staff.sort((a,b)=>a.name.localeCompare(b.name));
     input.value='';
+    closeSettingsMenu();
     renderWorkload();
+    renderJobs();
+    showToast(`${name} added to team`);
   }, 'Save failed — check connection');
 }
 async function removeStaff(id){

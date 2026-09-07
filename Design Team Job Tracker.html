@@ -181,6 +181,8 @@ select.select, .toolbar select{
 .address-input{border:1px solid #E6E3D8;border-radius:4px;padding:3px 7px;font-size:11.5px;width:300px;font-family:'Open Sans',sans-serif;color:var(--ink-soft);background:#fff;}
 .address-input:focus{outline:none;border-color:var(--blue-soft, #A9C6E0);color:var(--ink);}
 .address-input-flat{width:100%;box-sizing:border-box;}
+.address-input-flat.has-value{border:none;background:transparent;color:var(--blue);font-weight:600;padding-left:0;}
+.address-input-flat.has-value:focus{border:1px solid var(--blue-soft);background:#fff;color:var(--ink);font-weight:400;padding-left:7px;}
 .address-pin-indicator{cursor:pointer;font-size:12px;opacity:0.75;}
 .address-pin-indicator:hover{opacity:1;}
 
@@ -1797,7 +1799,7 @@ function renderAddresses(){
       <td>${esc(j.region||'')}</td>
       <td>${esc(j.jobNumber||'')}</td>
       <td><strong>${esc(j.jobName||'Untitled')}</strong>${j.archived ? ' <span style="color:var(--ink-faint);font-weight:400;">(archived)</span>' : ''}</td>
-      <td><input type="text" class="address-input address-input-flat" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)"></td>
+      <td><input type="text" class="address-input address-input-flat${j.address ? ' has-value' : ''}" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)"></td>
     </tr>`).join('') || '<tr><td colspan="4" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
 }
 let stageHistory = [];
@@ -2350,13 +2352,17 @@ async function saveAddressField(el){
   const j = jobs.find(x=>x.id===id);
   if(!j) return;
   const val = el.value.trim();
-  if((j.address||'') === val){ addressExpandedIds.delete(id); renderJobs(); return; }
+  const refresh = ()=>{
+    addressExpandedIds.delete(id);
+    if(document.getElementById('view-addresses').classList.contains('active')) renderAddresses();
+    else renderJobs();
+  };
+  if((j.address||'') === val){ refresh(); return; }
   j.address = val;
   await withSync(async ()=>{
     await patchJobField(id, 'address', val);
   }, 'Save failed — check connection');
-  addressExpandedIds.delete(id);
-  renderJobs();
+  refresh();
 }
 function renderTable(list){
   if(!hasSharedWidths) autoFitDynamicColumns(jobs);

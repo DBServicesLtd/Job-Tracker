@@ -184,6 +184,7 @@ select.select, .toolbar select{
 .address-subrow-collapsed:hover td{background:#F0EDE3;}
 .address-subrow-summary{font-weight:600;color:var(--ink);}
 .address-subrow-edit{margin-left:10px;font-size:11px;color:var(--ink-faint);text-decoration:underline;}
+.address-input-flat{width:100%;box-sizing:border-box;}
 
 .board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
 .col{
@@ -1798,7 +1799,7 @@ function renderAddresses(){
       <td>${esc(j.region||'')}</td>
       <td>${esc(j.jobNumber||'')}</td>
       <td><strong>${esc(j.jobName||'Untitled')}</strong>${j.archived ? ' <span style="color:var(--ink-faint);font-weight:400;">(archived)</span>' : ''}</td>
-      <td>${esc(j.address||'')}</td>
+      <td><input type="text" class="address-input address-input-flat" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)"></td>
     </tr>`).join('') || '<tr><td colspan="4" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
 }
 let stageHistory = [];

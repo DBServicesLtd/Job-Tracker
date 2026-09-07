@@ -417,6 +417,12 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
 }
 .kpi-other-hdr{padding:1px 0 !important;}
 .kpi-holiday td{background:#FBF0C7 !important;}
+.kpi-fortnight-row .day-cell{font-style:italic;color:var(--ink-soft);font-weight:600;}
+.kpi-fortnight-row td.kpi-fortnight-blank{background:var(--panel);}
+.kpi-fortnight-row td.kpi-total{background:#1A3A5C !important;color:#F4F5F3;}
+.kpi-weekend .kpi-time, .kpi-weekend .kpi-lunch{padding:3px 4px;}
+.kpi-weekend .kpi-leave-cell{padding:3px 4px;}
+.kpi-weekend td.kpi-total{padding:3px 6px;}
 .kpi-leave-cell{width:100%;height:100%;padding:8px 4px;font-family:'Open Sans',sans-serif;font-size:12.5px;font-weight:700;text-align:center;cursor:pointer;user-select:none;border:none;background:none;display:block;}
 .kpi-start-leave-annual .kpi-leave-cell{color:#1F4A12;}
 .kpi-start-leave-sick .kpi-leave-cell{color:#A13B2A;}
@@ -2419,20 +2425,20 @@ function addWeeksISO(dateStr, weeks){
   const dt = new Date(dateStr+'T00:00:00');
   if(isNaN(dt)) return '';
   dt.setDate(dt.getDate() + Math.round(weeks*7));
-  return dt.toISOString().slice(0,10);
+  return isoDate(dt);
 }
 function addDaysISO(dateStr, days){
   const dt = new Date(dateStr+'T00:00:00');
   if(isNaN(dt)) return dateStr;
   dt.setDate(dt.getDate() + days);
-  return dt.toISOString().slice(0,10);
+  return isoDate(dt);
 }
 const MATARIKI_DATES = {
   2022:'06-24',2023:'07-14',2024:'06-28',2025:'06-20',2026:'07-10',2027:'06-25',
   2028:'07-14',2029:'07-06',2030:'06-21',2031:'07-11',2032:'07-02',2033:'06-24',
   2034:'07-07',2035:'06-29',2036:'07-18',2037:'07-10',2038:'06-25',2039:'07-15',2040:'07-06'
 };
-function isoDate(d){ return d.toISOString().slice(0,10); }
+function isoDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function nthWeekdayOfMonth(year, month, weekday, n){
   const d = new Date(year, month, 1);
   let count = 0;
@@ -2942,6 +2948,18 @@ function kpiFyStartYear(fyOffset){
   return year + fyOffset;
 }
 function daysInMonth(year, month){ return new Date(year, month, 0).getDate(); }
+const KPI_FORTNIGHT_ANCHOR = '2026-09-13';
+function addDaysIso(iso, delta){
+  const d = new Date(iso+'T00:00:00');
+  d.setDate(d.getDate()+delta);
+  return isoDate(d);
+}
+function isFortnightBoundary(iso){
+  const anchor = new Date(KPI_FORTNIGHT_ANCHOR+'T00:00:00');
+  const d = new Date(iso+'T00:00:00');
+  const diffDays = Math.round((d-anchor)/86400000);
+  return diffDays % 14 === 0;
+}
 function hhmm(t){ return t ? String(t).slice(0,5) : ''; }
 function minutesToHM(mins){
   if(mins===null || mins===undefined || mins==='') return '';
@@ -3018,15 +3036,6 @@ function countLeaveDaysInMonth(staffId, year, month, type){
   }
   return count;
 }
-function totalLeaveDaysInMonth(staffId, year, month){
-  const dim = daysInMonth(year, month);
-  let count = 0;
-  for(let day=1; day<=dim; day++){
-    const iso = isoDate(new Date(year, month-1, day));
-    if(kpiLeaveDays[staffId+'|'+iso]) count++;
-  }
-  return count;
-}
 function setKpiViewMode(mode){
   kpiViewMode = mode;
   document.getElementById('kpiDailyBtn').classList.toggle('active', mode==='daily');
@@ -3057,10 +3066,11 @@ async function loadAndRenderKpi(){
     const year = d.getFullYear(), month = d.getMonth()+1;
     const first = `${year}-${String(month).padStart(2,'0')}-01`;
     const last = `${year}-${String(month).padStart(2,'0')}-${String(daysInMonth(year,month)).padStart(2,'0')}`;
+    const fetchFirst = addDaysIso(first, -13);
     try{
       const [rows, leaveRows] = await Promise.all([
-        sbFetch(`timesheet_entries?select=*&entry_date=gte.${first}&entry_date=lte.${last}`),
-        sbFetch(`daily_leave?select=*&entry_date=gte.${first}&entry_date=lte.${last}`)
+        sbFetch(`timesheet_entries?select=*&entry_date=gte.${fetchFirst}&entry_date=lte.${last}`),
+        sbFetch(`daily_leave?select=*&entry_date=gte.${fetchFirst}&entry_date=lte.${last}`)
       ]);
       kpiEntries = {};
       rows.forEach(r=>{ kpiEntries[r.staff_id+'|'+r.entry_date] = r; });
@@ -3141,7 +3151,7 @@ function renderKpiDaily(){
     rows += `<tr class="${isHoliday?'kpi-holiday':(isWeekend?'kpi-weekend':'')}"><td class="day-cell">${dayNames[dow]} ${day}${isHoliday?' 🎉':''}</td>`;
     staff.forEach((s,idx)=>{
       const cls = 'staff-block-'+(idx%2===0?'a':'b');
-      if(isWeekend || isHoliday){
+      if(isHoliday){
         rows += `<td class="${cls} staff-block-start"></td><td class="${cls}"></td><td class="${cls}"></td><td class="${cls}"></td><td class="${cls}"></td><td></td>`;
         return;
       }
@@ -3161,12 +3171,52 @@ function renderKpiDaily(){
         <td class="kpi-total" data-staff="${s.id}" data-date="${iso}">${decimalToHM(dayTotal)}</td>`;
     });
     rows += '</tr>';
+    if(isFortnightBoundary(iso)){
+      rows += `<tr class="kpi-fortnight-row" data-boundary="${iso}"><td class="day-cell">Fortnight total</td>`;
+      staff.forEach((s,idx)=>{
+        const cls = 'staff-block-'+(idx%2===0?'a':'b');
+        let ftSum = 0;
+        for(let i=13; i>=0; i--){
+          const fIso = addDaysIso(iso, -i);
+          ftSum += dailyHoursForEntry(kpiEntries[s.id+'|'+fIso]);
+        }
+        rows += `<td class="${cls} staff-block-start kpi-fortnight-blank"></td><td class="${cls} kpi-fortnight-blank"></td><td class="${cls} kpi-fortnight-blank"></td><td class="${cls} kpi-fortnight-blank"></td><td class="${cls} kpi-fortnight-blank"></td><td class="kpi-total" data-staff="${s.id}" data-boundary="${iso}">${decimalToHM(ftSum)}</td>`;
+      });
+      rows += '</tr>';
+    }
   }
   document.getElementById('kpiBody').innerHTML = rows;
   requestAnimationFrame(()=>{ setStickyOffsets(); sizeKpiScroll(); });
 }
+function refreshFortnightTotalsForDate(staffId, dateIso){
+  document.querySelectorAll('tr.kpi-fortnight-row').forEach(tr=>{
+    const boundary = tr.dataset.boundary;
+    if(!boundary) return;
+    const daysDiff = Math.round((new Date(dateIso+'T00:00:00') - new Date(boundary+'T00:00:00')) / 86400000);
+    if(daysDiff < -13 || daysDiff > 0) return;
+    const cell = tr.querySelector(`td.kpi-total[data-staff="${staffId}"]`);
+    if(!cell) return;
+    let ftSum = 0;
+    for(let i=13; i>=0; i--){
+      const fIso = addDaysIso(boundary, -i);
+      ftSum += dailyHoursForEntry(kpiEntries[staffId+'|'+fIso]);
+    }
+    cell.textContent = decimalToHM(ftSum);
+  });
+}
+function isWeekendIso(iso){
+  const dow = new Date(iso+'T00:00:00').getDay();
+  return dow===0 || dow===6;
+}
 function handleStartMouseDown(e, el){
-  if(kpiArmedLeave){ e.preventDefault(); handleLeaveCellClick(el); }
+  if(kpiArmedLeave){
+    e.preventDefault();
+    if(isWeekendIso(el.dataset.date)){
+      showToast('Leave can\'t be marked on weekends');
+      return;
+    }
+    handleLeaveCellClick(el);
+  }
 }
 let kpiMultiClear = false;
 function setArmedLeave(type, event){
@@ -3273,6 +3323,7 @@ async function saveTimesheetCell(el){
     const dayTotal = dailyHoursForEntry(kpiEntries[key]);
     totalCell.textContent = decimalToHM(dayTotal);
   }
+  refreshFortnightTotalsForDate(staffId, date);
 }
 function openDefaultsPopover(triggerEl, staffId){
   closeDefaultsPopover();
@@ -3399,82 +3450,6 @@ function renderKpiAnnual(){
   document.getElementById('kpiBody').innerHTML = rows;
   requestAnimationFrame(()=>{ setStickyOffsets(); sizeKpiScroll(); });
 }
-function monthPartsFromYm(ym){
-  const [y,m] = ym.split('-').map(Number);
-  return {year:y, month:m};
-}
-function recomputeAnnualRow(staffId, ym){
-  const {year, month} = monthPartsFromYm(ym);
-  const s = staff.find(x=>String(x.id)===String(staffId));
-  if(!s) return;
-  const weekdays = countWeekdaysInMonth(year, month);
-  const holidays = countHolidayWeekdaysInMonth(year, month);
-  const annual = countLeaveDaysInMonth(staffId, year, month, 'annual');
-  const sick = countLeaveDaysInMonth(staffId, year, month, 'sick');
-  const other = countLeaveDaysInMonth(staffId, year, month, 'other');
-  const totalDays = Math.max(0, weekdays - holidays - annual - sick - other);
-  let actualHours = 0;
-  const dim = daysInMonth(year, month);
-  for(let day=1; day<=dim; day++){
-    actualHours += dailyHoursForEntry(kpiEntries[staffId+'|'+isoDate(new Date(year, month-1, day))]);
-  }
-  const target = s.hours_per_day || 8;
-  const perDay = totalDays>0 ? actualHours/totalDays : null;
-  const perDayCls = perDay==null ? '' : (perDay < target ? 'kpi-under' : 'kpi-over');
-  const annualCell = document.querySelector(`[data-annual-lv="${staffId}|${ym}"]`);
-  const sickCell = document.querySelector(`[data-sick-lv="${staffId}|${ym}"]`);
-  const otherCell = document.querySelector(`[data-other-lv="${staffId}|${ym}"]`);
-  const daysCell = document.querySelector(`[data-total-days="${staffId}|${ym}"]`);
-  const actualCell = document.querySelector(`[data-actual-hrs="${staffId}|${ym}"]`);
-  const perDayCell = document.querySelector(`[data-perday="${staffId}|${ym}"]`);
-  if(annualCell) annualCell.textContent = annual||'';
-  if(sickCell) sickCell.textContent = sick||'';
-  if(otherCell) otherCell.textContent = other||'';
-  if(daysCell) daysCell.textContent = totalDays.toFixed(1);
-  if(actualCell) actualCell.textContent = actualHours.toFixed(1);
-  if(perDayCell){
-    perDayCell.textContent = perDay!=null ? perDay.toFixed(1) : '';
-    perDayCell.classList.remove('kpi-under','kpi-over');
-    if(perDayCls) perDayCell.classList.add(perDayCls);
-  }
-}
-function recomputeAnnualTotalsForStaff(staffId){
-  const s = staff.find(x=>String(x.id)===String(staffId));
-  if(!s) return;
-  const fyStart = kpiFyStartYear(kpiFyOffset);
-  const months = kpiFyMonths(fyStart);
-  let days=0, actual=0, annual=0, sick=0, other=0;
-  months.forEach(({year,month})=>{
-    const weekdays = countWeekdaysInMonth(year, month);
-    const holidays = countHolidayWeekdaysInMonth(year, month);
-    const a = countLeaveDaysInMonth(staffId, year, month, 'annual');
-    const si = countLeaveDaysInMonth(staffId, year, month, 'sick');
-    const o = countLeaveDaysInMonth(staffId, year, month, 'other');
-    const totalDays = Math.max(0, weekdays - holidays - a - si - o);
-    let actualHours = 0;
-    const dim = daysInMonth(year, month);
-    for(let day=1; day<=dim; day++){
-      actualHours += dailyHoursForEntry(kpiEntries[staffId+'|'+isoDate(new Date(year, month-1, day))]);
-    }
-    days += totalDays; actual += actualHours; annual += a; sick += si; other += o;
-  });
-  const target = s.hours_per_day || 8;
-  const perDay = days>0 ? actual/days : null;
-  const perDayCls = perDay==null ? '' : (perDay < target ? 'kpi-under' : 'kpi-over');
-  const setText = (sel, text)=>{ const el = document.querySelector(sel); if(el) el.textContent = text; };
-  setText(`[data-total-annual="${staffId}"]`, annual.toFixed(1));
-  setText(`[data-total-sick="${staffId}"]`, sick.toFixed(1));
-  setText(`[data-total-other="${staffId}"]`, other.toFixed(1));
-  setText(`[data-total-days-sum="${staffId}"]`, days.toFixed(1));
-  setText(`[data-total-actual-sum="${staffId}"]`, actual.toFixed(1));
-  const perDayCell = document.querySelector(`[data-total-perday="${staffId}"]`);
-  if(perDayCell){
-    perDayCell.textContent = perDay!=null ? perDay.toFixed(1) : '';
-    perDayCell.classList.remove('kpi-under','kpi-over');
-    if(perDayCls) perDayCell.classList.add(perDayCls);
-  }
-}
-
 function applyReadOnlyMode(){
   if(!READ_ONLY) return;
   const isWhoOnly = !!LOCKED_WHO && !LOCKED_REGION && !VIEW_ALL_READONLY;

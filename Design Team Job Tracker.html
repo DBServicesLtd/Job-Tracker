@@ -3162,10 +3162,10 @@ function renderKpiDaily(){
       const leaveCls = leaveType ? ` kpi-start-leave-${leaveType}` : '';
       const startCell = leaveType
         ? `<button type="button" class="kpi-leave-cell" data-staff="${s.id}" data-date="${iso}" onclick="handleLeaveCellClick(this)">${leaveType==='annual'?'Annual':leaveType==='sick'?'Sick':'Other'}</button>`
-        : `<input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.start_time)}" data-staff="${s.id}" data-date="${iso}" data-field="start_time" value="${hhmm(e.start_time)}" onmousedown="handleStartMouseDown(event,this)" onblur="saveTimesheetCell(this)">`;
+        : `<input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.start_time)}" data-staff="${s.id}" data-date="${iso}" data-field="start_time" value="${hhmm(e.start_time)}" onmousedown="handleStartMouseDown(event,this)" onfocus="markKpiFieldFocusStart(this)" onblur="saveTimesheetCell(this)">`;
       rows += `<td class="${cls} staff-block-start${leaveCls}" style="padding:0;">${startCell}</td>
-        <td class="${cls}${leaveCls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.finish_time)}" data-staff="${s.id}" data-date="${iso}" data-field="finish_time" value="${leaveType ? '' : hhmm(e.finish_time)}" ${leaveType ? 'disabled' : ''} onblur="saveTimesheetCell(this)"></td>
-        <td class="${cls}${leaveCls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${leaveType ? '' : minutesToHM(e.lunch_minutes)}" ${leaveType ? 'disabled' : ''} onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}${leaveCls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.finish_time)}" data-staff="${s.id}" data-date="${iso}" data-field="finish_time" value="${leaveType ? '' : hhmm(e.finish_time)}" ${leaveType ? 'disabled' : ''} onfocus="markKpiFieldFocusStart(this)" onblur="saveTimesheetCell(this)"></td>
+        <td class="${cls}${leaveCls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-lunch ${f(e.lunch_minutes)}" data-staff="${s.id}" data-date="${iso}" data-field="lunch_minutes" value="${leaveType ? '' : minutesToHM(e.lunch_minutes)}" ${leaveType ? 'disabled' : ''} onfocus="markKpiFieldFocusStart(this)" onblur="saveTimesheetCell(this)"></td>
         <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_start)}" data-staff="${s.id}" data-date="${iso}" data-field="other_start" value="${hhmm(e.other_start)}" onblur="saveTimesheetCell(this)"></td>
         <td class="${cls}"><input type="text" inputmode="numeric" maxlength="5" class="kpi-time ${f(e.other_finish)}" data-staff="${s.id}" data-date="${iso}" data-field="other_finish" value="${hhmm(e.other_finish)}" onblur="saveTimesheetCell(this)"></td>
         <td class="kpi-total" data-staff="${s.id}" data-date="${iso}">${decimalToHM(dayTotal)}</td>`;
@@ -3270,6 +3270,9 @@ async function saveLeaveDay(staffId, date, type){
   }, 'Save failed — check connection');
   renderKpiDaily();
 }
+function markKpiFieldFocusStart(el){
+  el.dataset.hadValueAtFocus = (el.value && el.value.trim()) ? '1' : '0';
+}
 async function saveTimesheetCell(el){
   const staffId = el.dataset.staff, date = el.dataset.date, field = el.dataset.field;
   const key = staffId+'|'+date;
@@ -3277,8 +3280,9 @@ async function saveTimesheetCell(el){
   const s = staff.find(x=>String(x.id)===String(staffId));
   let val = el.value;
   const isEmpty = !val || !val.trim();
+  const wasEmptyAtFocus = el.dataset.hadValueAtFocus !== '1';
   if(field==='lunch_minutes'){
-    if(isEmpty && s && s.default_lunch_minutes){
+    if(isEmpty && wasEmptyAtFocus && s && s.default_lunch_minutes){
       val = s.default_lunch_minutes;
       el.value = minutesToHM(val);
     } else if(isEmpty){
@@ -3295,7 +3299,7 @@ async function saveTimesheetCell(el){
     }
   } else {
     if(isEmpty){
-      const defaultVal = field==='start_time' ? s?.default_start : field==='finish_time' ? s?.default_finish : null;
+      const defaultVal = wasEmptyAtFocus ? (field==='start_time' ? s?.default_start : field==='finish_time' ? s?.default_finish : null) : null;
       val = defaultVal ? hhmm(defaultVal) : '';
       if(defaultVal) el.value = val;
     } else {

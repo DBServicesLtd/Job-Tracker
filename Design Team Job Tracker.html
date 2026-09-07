@@ -176,6 +176,15 @@ select.select, .toolbar select{
 .pill-state-withServices{background:#EBB5C8;color:#7A1F42;}
 .pill-state-default{background:#A1D6CC;color:#0B4A3E;}
 
+.address-subrow td{background:#F7F5EF;border-top:none;padding:6px 14px;font-size:12.5px;color:var(--ink-soft);}
+.address-subrow-label{font-weight:600;margin-right:8px;color:var(--ink);}
+.address-input{border:1px solid #DAD6C9;border-radius:4px;padding:4px 8px;font-size:12.5px;width:340px;font-family:'Open Sans',sans-serif;}
+.address-input:focus{outline:none;border-color:var(--blue-soft, #A9C6E0);}
+.address-subrow-collapsed{cursor:pointer;}
+.address-subrow-collapsed:hover td{background:#F0EDE3;}
+.address-subrow-summary{font-weight:600;color:var(--ink);}
+.address-subrow-edit{margin-left:10px;font-size:11px;color:var(--ink-faint);text-decoration:underline;}
+
 .board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
 .col{
   flex:1 1 0;min-width:0;background:rgba(255,255,255,0.55);border:1px solid var(--line);border-radius:8px;
@@ -473,6 +482,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <button class="tab" data-tab="workload" onclick="switchTab('workload')">Staff Workload</button>
       <button class="tab" data-tab="kpi" onclick="switchTab('kpi')">KPI Tracker</button>
       <button class="tab" data-tab="stagetimes" onclick="switchTab('stagetimes')">Stage Times</button>
+      <button class="tab" data-tab="addresses" onclick="switchTab('addresses')">Addresses</button>
     </div>
     <div class="settings-wrap">
       <button class="settings-btn" id="settingsBtn" onclick="toggleSettingsMenu()">⚙ Settings</button>
@@ -561,6 +571,18 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
           <th>SP (days)</th><th>PD (days)</th><th>WD (days)</th><th>Current stage</th>
         </tr></thead>
         <tbody id="stageTimesBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="view" id="view-addresses">
+    <p class="hint">Every address collected across all region links, active and archived jobs included.</p>
+    <div class="table-wrap">
+      <table class="jobs-table" id="addressesTable" style="table-layout:auto;min-width:0;">
+        <thead><tr>
+          <th>Region</th><th>Job #</th><th>Client / Job</th><th>Address</th>
+        </tr></thead>
+        <tbody id="addressesBody"></tbody>
       </table>
     </div>
   </div>
@@ -1758,10 +1780,26 @@ function switchTab(name){
   document.getElementById('view-jobs').classList.toggle('active', name==='jobs');
   document.getElementById('view-workload').classList.toggle('active', name==='workload');
   document.getElementById('view-stagetimes').classList.toggle('active', name==='stagetimes');
+  document.getElementById('view-addresses').classList.toggle('active', name==='addresses');
   document.getElementById('view-kpi').classList.toggle('active', name==='kpi');
   if(name==='workload') renderWorkload();
   if(name==='stagetimes') loadAndRenderStageTimes();
+  if(name==='addresses') renderAddresses();
   if(name==='kpi') loadAndRenderKpi().then(sizeKpiScroll);
+}
+function renderAddresses(){
+  const rows = jobs.slice().sort((a,b)=>{
+    const ra=(a.region||'').toLowerCase(), rb=(b.region||'').toLowerCase();
+    if(ra!==rb) return ra<rb ? -1 : 1;
+    return (a.jobNumber||'').localeCompare(b.jobNumber||'');
+  });
+  document.getElementById('addressesBody').innerHTML = rows.map(j=>`
+    <tr>
+      <td>${esc(j.region||'')}</td>
+      <td>${esc(j.jobNumber||'')}</td>
+      <td><strong>${esc(j.jobName||'Untitled')}</strong>${j.archived ? ' <span style="color:var(--ink-faint);font-weight:400;">(archived)</span>' : ''}</td>
+      <td>${esc(j.address||'')}</td>
+    </tr>`).join('') || '<tr><td colspan="4" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
 }
 let stageHistory = [];
 async function loadAndRenderStageTimes(){
@@ -2039,7 +2077,8 @@ const FIELD_COLUMN_MAP = {
   earliestEstimatedCompletion:'earliest_estimated_completion',
   latestEstimatedCompletion:'latest_estimated_completion',
   updatesSent:'updates_sent',
-  engineer:'engineer_date'
+  engineer:'engineer_date',
+  address:'address'
 };
 async function patchJobField(id, field, value){
   const row = {};
@@ -2288,6 +2327,40 @@ document.addEventListener('mouseup', e=>{
     }
   }, 0);
 });
+let addressExpandedIds = new Set();
+function isAddressRowExpanded(j){
+  if(!j.address) return true;
+  return addressExpandedIds.has(j.id);
+}
+function toggleAddressRow(id){
+  if(addressExpandedIds.has(id)) addressExpandedIds.delete(id); else addressExpandedIds.add(id);
+  renderJobs();
+}
+function addressSubRowHtml(j){
+  if(isAddressRowExpanded(j)){
+    return `<tr class="address-subrow"><td colspan="20" class="address-subrow-cell">
+      <span class="address-subrow-label">📍 Site address:</span>
+      <input type="text" class="address-input" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)" onclick="event.stopPropagation()">
+    </td></tr>`;
+  }
+  return `<tr class="address-subrow address-subrow-collapsed" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')"><td colspan="20" class="address-subrow-cell">
+    <span class="address-subrow-summary">📍 ${esc(j.address)}</span>
+    <span class="address-subrow-edit">edit</span>
+  </td></tr>`;
+}
+async function saveAddressField(el){
+  const id = el.dataset.id;
+  const j = jobs.find(x=>x.id===id);
+  if(!j) return;
+  const val = el.value.trim();
+  if((j.address||'') === val){ addressExpandedIds.delete(id); renderJobs(); return; }
+  j.address = val;
+  await withSync(async ()=>{
+    await patchJobField(id, 'address', val);
+  }, 'Save failed — check connection');
+  addressExpandedIds.delete(id);
+  renderJobs();
+}
 function renderTable(list){
   if(!hasSharedWidths) autoFitDynamicColumns(jobs);
   renderColgroup();
@@ -2322,7 +2395,7 @@ function renderTable(list){
       ${textCell(j,'engineer')}
       ${dateCell(j,'updatesSent')}
       ${isColHidden('taskStatus') ? '<td class="col-collapsed"></td>' : `<td class="divider-right"><span class="pill ${taskPillClass(j.taskStatus)}">${esc(j.taskStatus||'In Progress')}</span></td>`}
-    </tr>`).join('');
+    </tr>${LOCKED_REGION ? addressSubRowHtml(j) : ''}`).join('');
   document.querySelectorAll('#tableBody .cell-text').forEach(autoGrow);
   if(!columnsAutoFitted && jobs.length){
     measureAndLockStaticColumnWidths();
@@ -3467,6 +3540,7 @@ function applyReadOnlyMode(){
   document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
   document.querySelector('[data-tab="workload"]').style.display = 'none';
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
+  document.querySelector('[data-tab="addresses"]').style.display = 'none';
   if(!LOCKED_WHO) document.querySelector('[data-tab="kpi"]').style.display = 'none';
   const banner = document.getElementById('readOnlyBanner');
   const parts = [];

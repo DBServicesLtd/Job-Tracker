@@ -2983,10 +2983,8 @@ function timeStrToDecimal(t){
 }
 function decimalToHM(h){
   if(!h) return '';
-  const hrs = Math.floor(h), mins = Math.round((h-hrs)*60);
-  if(mins===0) return String(hrs);
-  if(mins===30) return hrs + '.5';
-  return hrs + ':' + String(mins).padStart(2,'0');
+  const rounded = Math.round(h * 6) / 6;
+  return rounded.toFixed(2);
 }
 function dailyHoursForEntry(e){
   if(!e) return 0;

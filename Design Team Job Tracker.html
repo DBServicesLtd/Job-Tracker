@@ -396,7 +396,7 @@ tbody tr.kpi-weekend .staff-block-b td{background:#E9E9E7 !important;}
 .kpi-time:focus, .kpi-lunch:focus, .kpi-leave:focus{outline:none;background:var(--blue-soft) !important;}
 .kpi-time.kpi-empty, .kpi-lunch.kpi-empty{color:#C3C7CC;}
 .kpi-time.kpi-filled, .kpi-lunch.kpi-filled{color:var(--ink);font-weight:600;}
-.kpi-total{font-weight:700;text-align:center;padding:8px 6px;color:var(--blue-deep);width:52px;}
+.kpi-total{font-weight:700;text-align:center;padding:8px 6px;color:var(--ink);width:52px;background:#C8C8C6 !important;}
 .kpi-under{background:var(--red-soft) !important;color:var(--red);font-weight:700;text-align:center;padding:8px 6px;width:52px;}
 .kpi-over{background:var(--green-soft) !important;color:var(--green);font-weight:700;text-align:center;padding:8px 6px;width:52px;}
 .kpi-total-row td{border-top:3px solid var(--blue-deep);font-weight:700;}
@@ -578,7 +578,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <span class="kpi-legend-btn" id="kpiArmBtn-annual" style="color:#1F4A12;" onclick="setArmedLeave('annual')"><span class="kpi-legend-swatch" style="background:#1F4A12;"></span>Annual leave</span>
       <span class="kpi-legend-btn" id="kpiArmBtn-sick" style="color:#A13B2A;" onclick="setArmedLeave('sick')"><span class="kpi-legend-swatch" style="background:#A13B2A;"></span>Sick leave</span>
       <span class="kpi-legend-btn" id="kpiArmBtn-other" style="color:#5B3A96;" onclick="setArmedLeave('other')"><span class="kpi-legend-swatch" style="background:#5B3A96;"></span>Other/unpaid leave</span>
-      <span class="kpi-legend-btn" id="kpiArmBtn-clear" style="color:var(--ink-faint);" onclick="setArmedLeave('__clear__')">✕ Clear</span>
+      <span class="kpi-legend-btn" id="kpiArmBtn-clear" style="color:var(--ink-faint);" onclick="setArmedLeave('__clear__', event)" title="Click to clear one day. Ctrl+click to clear multiple.">✕ Clear</span>
       <span class="kpi-legend-item"><span class="kpi-legend-swatch" style="background:#54524C;"></span>Weekend</span>
       <span class="kpi-legend-item"><span class="kpi-legend-swatch" style="background:#8A6D00;"></span>Public holiday</span>
     </div>
@@ -2984,6 +2984,8 @@ function timeStrToDecimal(t){
 function decimalToHM(h){
   if(!h) return '';
   const hrs = Math.floor(h), mins = Math.round((h-hrs)*60);
+  if(mins===0) return String(hrs);
+  if(mins===30) return hrs + '.5';
   return hrs + ':' + String(mins).padStart(2,'0');
 }
 function dailyHoursForEntry(e){
@@ -3168,8 +3170,15 @@ function renderKpiDaily(){
 function handleStartMouseDown(e, el){
   if(kpiArmedLeave){ e.preventDefault(); handleLeaveCellClick(el); }
 }
-function setArmedLeave(type){
-  kpiArmedLeave = (kpiArmedLeave === type) ? '' : type;
+let kpiMultiClear = false;
+function setArmedLeave(type, event){
+  if(type === '__clear__' && event && event.ctrlKey){
+    kpiMultiClear = true;
+    kpiArmedLeave = '__clear__';
+  } else {
+    kpiMultiClear = false;
+    kpiArmedLeave = (kpiArmedLeave === type) ? '' : type;
+  }
   ['annual','sick','other','clear'].forEach(t=>{
     const btn = document.getElementById('kpiArmBtn-'+t);
     if(!btn) return;
@@ -3177,7 +3186,9 @@ function setArmedLeave(type){
   });
   const hint = document.getElementById('kpiLeaveHint');
   if(kpiArmedLeave === '__clear__'){
-    hint.textContent = 'Click a day below to clear its leave marking. Click the button again to stop.';
+    hint.textContent = kpiMultiClear
+      ? 'Multi-clear mode — click days to clear leave. Click ✕ Clear again to stop.'
+      : 'Click a day to clear its leave marking. Click the button again to stop.';
   } else if(kpiArmedLeave){
     const label = kpiArmedLeave==='annual'?'Annual leave':kpiArmedLeave==='sick'?'Sick leave':'Other/unpaid leave';
     hint.textContent = `Click a day below to mark it as ${label}. Click the button again to stop.`;
@@ -3190,7 +3201,7 @@ async function handleLeaveCellClick(el){
   const staffId = el.dataset.staff, date = el.dataset.date;
   const type = kpiArmedLeave === '__clear__' ? '' : kpiArmedLeave;
   await saveLeaveDay(staffId, date, type);
-  if(kpiArmedLeave === '__clear__') setArmedLeave('');
+  if(kpiArmedLeave === '__clear__' && !kpiMultiClear) setArmedLeave('');
 }
 function emptyOrNull(v){ return v || null; }
 async function saveLeaveDay(staffId, date, type){

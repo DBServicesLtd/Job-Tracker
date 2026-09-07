@@ -1844,7 +1844,7 @@ function renderStageTimes(){
       <td>${r.d.SP>0 ? r.d.SP.toFixed(1) : '—'}</td>
       <td>${r.d.PD>0 ? r.d.PD.toFixed(1) : '—'}</td>
       <td>${r.d.WD>0 ? r.d.WD.toFixed(1) : '—'}</td>
-      <td><span class="stamp ${stageClass(r.job.stage)}">${esc(r.job.stage)}</span></td>
+      <td><span class="stamp ${stageClass(r.job.stage)}">${esc(stageDisplay(r.job.stage))}</span></td>
     </tr>`).join('') || '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
 }
 
@@ -1881,6 +1881,7 @@ function dateSortKey(v){
   return '9998-99-99';
 }
 function stageClass(s){ return s==='On Site' ? 'stage-OnSite' : 'stage-'+s; }
+function stageDisplay(s){ return s==='On Site' ? 'Site' : s; }
 function taskPillClass(s){ return 'pill-' + (s||'In Progress').replace(/\s/g,''); }
 function stateCategory(s){
   if(!s) return 'default';
@@ -2028,7 +2029,7 @@ const TABLE_COLS = [
   {key:'region',label:'Region',w:110,fit:true},
   {key:'jobNumber',label:'Job #',w:80,fit:true},
   {key:'jobName',label:'Client / Job',w:160,fit:true,min:140,max:400},
-  {key:'stage',label:'Stage',w:95,fit:true},
+  {key:'stage',label:'Stage',w:64,fit:true},
   {key:'who',label:'Who',w:120,fit:true},
   {key:'status',label:'State',w:150,fit:true},
   {key:'notes',label:'Task Notes',w:420,fit:false},
@@ -2381,7 +2382,7 @@ function renderTable(list){
       ${isColHidden('region') ? '' : `<td>${esc(j.region||'')}</td>`}
       ${isColHidden('jobNumber') ? '<td class="col-collapsed"></td>' : `<td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>`}
       ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td><strong>${esc(j.jobName||'Untitled')}</strong>${LOCKED_REGION && j.address && !addressExpandedIds.has(j.id) ? ` <span class="address-pin-indicator" title="${esc(j.address)}" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')">📍</span>` : ''}</td>`}
-      ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td><span class="stamp ${stageClass(j.stage)}">${esc(j.stage)}</span></td>`}
+      ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td><span class="stamp ${stageClass(j.stage)}">${esc(stageDisplay(j.stage))}</span></td>`}
       ${isColHidden('who') ? '' : `<td style="white-space:nowrap;">${esc(j.who||'')}</td>`}
       ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>`}
       ${richTextCell(j,'notes')}

@@ -176,15 +176,13 @@ select.select, .toolbar select{
 .pill-state-withServices{background:#EBB5C8;color:#7A1F42;}
 .pill-state-default{background:#A1D6CC;color:#0B4A3E;}
 
-.address-subrow td{background:#F7F5EF;border-top:none;padding:6px 14px;font-size:12.5px;color:var(--ink-soft);}
-.address-subrow-label{font-weight:600;margin-right:8px;color:var(--ink);}
-.address-input{border:1px solid #DAD6C9;border-radius:4px;padding:4px 8px;font-size:12.5px;width:340px;font-family:'Open Sans',sans-serif;}
-.address-input:focus{outline:none;border-color:var(--blue-soft, #A9C6E0);}
-.address-subrow-collapsed{cursor:pointer;}
-.address-subrow-collapsed:hover td{background:#F0EDE3;}
-.address-subrow-summary{font-weight:600;color:var(--ink);}
-.address-subrow-edit{margin-left:10px;font-size:11px;color:var(--ink-faint);text-decoration:underline;}
+.address-subrow td{background:#FBFAF7;border-top:none;padding:3px 14px;font-size:11.5px;color:var(--ink-faint);}
+.address-subrow-label{font-weight:500;margin-right:8px;color:var(--ink-faint);}
+.address-input{border:1px solid #E6E3D8;border-radius:4px;padding:3px 7px;font-size:11.5px;width:300px;font-family:'Open Sans',sans-serif;color:var(--ink-soft);background:#fff;}
+.address-input:focus{outline:none;border-color:var(--blue-soft, #A9C6E0);color:var(--ink);}
 .address-input-flat{width:100%;box-sizing:border-box;}
+.address-pin-indicator{cursor:pointer;font-size:12px;opacity:0.75;}
+.address-pin-indicator:hover{opacity:1;}
 
 .board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
 .col{
@@ -2344,10 +2342,7 @@ function addressSubRowHtml(j){
       <input type="text" class="address-input" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)" onclick="event.stopPropagation()">
     </td></tr>`;
   }
-  return `<tr class="address-subrow address-subrow-collapsed" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')"><td colspan="20" class="address-subrow-cell">
-    <span class="address-subrow-summary">📍 ${esc(j.address)}</span>
-    <span class="address-subrow-edit">edit</span>
-  </td></tr>`;
+  return '';
 }
 async function saveAddressField(el){
   const id = el.dataset.id;
@@ -2385,7 +2380,7 @@ function renderTable(list){
     <tr onclick="openJobModal('${j.id}')">
       ${isColHidden('region') ? '' : `<td>${esc(j.region||'')}</td>`}
       ${isColHidden('jobNumber') ? '<td class="col-collapsed"></td>' : `<td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>`}
-      ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td><strong>${esc(j.jobName||'Untitled')}</strong></td>`}
+      ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td><strong>${esc(j.jobName||'Untitled')}</strong>${LOCKED_REGION && j.address && !addressExpandedIds.has(j.id) ? ` <span class="address-pin-indicator" title="${esc(j.address)}" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')">📍</span>` : ''}</td>`}
       ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td><span class="stamp ${stageClass(j.stage)}">${esc(j.stage)}</span></td>`}
       ${isColHidden('who') ? '' : `<td style="white-space:nowrap;">${esc(j.who||'')}</td>`}
       ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>`}

@@ -186,6 +186,8 @@ select.select, .toolbar select{
 .address-cell-flat{display:flex;align-items:center;gap:8px;}
 .address-map-link{text-decoration:none;font-size:14px;opacity:0.75;flex-shrink:0;}
 .address-map-link:hover{opacity:1;}
+.council-resolve-link{cursor:pointer;font-size:11.5px;color:var(--ink-faint);text-decoration:underline;}
+.council-resolve-link:hover{color:var(--blue);}
 .address-pin-indicator{cursor:pointer;font-size:12px;opacity:0.75;}
 .address-pin-indicator:hover{opacity:1;}
 
@@ -585,7 +587,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
     <div class="table-wrap">
       <table class="jobs-table" id="addressesTable" style="table-layout:auto;min-width:0;">
         <thead><tr>
-          <th>Region</th><th>Job #</th><th>Client / Job</th><th style="width:55%;">Address</th>
+          <th>Region</th><th>Job #</th><th>Client / Job</th><th style="width:45%;">Address</th><th>Council</th>
         </tr></thead>
         <tbody id="addressesBody"></tbody>
       </table>
@@ -1566,6 +1568,7 @@ function jobToRow(j){
     earliest_estimated_completion: j.earliestEstimatedCompletion || null,
     latest_estimated_completion: j.latestEstimatedCompletion || null,
     address: j.address || '',
+    council: j.council || '',
     notes: j.notes || '',
     planning: j.planning || '',
     updates_sent: j.updatesSent || null,
@@ -1587,6 +1590,7 @@ function rowToJob(r){
     earliestEstimatedCompletion: r.earliest_estimated_completion || '',
     latestEstimatedCompletion: r.latest_estimated_completion || '',
     address: r.address || '',
+    council: r.council || '',
     notes: r.notes || '',
     planning: r.planning || '',
     updatesSent: r.updates_sent || '',
@@ -1808,7 +1812,8 @@ function renderAddresses(){
         <input type="text" class="address-input address-input-flat${j.address ? ' has-value' : ''}" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)">
         ${j.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address)}" target="_blank" rel="noopener" class="address-map-link" title="Open in Google Maps" onclick="event.stopPropagation()">🗺️</a>` : ''}
       </td>
-    </tr>`).join('') || '<tr><td colspan="4" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
+      <td>${j.council ? esc(j.council) : (j.address ? `<span class="council-resolve-link" onclick="resolveCouncilForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
+    </tr>`).join('') || '<tr><td colspan="5" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
 }
 let stageHistory = [];
 async function loadAndRenderStageTimes(){
@@ -2088,7 +2093,8 @@ const FIELD_COLUMN_MAP = {
   latestEstimatedCompletion:'latest_estimated_completion',
   updatesSent:'updates_sent',
   engineer:'engineer_date',
-  address:'address'
+  address:'address',
+  council:'council'
 };
 async function patchJobField(id, field, value){
   const row = {};
@@ -2355,6 +2361,30 @@ function addressSubRowHtml(j){
   }
   return '';
 }
+const ADDY_API_KEY = '86bf969edbf948f68d02d858924592de';
+const ADDY_BASE = 'https://api-nz.addysolutions.com';
+async function resolveCouncilForJob(id, address){
+  const j = jobs.find(x=>x.id===id);
+  if(!address){
+    if(j) j.council = '';
+    try{ await patchJobField(id, 'council', ''); }catch(e){}
+    if(document.getElementById('view-addresses').classList.contains('active')) renderAddresses();
+    return;
+  }
+  try{
+    const url = ADDY_BASE + '/validation?address=' + encodeURIComponent(address) + '&key=' + ADDY_API_KEY;
+    const res = await fetch(url);
+    if(!res.ok) return;
+    const data = await res.json();
+    const territory = (data && data.address && data.address.territory) || '';
+    if(!territory) return;
+    if(j) j.council = territory;
+    await patchJobField(id, 'council', territory);
+    if(document.getElementById('view-addresses').classList.contains('active')) renderAddresses();
+  }catch(e){
+    /* silent — council stays unresolved, address itself is unaffected */
+  }
+}
 async function saveAddressField(el){
   const id = el.dataset.id;
   const j = jobs.find(x=>x.id===id);
@@ -2365,12 +2395,17 @@ async function saveAddressField(el){
     if(document.getElementById('view-addresses').classList.contains('active')) renderAddresses();
     else renderJobs();
   };
-  if((j.address||'') === val){ refresh(); return; }
+  if((j.address||'') === val){
+    refresh();
+    if(val && !j.council) resolveCouncilForJob(id, val);
+    return;
+  }
   j.address = val;
   await withSync(async ()=>{
     await patchJobField(id, 'address', val);
   }, 'Save failed — check connection');
   refresh();
+  resolveCouncilForJob(id, val);
 }
 function renderTable(list){
   if(!hasSharedWidths) autoFitDynamicColumns(jobs);

@@ -587,7 +587,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
     <div class="table-wrap">
       <table class="jobs-table" id="addressesTable" style="table-layout:auto;min-width:0;">
         <thead><tr>
-          <th>Region</th><th>Job #</th><th>Client / Job</th><th style="width:45%;">Address</th><th>Council</th>
+          <th>Region</th><th>Job #</th><th>Client / Job</th><th style="width:35%;">Address</th><th>Council</th><th>Website</th><th>Consent Application</th>
         </tr></thead>
         <tbody id="addressesBody"></tbody>
       </table>
@@ -1813,7 +1813,9 @@ function renderAddresses(){
         ${j.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address)}" target="_blank" rel="noopener" class="address-map-link" title="Open in Google Maps" onclick="event.stopPropagation()">🗺️</a>` : ''}
       </td>
       <td>${j.council ? esc(j.council) : (j.address ? `<span class="council-resolve-link" onclick="resolveCouncilForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
-    </tr>`).join('') || '<tr><td colspan="5" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
+      <td>${j.council && COUNCIL_INFO[j.council] ? `<a href="${COUNCIL_INFO[j.council].website}" target="_blank" rel="noopener">Website</a>` : ''}</td>
+      <td>${j.council && COUNCIL_INFO[j.council] ? `<a href="${COUNCIL_INFO[j.council].consent}" target="_blank" rel="noopener">Apply</a>` : ''}</td>
+    </tr>`).join('') || '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
 }
 let stageHistory = [];
 async function loadAndRenderStageTimes(){
@@ -2361,6 +2363,17 @@ function addressSubRowHtml(j){
   }
   return '';
 }
+const COUNCIL_INFO = {
+  'Auckland': { website:'https://www.aucklandcouncil.govt.nz', consent:'https://www.aucklandcouncil.govt.nz/en/building-and-consents/building-consents/apply-for-building-consent.html' },
+  'Christchurch City': { website:'https://ccc.govt.nz', consent:'https://ccc.govt.nz/consents-and-licences/building-consents/apply-for-a-building-consent' },
+  'Hamilton City': { website:'https://hamilton.govt.nz', consent:'https://hamilton.govt.nz/property-rates-and-building/building-consents/apply-for-building-consent' },
+  'Hastings District': { website:'https://www.hastingsdc.govt.nz', consent:'https://www.hastingsdc.govt.nz/services/building-consents-information/apply-for-a-building-consent/' },
+  'Kapiti Coast District': { website:'https://www.kapiticoast.govt.nz', consent:'https://www.kapiticoast.govt.nz/propertyhousingandrates/how-to-building-and-resource-consents/apply-for/apply-for-a-building-consent/' },
+  'Napier City': { website:'https://www.napier.govt.nz', consent:'https://www.napier.govt.nz/services/building-consents-information/building-consents/apply/' },
+  'Otorohanga District': { website:'https://www.otodc.govt.nz', consent:'https://www.otodc.govt.nz/council-services/building-consents-and-information/building-consents' },
+  'Selwyn District': { website:'https://www.selwyn.govt.nz', consent:'https://www.selwyn.govt.nz/property-And-building/building/applying-for-approvals/how-to-apply' },
+  'Waikato District': { website:'https://www.waikatodistrict.govt.nz', consent:'https://www.waikatodistrict.govt.nz/services-facilities/land-and-property/building-consents-guidance-and-inspections1/apply-for-a-building-consent' }
+};
 const ADDY_API_KEY = '86bf969edbf948f68d02d858924592de';
 const ADDY_BASE = 'https://api-nz.addysolutions.com';
 async function resolveCouncilForJob(id, address){

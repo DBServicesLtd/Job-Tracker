@@ -1809,7 +1809,7 @@ function renderAddresses(){
       <td>${esc(j.jobNumber||'')}</td>
       <td><strong>${esc(j.jobName||'Untitled')}</strong>${j.archived ? ' <span style="color:var(--ink-faint);font-weight:400;">(archived)</span>' : ''}</td>
       <td class="address-cell-flat">
-        <input type="text" class="address-input address-input-flat${j.address ? ' has-value' : ''}" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)">
+        <input type="text" class="address-input address-input-flat${j.address ? ' has-value' : ''}" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)" onkeydown="if(event.key==='Enter'){this.blur();}">
         ${j.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address)}" target="_blank" rel="noopener" class="address-map-link" title="Open in Google Maps" onclick="event.stopPropagation()">🗺️</a>` : ''}
       </td>
       <td>${j.council ? esc(j.council) : (j.address ? `<span class="council-resolve-link" onclick="resolveCouncilForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
@@ -2356,7 +2356,7 @@ function addressSubRowHtml(j){
   if(isAddressRowExpanded(j)){
     return `<tr class="address-subrow"><td colspan="20" class="address-subrow-cell">
       <span class="address-subrow-label">📍 Site address:</span>
-      <input type="text" class="address-input" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)" onclick="event.stopPropagation()">
+      <input type="text" class="address-input" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter'){this.blur();}">
     </td></tr>`;
   }
   return '';

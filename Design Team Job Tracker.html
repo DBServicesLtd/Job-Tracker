@@ -361,6 +361,15 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 }
 .region-link-name{font-weight:600;color:var(--ink);font-size:13.5px;}
 .region-link-url{font-size:11px;color:var(--ink-faint);word-break:break-all;margin-top:2px;}
+.contact-region-group{margin-bottom:18px;}
+.contact-region-heading{font-family:'DM Serif Display',serif;font-size:15px;color:#01003A;border-bottom:1px solid var(--line-strong);padding-bottom:4px;margin-bottom:8px;}
+.contact-card{border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin-bottom:6px;}
+.contact-card-name{font-weight:600;font-size:13px;color:var(--ink);}
+.contact-card-title{font-weight:400;color:var(--ink-soft);font-size:12px;}
+.contact-card-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:3px;font-size:12px;}
+.contact-card-row a{color:var(--blue);text-decoration:none;}
+.contact-card-row a:hover{text-decoration:underline;}
+.contact-card-address{margin-top:3px;font-size:11.5px;color:var(--ink-faint);}
 .empty-state{
   text-align:center;padding:60px 20px;color:var(--ink-faint);border:1.5px dashed var(--line-strong);
   border-radius:8px;background:rgba(255,255,255,0.4);
@@ -491,6 +500,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <button class="tab" data-tab="addresses" onclick="switchTab('addresses')">Job Information</button>
     </div>
     <div class="settings-wrap">
+      <button class="settings-btn" id="contactsBtn" onclick="openContactsModal()">👥 Contacts</button>
       <button class="settings-btn" id="settingsBtn" onclick="toggleSettingsMenu()">⚙ Settings</button>
       <div class="settings-menu" id="settingsMenu">
         <button onclick="closeSettingsMenu(); openRegionLinksModal()">🔗 Region links</button>
@@ -751,6 +761,27 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <span></span>
       <div class="foot-right">
         <button class="btn-ghost" onclick="closeMyWorkLinksModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="contactsOverlay">
+  <div class="modal" style="max-width:900px;">
+    <div class="modal-head">
+      <h2>Contacts</h2>
+      <button class="modal-close" onclick="closeContactsModal()">✕</button>
+    </div>
+    <div class="modal-body" style="grid-template-columns:1fr;">
+      <select class="f-select" id="contactsRegionFilter" onchange="renderContactsList()" style="max-width:260px;">
+        <option value="">All regions</option>
+      </select>
+      <div id="contactsList" style="max-height:60vh;overflow-y:auto;"></div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div class="foot-right">
+        <button class="btn-ghost" onclick="closeContactsModal()">Close</button>
       </div>
     </div>
   </div>
@@ -2686,6 +2717,74 @@ function openGuideModal(){
 function closeGuideModal(){ document.getElementById('guideOverlay').classList.remove('open'); }
 function baseUrl(){
   return window.location.origin + window.location.pathname;
+}
+const COMPANY_CONTACTS = [
+  {name:'Aaron Thompson', title:'General Manager', region:'DB Services', mobile:'021 530 346', office:'06 877 3763', email:'aaron.thompson@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130, Christchurch', postal:'PO Box 8751, Havelock North 4157'},
+  {name:'Dan Wezel', title:'Architectural Graduate', region:'DB Services', mobile:'027 474 3002', office:'06 877 3763', email:'daniel.wezel@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130, Christchurch', postal:'PO Box 8751, Havelock North 4157'},
+  {name:'Daniel Ackerman', title:'Architectural Designer', region:'DB Services', mobile:'022 676 8436', office:'06 877 3763', email:'daniel.ackerman@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130, Christchurch', postal:'PO Box 8751, Havelock North 4157'},
+  {name:'Hayley Bushby', title:'Senior Architectural Technician', region:'DB Services', mobile:'021 301 440', office:'06 877 3763', email:'hayley.bushby@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130, Christchurch', postal:'PO Box 8751, Havelock North 4157'},
+  {name:'Renee Woods', title:'Registered Architect', region:'DB Services', mobile:'021 118 740', office:'06 877 3763', email:'renee.woods@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
+  {name:'Sarah Levasseur', title:'Senior Technical Co-ordinator', region:'DB Services', mobile:'021 802 672', office:'06 877 3763', email:'sarah.levasseur@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
+  {name:'Sheree Carinus', title:'Finance Coordinator', region:'DB Services', mobile:'021 024 1638', office:'06 877 3763', email:'sheree.carinus@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
+  {name:'Andrew Price', title:'CEO', region:'DB NZ', mobile:'027 601 6607', office:'06 877 3763', email:'andrew.price@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
+  {name:'Andy Bell', title:'', region:'DB NZ', mobile:'027 444 7539', office:'', email:'andy.bell@designbuilders.co.nz', physical:'', postal:''},
+  {name:'Brenda Bell', title:'', region:'DB NZ', mobile:'0274 599 087', office:'', email:'brandy.bell@xtra.co.nz', physical:'', postal:''},
+  {name:'Sam Perrin', title:'Managing Director', region:'DB Bay of Plenty (BOP)', mobile:'027 757 7170', office:'', email:'sam.perrin@designbuilders.co.nz', physical:'21 Kings Ave, Matua, Tauranga 3110', postal:''},
+  {name:'Alex Caddick', title:'Managing Director', region:'DB Canterbury', mobile:'027 622 0022', office:'', email:'alex.caddick@designbuilders.co.nz', physical:'90 Fitzgerald Avenue', postal:''},
+  {name:'Kaye Caddick', title:'Managing Director Sales', region:'DB Canterbury', mobile:'027 622 0077', office:'', email:'kaye.caddick@designbuilders.co.nz', physical:'22 Wilkinsons Road, Harewood, Christchurch 8051', postal:''},
+  {name:'Paul Caddick', title:'', region:'DB Canterbury', mobile:'027 622 7666', office:'', email:'paul.caddick@designbuilders.co.nz', physical:'22 Wilkinsons Road, Harewood, Christchurch 8051', postal:''},
+  {name:'Trina Affleck', title:'Operations Coordinator', region:'DB Canterbury', mobile:'027 405 3337', office:'', email:'trina.affleck@designbuilders.co.nz', physical:'90 Fitzgerald Avenue', postal:''},
+  {name:'Tara Todd', title:'Managing Director Sales', region:'DB Hawkes Bay (HB)', mobile:'021 310 459', office:'06 877 1441', email:'tara.todd@designbuilders.co.nz', physical:'70 Oak Road, Poraiti, Napier', postal:''},
+  {name:'Trent Bartle', title:'Managing Director Construction', region:'DB Hawkes Bay (HB)', mobile:'027 892 5307', office:'06 877 1441', email:'trent.bartle@designbuilders.co.nz', physical:'70 Oak Road, Poraiti, Napier', postal:''},
+  {name:'Alex Pedersen', title:'Office Manager/Project Manager', region:'DB Manawatu', mobile:'021 070 0061', office:'06 323 2504', email:'alex.pederson@designbuilders.co.nz', physical:'9 Stafford Street, Feilding, 4702', postal:''},
+  {name:'Gareth Edwards', title:'Managing Director', region:'DB Manawatu', mobile:'027 296 2589', office:'06 323 2504', email:'gareth.edwards@designbuilders.co.nz', physical:'9 Stafford Street, Feilding, 4702', postal:''},
+  {name:'Dan Fawcett', title:'Construction Manager', region:'DB North Auckland', mobile:'021 254 1555', office:'', email:'dan.fawcett@designbuilders.co.nz', physical:'176 Boord Crescent, Kumeu 0891', postal:''},
+  {name:'Sarah Fawcett', title:'Managing Director', region:'DB North Auckland', mobile:'021 481 208', office:'', email:'sarah.fawcett@designbuilders.co.nz', physical:'G07/77 Hobsonville Point Road, Hobsonville 0618', postal:''},
+  {name:'Brendan Flude', title:'Managing Director', region:'DB Northland', mobile:'021 748 733', office:'', email:'brendan@designbuilders.co.nz', physical:'C/- Tutukaka General Store, 260 Matapouri Road, Tutukaka 0173', postal:'PO Box 402060, Tutukaka 0153'},
+  {name:'Ann Corleison', title:'Operations Co-ordinator', region:'DB Taupo', mobile:'027 519 0196', office:'07 376 8167', email:'ann.corleison@designbuilders.co.nz', physical:'7 Tuhua Close, Wharewaka, Taupo', postal:'PO Box 2253, Taupo 3351'},
+  {name:'Jess Corleison', title:'General Operations Support', region:'DB Taupo', mobile:'027 350 2133', office:'07 376 8167', email:'jess.corleison@designbuilders.co.nz', physical:'7 Tuhua Close, Wharewaka, Taupo', postal:'PO Box 2253, Taupo 3351'},
+  {name:'Matt Corleison', title:'Managing Director', region:'DB Taupo', mobile:'027 464 4652', office:'07 376 8167', email:'matt.corleison@designbuilders.co.nz', physical:'7 Tuhua Close, Wharewaka, Taupo', postal:'PO Box 2253, Taupo 3351'},
+  {name:'Caleb Steunebrink', title:'Project Manager', region:'DB Taupo', mobile:'021 575 167', office:'07 376 8167', email:'caleb.steunebrink@designbuilders.co.nz', physical:'39 Raupo Crescent, Wharewaka, Taupo', postal:''},
+  {name:'Mark Atkinson', title:'Project Manager', region:'DB Waikato', mobile:'021 273 5687', office:'', email:'darryn.herapath@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
+  {name:'Jeff Marra', title:'Managing Director', region:'DB Waikato', mobile:'027 488 0044', office:'', email:'jeff.marra@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
+  {name:'Olivia Mael', title:'Sales Executive', region:'DB Waikato', mobile:'027 667 7557', office:'', email:'olivia.mael@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
+  {name:'Merryl Anderson', title:'Office Manager', region:'DB Waikato', mobile:'027 911 9220', office:'', email:'ruth.butcher@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
+  {name:'Mark Davidge', title:'Managing Director', region:'DB Wellington', mobile:'027 462 7220', office:'', email:'mark.davidge@designbuilders.co.nz', physical:'2 Viewmont Drive, Harbour View, Lower Hutt 5010', postal:''},
+  {name:'Buildxact', title:'Service Desk', region:'Buildxact Support', mobile:'', office:'0800 359 817', email:'support@buildxact.com.au', physical:'Level 1, 411 Collins Street, Melbourne, VIC, 3000 Australia', postal:''},
+  {name:'Elive', title:'Service Desk', region:'IT Support', mobile:'', office:'0800 285 885', email:'support@elive.co.nz', physical:'8B Target Court, Wairau Valley, Auckland 0627', postal:''}
+];
+function openContactsModal(){
+  const sel = document.getElementById('contactsRegionFilter');
+  if(sel.options.length <= 1){
+    const regionsList = [...new Set(COMPANY_CONTACTS.map(c=>c.region))];
+    sel.innerHTML = '<option value="">All regions</option>' + regionsList.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  }
+  renderContactsList();
+  document.getElementById('contactsOverlay').classList.add('open');
+}
+function closeContactsModal(){ document.getElementById('contactsOverlay').classList.remove('open'); }
+function renderContactsList(){
+  const filter = document.getElementById('contactsRegionFilter').value;
+  const groups = {};
+  COMPANY_CONTACTS.filter(c=>!filter || c.region===filter).forEach(c=>{
+    if(!groups[c.region]) groups[c.region] = [];
+    groups[c.region].push(c);
+  });
+  const html = Object.keys(groups).map(region=>`
+    <div class="contact-region-group">
+      <div class="contact-region-heading">${esc(region)}</div>
+      ${groups[region].map(c=>`
+        <div class="contact-card">
+          <div class="contact-card-name">${esc(c.name)}${c.title ? ` <span class="contact-card-title">— ${esc(c.title)}</span>` : ''}</div>
+          <div class="contact-card-row">
+            ${c.mobile ? `<a href="tel:${esc(c.mobile.replace(/\s/g,''))}">${esc(c.mobile)}</a>` : ''}
+            ${c.office ? `<a href="tel:${esc(c.office.replace(/\s/g,''))}">${esc(c.office)} (office)</a>` : ''}
+            ${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}
+          </div>
+          ${c.physical ? `<div class="contact-card-address">${esc(c.physical)}${c.postal ? ' · ' + esc(c.postal) : ''}</div>` : ''}
+        </div>`).join('')}
+    </div>`).join('') || '<p style="color:var(--ink-faint);">No contacts found.</p>';
+  document.getElementById('contactsList').innerHTML = html;
 }
 function openRegionLinksModal(){
   const list = document.getElementById('regionLinksList');

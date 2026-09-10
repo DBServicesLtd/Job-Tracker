@@ -2769,7 +2769,16 @@ function renderContactsList(){
     if(!groups[c.region]) groups[c.region] = [];
     groups[c.region].push(c);
   });
-  const html = Object.keys(groups).sort().map(region=>`
+  const regionOrder = r => {
+    if(r === 'DB Services') return 0;
+    if(r === 'Buildxact Support' || r === 'IT Support') return 2;
+    return 1;
+  };
+  const sortedRegions = Object.keys(groups).sort((a,b)=>{
+    const oa = regionOrder(a), ob = regionOrder(b);
+    return oa !== ob ? oa - ob : a.localeCompare(b);
+  });
+  const html = sortedRegions.map(region=>`
     <div class="contact-region-group">
       <div class="contact-region-heading">${esc(region)}</div>
       ${groups[region].map(c=>`

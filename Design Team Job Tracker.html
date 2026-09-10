@@ -79,7 +79,7 @@ a{color:var(--blue);}
 
 .tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
 .tabs-left{display:flex;gap:4px;}
-.settings-wrap{position:relative;padding-bottom:6px;}
+.settings-wrap{position:relative;padding-bottom:6px;display:flex;align-items:center;gap:8px;}
 .colvis-wrap{position:relative;display:inline-block;}
 .colvis-wrap .settings-menu{right:auto;left:0;max-height:280px;overflow-y:auto;}
 .settings-btn{
@@ -361,15 +361,15 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 }
 .region-link-name{font-weight:600;color:var(--ink);font-size:13.5px;}
 .region-link-url{font-size:11px;color:var(--ink-faint);word-break:break-all;margin-top:2px;}
-.contact-region-group{margin-bottom:18px;}
-.contact-region-heading{font-family:'DM Serif Display',serif;font-size:15px;color:#01003A;border-bottom:1px solid var(--line-strong);padding-bottom:4px;margin-bottom:8px;}
-.contact-card{border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin-bottom:6px;}
-.contact-card-name{font-weight:600;font-size:13px;color:var(--ink);}
-.contact-card-title{font-weight:400;color:var(--ink-soft);font-size:12px;}
-.contact-card-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:3px;font-size:12px;}
-.contact-card-row a{color:var(--blue);text-decoration:none;}
-.contact-card-row a:hover{text-decoration:underline;}
-.contact-card-address{margin-top:3px;font-size:11.5px;color:var(--ink-faint);}
+.contact-region-group{margin-bottom:14px;}
+.contact-region-heading{font-family:'DM Serif Display',serif;font-size:14px;color:#01003A;border-bottom:1px solid var(--line-strong);padding-bottom:3px;margin-bottom:4px;}
+.contact-row{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 14px;padding:5px 2px;border-bottom:1px solid var(--line);font-size:12.5px;}
+.contact-row:last-child{border-bottom:none;}
+.contact-name{font-weight:600;color:var(--ink);min-width:150px;}
+.contact-title{font-weight:400;color:var(--ink-faint);font-size:11.5px;}
+.contact-row a{color:var(--blue);text-decoration:none;}
+.contact-row a:hover{text-decoration:underline;}
+.contact-address{color:var(--ink-faint);font-size:11px;}
 .empty-state{
   text-align:center;padding:60px 20px;color:var(--ink-faint);border:1.5px dashed var(--line-strong);
   border-radius:8px;background:rgba(255,255,255,0.4);
@@ -2723,7 +2723,6 @@ const COMPANY_CONTACTS = [
   {name:'Dan Wezel', title:'Architectural Graduate', region:'DB Services', mobile:'027 474 3002', office:'06 877 9763', email:'daniel.wezel@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130, Christchurch', postal:'PO Box 8751, Havelock North 4157'},
   {name:'Daniel Akkerman', title:'Architectural Designer', region:'DB Services', mobile:'022 676 8436', office:'06 877 9763', email:'daniel.akkerman@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
   {name:'Hayley Bushby', title:'Senior Architectural Technician', region:'DB Services', mobile:'021 301 440', office:'', email:'hayley.bushby@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
-  {name:'Renee Woods', title:'Registered Architect', region:'DB Services', mobile:'021 111 8740', office:'06 877 9763', email:'renee.woods@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
   {name:'Sarah Levasseur', title:'Senior Technical Co-ordinator', region:'DB Services', mobile:'021 802 672', office:'06 877 9763', email:'sarah.levasseur@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
   {name:'Sheree Carinus', title:'Finance Coordinator', region:'DB Services', mobile:'021 024 16387', office:'', email:'sheree.carinus@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4132', postal:'PO Box 8751, Havelock North 4159'},
   {name:'Andrew Price', title:'CEO', region:'DB NZ', mobile:'027 601 6607', office:'06 877 9763', email:'andrew.price@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
@@ -2743,12 +2742,12 @@ const COMPANY_CONTACTS = [
   {name:'Brendan Flude', title:'Managing Director', region:'DB Northland', mobile:'021 748 733', office:'', email:'brendan@designbuilders.co.nz', physical:'C/- Tutukaka General Store, 260 Matapouri Road, Tutukaka 0173', postal:'PO Box 402060, Tutukaka 0153'},
   {name:'Ann Corleison', title:'Operations Co-ordinator', region:'DB Taupo', mobile:'027 519 0196', office:'07 376 8167', email:'ann.corleison@designbuilders.co.nz', physical:'7 Tuhua Close, Wharewaka, Taupo', postal:'PO Box 2253, Taupo 3351'},
   {name:'Jess Corleison', title:'General Operations Support', region:'DB Taupo', mobile:'027 350 2133', office:'07 376 8167', email:'jess.corleison@designbuilders.co.nz', physical:'7 Tuhua Close, Wharewaka, Taupo', postal:'PO Box 2253, Taupo 3351'},
-  {name:'Matt Corleison', title:'Managing Director', region:'DB Taupo', mobile:'027 464 4652', office:'07 376 8167', email:'matt.corlesion@designbuilders.co.nz', physical:'7 Tuhua Close, Wharewaka, Taupo', postal:'PO Box 2253, Taupo 3351'},
+  {name:'Matt Corleison', title:'Managing Director', region:'DB Taupo', mobile:'027 464 4652', office:'07 376 8167', email:'matt.corleison@designbuilders.co.nz', physical:'7 Tuhua Close, Wharewaka, Taupo', postal:'PO Box 2253, Taupo 3351'},
   {name:'Caleb Steunebrink', title:'Project Manager', region:'DB Taupo', mobile:'021 575 167', office:'07 376 8167', email:'caleb@designbuilders.co.nz', physical:'39 Raupo Crescent, Wharewaka, Taupo', postal:''},
-  {name:'Mark Atkinson', title:'Project Manager', region:'DB Waikato', mobile:'021 273 5687', office:'', email:'darryn.herapath@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
+  {name:'Mark Atkinson', title:'Project Manager', region:'DB Waikato', mobile:'021 273 5687', office:'', email:'mark.atkinson@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
   {name:'Jeff Marra', title:'Managing Director', region:'DB Waikato', mobile:'027 488 0044', office:'', email:'jeff.marra@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
   {name:'Olivia Mael', title:'Sales Executive', region:'DB Waikato', mobile:'027 667 7557', office:'', email:'olivia.mael@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
-  {name:'Merryl Anderson', title:'Office Manager', region:'DB Waikato', mobile:'027 911 9220', office:'', email:'ruth.butcher@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
+  {name:'Merryl Anderson', title:'Office Manager', region:'DB Waikato', mobile:'027 911 9220', office:'', email:'merryl.anderson@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
   {name:'Mark Davidge', title:'Managing Director', region:'DB Wellington', mobile:'027 462 7220', office:'', email:'mark.davidge@designbuilders.co.nz', physical:'2 Viewmont Drive, Harbour View, Lower Hutt 5010', postal:''},
   {name:'Buildxact', title:'Service Desk', region:'Buildxact Support', mobile:'', office:'0800 359 817', email:'support@buildxact.com.au', physical:'Level 1, 411 Collins Street, Melbourne, VIC, 3000 Australia', postal:''},
   {name:'Elive', title:'Service Desk', region:'IT Support', mobile:'', office:'0800 285 885', email:'support@elive.co.nz', physical:'8B Target Court, Wairau Valley, Auckland 0627', postal:''}
@@ -2774,14 +2773,12 @@ function renderContactsList(){
     <div class="contact-region-group">
       <div class="contact-region-heading">${esc(region)}</div>
       ${groups[region].map(c=>`
-        <div class="contact-card">
-          <div class="contact-card-name">${esc(c.name)}${c.title ? ` <span class="contact-card-title">— ${esc(c.title)}</span>` : ''}</div>
-          <div class="contact-card-row">
-            ${c.mobile ? `<a href="tel:${esc(c.mobile.replace(/\s/g,''))}">${esc(c.mobile)}</a>` : ''}
-            ${c.office ? `<a href="tel:${esc(c.office.replace(/\s/g,''))}">${esc(c.office)} (office)</a>` : ''}
-            ${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}
-          </div>
-          ${c.physical ? `<div class="contact-card-address">${esc(c.physical)}${c.postal ? ' · ' + esc(c.postal) : ''}</div>` : ''}
+        <div class="contact-row">
+          <span class="contact-name">${esc(c.name)}</span>
+          ${c.title ? `<span class="contact-title">${esc(c.title)}</span>` : ''}
+          ${c.mobile ? `<a href="tel:${esc(c.mobile.replace(/\s/g,''))}">${esc(c.mobile)}</a>` : ''}
+          ${c.office ? `<a href="tel:${esc(c.office.replace(/\s/g,''))}">${esc(c.office)} (office)</a>` : ''}
+          ${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}
         </div>`).join('')}
     </div>`).join('') || '<p style="color:var(--ink-faint);">No contacts found.</p>';
   document.getElementById('contactsList').innerHTML = html;

@@ -363,7 +363,7 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 .region-link-url{font-size:11px;color:var(--ink-faint);word-break:break-all;margin-top:2px;}
 .contact-region-group{margin-bottom:14px;}
 .contact-region-heading{font-family:'DM Serif Display',serif;font-size:14px;color:#01003A;border-bottom:1px solid var(--line-strong);padding-bottom:3px;margin-bottom:4px;}
-.contact-row{display:grid;grid-template-columns:150px 130px 105px 130px 1fr;align-items:baseline;column-gap:14px;padding:5px 2px;border-bottom:1px solid var(--line);font-size:12.5px;}
+.contact-row{display:grid;grid-template-columns:150px 130px 105px 130px 1fr auto;align-items:baseline;column-gap:14px;padding:5px 2px;border-bottom:1px solid var(--line);font-size:12.5px;}
 .contact-row:last-child{border-bottom:none;}
 .contact-name{font-weight:600;color:var(--ink);}
 .contact-title{font-weight:400;color:var(--ink-faint);font-size:11.5px;}
@@ -371,7 +371,12 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 .contact-row a:hover{text-decoration:underline;}
 .contact-address{color:var(--ink-faint);font-size:11px;}
 .contact-cell-empty{color:var(--ink-faint);}
-@media (max-width:640px){.contact-row{display:flex;flex-wrap:wrap;gap:6px 14px;}}
+.contact-row-actions{display:flex;gap:8px;visibility:hidden;}
+.contact-row:hover .contact-row-actions{visibility:visible;}
+.contact-edit-btn,.contact-delete-btn{cursor:pointer;color:var(--ink-faint);font-size:11px;border:none;background:none;padding:0;}
+.contact-edit-btn:hover{color:var(--blue);}
+.contact-delete-btn:hover{color:#B3261E;}
+@media (max-width:640px){.contact-row{display:flex;flex-wrap:wrap;gap:6px 14px;}.contact-row-actions{visibility:visible;}}
 .empty-state{
   text-align:center;padding:60px 20px;color:var(--ink-faint);border:1.5px dashed var(--line-strong);
   border-radius:8px;background:rgba(255,255,255,0.4);
@@ -775,9 +780,28 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <button class="modal-close" onclick="closeContactsModal()">✕</button>
     </div>
     <div class="modal-body" style="grid-template-columns:1fr;">
-      <select class="f-select" id="contactsRegionFilter" onchange="renderContactsList()" style="max-width:260px;">
-        <option value="">All regions</option>
-      </select>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <select class="f-select" id="contactsRegionFilter" onchange="renderContactsList()" style="max-width:260px;">
+          <option value="">All regions</option>
+        </select>
+        <button class="btn-ghost" id="contactFormToggle" onclick="toggleContactForm()">+ Add contact</button>
+      </div>
+      <div id="contactForm" style="display:none;padding:10px;border:1px solid var(--line-strong);border-radius:6px;">
+        <input type="hidden" id="cfId">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          <input class="f-input" id="cfName" placeholder="Name…">
+          <input class="f-input" id="cfTitle" placeholder="Title…">
+          <input class="f-input" id="cfRegion" placeholder="Region…" list="cfRegionList">
+          <datalist id="cfRegionList"></datalist>
+          <input class="f-input" id="cfMobile" placeholder="Mobile…">
+          <input class="f-input" id="cfOffice" placeholder="Office…">
+          <input class="f-input" id="cfEmail" placeholder="Email…">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn-ghost" onclick="cancelContactForm()">Cancel</button>
+          <button class="btn-ghost" id="contactFormSave" onclick="saveContactForm()">+ Add</button>
+        </div>
+      </div>
       <div id="contactsList" style="max-height:60vh;overflow-y:auto;"></div>
     </div>
     <div class="modal-foot">
@@ -1704,6 +1728,8 @@ async function loadAll(silent){
     }
     const regionRows = await sbFetch('regions?select=name');
     if(regionRows.length) regions = regionRows.map(r=>r.name);
+    const contactRows = await sbFetch('contacts?select=*');
+    companyContacts = contactRows;
     const guideRows = await sbFetch('timeline_guides?select=data&id=eq.1');
     if(guideRows.length && guideRows[0].data) timelineGuides = guideRows[0].data;
     const widthRows = await sbFetch('column_widths?select=widths&id=eq.1');
@@ -2720,58 +2746,30 @@ function closeGuideModal(){ document.getElementById('guideOverlay').classList.re
 function baseUrl(){
   return window.location.origin + window.location.pathname;
 }
-const COMPANY_CONTACTS = [
-  {name:'Aaron Thompson', title:'General Manager', region:'DB Services', mobile:'021 590 346', office:'06 877 9763', email:'aaron.thompson@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130, Christchurch', postal:'PO Box 8751, Havelock North 4157'},
-  {name:'Dan Wezel', title:'Architectural Graduate', region:'DB Services', mobile:'027 474 3002', office:'06 877 9763', email:'daniel.wezel@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130, Christchurch', postal:'PO Box 8751, Havelock North 4157'},
-  {name:'Daniel Akkerman', title:'Architectural Designer', region:'DB Services', mobile:'022 676 8436', office:'06 877 9763', email:'daniel.akkerman@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
-  {name:'Hayley Bushby', title:'Senior Architectural Technician', region:'DB Services', mobile:'021 301 440', office:'', email:'hayley.bushby@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
-  {name:'Sarah Levasseur', title:'Senior Technical Co-ordinator', region:'DB Services', mobile:'021 802 672', office:'06 877 9763', email:'sarah.levasseur@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
-  {name:'Sheree Carinus', title:'Finance Coordinator', region:'DB Services', mobile:'021 024 16387', office:'', email:'sheree.carinus@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4132', postal:'PO Box 8751, Havelock North 4159'},
-  {name:'Andrew Price', title:'CEO', region:'DB NZ', mobile:'027 601 6607', office:'06 877 9763', email:'andrew.price@designbuilders.co.nz', physical:'2A Raven Grove, Havelock North 4130', postal:'PO Box 8751, Havelock North 4157'},
-  {name:'Andy Bell', title:'', region:'DB NZ', mobile:'027 444 7599', office:'', email:'andy.bell@designbuilders.co.nz', physical:'', postal:''},
-  {name:'Brenda Bell', title:'', region:'DB NZ', mobile:'0274 599 087', office:'', email:'brandy.bell@xtra.co.nz', physical:'', postal:''},
-  {name:'Sam Perrin', title:'Managing Director', region:'DB Bay of Plenty (BOP)', mobile:'027 757 7170', office:'', email:'sam.perrin@designbuilders.co.nz', physical:'21 Kings Ave, Matua, Tauranga 3110', postal:''},
-  {name:'Alex Caddick', title:'Managing Director', region:'DB Canterbury', mobile:'027 622 0022', office:'', email:'alex.caddick@designbuilders.co.nz', physical:'90 Fitzgerald Avenue', postal:''},
-  {name:'Kaye Caddick', title:'Managing Director Sales', region:'DB Canterbury', mobile:'027 622 0077', office:'', email:'kaye.caddick@designbuilders.co.nz', physical:'22 Wilkinsons Road, Harewood, Christchurch 8051', postal:''},
-  {name:'Paul Caddick', title:'', region:'DB Canterbury', mobile:'027 622 7666', office:'', email:'paul.caddick@designbuilders.co.nz', physical:'22 Wilkinsons Road, Harewood, Christchurch 8051', postal:''},
-  {name:'Trina Affleck', title:'Operations Coordinator', region:'DB Canterbury', mobile:'027 405 3937', office:'', email:'trina.affleck@designbuilders.co.nz', physical:'90 Fitzgerald Avenue', postal:''},
-  {name:'Tara Todd', title:'Managing Director Sales', region:'DB Hawkes Bay (HB)', mobile:'021 310 459', office:'06 877 1441', email:'tara.todd@designbuilders.co.nz', physical:'70 Oak Road, Poraiti, Napier', postal:''},
-  {name:'Trent Bartle', title:'Managing Director Construction', region:'DB Hawkes Bay (HB)', mobile:'027 892 5907', office:'06 877 1441', email:'trent.bartle@designbuilders.co.nz', physical:'70 Oak Road, Poraiti, Napier', postal:''},
-  {name:'Alex Pedersen', title:'Office Manager/Project Manager', region:'DB Manawatu', mobile:'021 070 0061', office:'06 323 2504', email:'alex.pederson@designbuilders.co.nz', physical:'9 Stafford Street, Feilding, 4702', postal:''},
-  {name:'Gareth Edwards', title:'Managing Director', region:'DB Manawatu', mobile:'027 296 2589', office:'06 323 2504', email:'gareth.edwards@designbuilders.co.nz', physical:'9 Stafford Street, Feilding, 4702', postal:''},
-  {name:'Dan Fawcett', title:'Construction Manager', region:'DB North Auckland', mobile:'021 254 1555', office:'', email:'dan.fawcett@designbuilders.co.nz', physical:'176 Boord Crescent, Kumeu 0891', postal:''},
-  {name:'Sarah Fawcett', title:'Managing Director', region:'DB North Auckland', mobile:'021 481 208', office:'', email:'sarah.fawcett@designbuilders.co.nz', physical:'G07/77 Hobsonville Point Road, Hobsonville 0618', postal:''},
-  {name:'Brendan Flude', title:'Managing Director', region:'DB Northland', mobile:'021 748 733', office:'', email:'brendan@designbuilders.co.nz', physical:'C/- Tutukaka General Store, 260 Matapouri Road, Tutukaka 0173', postal:'PO Box 402060, Tutukaka 0153'},
-  {name:'Ann Corleison', title:'Operations Co-ordinator', region:'DB Taupo', mobile:'027 519 0196', office:'07 376 8167', email:'ann.corleison@designbuilders.co.nz', physical:'7 Tuhua Close, Wharewaka, Taupo', postal:'PO Box 2253, Taupo 3351'},
-  {name:'Jess Corleison', title:'General Operations Support', region:'DB Taupo', mobile:'027 350 2133', office:'07 376 8167', email:'jess.corleison@designbuilders.co.nz', physical:'7 Tuhua Close, Wharewaka, Taupo', postal:'PO Box 2253, Taupo 3351'},
-  {name:'Matt Corleison', title:'Managing Director', region:'DB Taupo', mobile:'027 464 4652', office:'07 376 8167', email:'matt.corleison@designbuilders.co.nz', physical:'7 Tuhua Close, Wharewaka, Taupo', postal:'PO Box 2253, Taupo 3351'},
-  {name:'Caleb Steunebrink', title:'Project Manager', region:'DB Taupo', mobile:'021 575 167', office:'07 376 8167', email:'caleb@designbuilders.co.nz', physical:'39 Raupo Crescent, Wharewaka, Taupo', postal:''},
-  {name:'Mark Atkinson', title:'Project Manager', region:'DB Waikato', mobile:'021 273 5687', office:'', email:'mark.atkinson@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
-  {name:'Jeff Marra', title:'Managing Director', region:'DB Waikato', mobile:'027 488 0044', office:'', email:'jeff.marra@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
-  {name:'Olivia Mael', title:'Sales Executive', region:'DB Waikato', mobile:'027 667 7557', office:'', email:'olivia.mael@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
-  {name:'Merryl Anderson', title:'Office Manager', region:'DB Waikato', mobile:'027 911 9220', office:'', email:'merryl.anderson@designbuilders.co.nz', physical:'5 Rivercove Lane, Hamilton', postal:'PO Box 12701, Chartwell, Hamilton 3248'},
-  {name:'Mark Davidge', title:'Managing Director', region:'DB Wellington', mobile:'027 462 7220', office:'', email:'mark.davidge@designbuilders.co.nz', physical:'2 Viewmont Drive, Harbour View, Lower Hutt 5010', postal:''},
-  {name:'Buildxact', title:'Service Desk', region:'Buildxact Support', mobile:'', office:'0800 359 817', email:'support@buildxact.com.au', physical:'Level 1, 411 Collins Street, Melbourne, VIC, 3000 Australia', postal:''},
-  {name:'Elive', title:'Service Desk', region:'IT Support', mobile:'', office:'0800 285 885', email:'support@elive.co.nz', physical:'8B Target Court, Wairau Valley, Auckland 0627', postal:''}
-];
+let companyContacts = [];
 function openContactsModal(){
-  const sel = document.getElementById('contactsRegionFilter');
-  if(sel.options.length <= 1){
-    const regionsList = [...new Set(COMPANY_CONTACTS.map(c=>c.region))];
-    sel.innerHTML = '<option value="">All regions</option>' + regionsList.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
-  }
+  populateContactsRegionFilter();
+  cancelContactForm();
   renderContactsList();
   document.getElementById('contactsOverlay').classList.add('open');
 }
 function closeContactsModal(){ document.getElementById('contactsOverlay').classList.remove('open'); }
+function populateContactsRegionFilter(){
+  const sel = document.getElementById('contactsRegionFilter');
+  const current = sel.value;
+  const regionsList = [...new Set(companyContacts.map(c=>c.region).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">All regions</option>' + regionsList.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  sel.value = current;
+  document.getElementById('cfRegionList').innerHTML = regionsList.map(r=>`<option value="${esc(r)}">`).join('');
+}
 function renderContactsList(){
   const filter = document.getElementById('contactsRegionFilter').value;
   const groups = {};
-  COMPANY_CONTACTS.filter(c=>!filter || c.region===filter).forEach(c=>{
+  companyContacts.filter(c=>!filter || c.region===filter).forEach(c=>{
     if(!groups[c.region]) groups[c.region] = [];
     groups[c.region].push(c);
   });
-  const html = Object.keys(groups).map(region=>`
+  const html = Object.keys(groups).sort().map(region=>`
     <div class="contact-region-group">
       <div class="contact-region-heading">${esc(region)}</div>
       ${groups[region].map(c=>`
@@ -2781,9 +2779,70 @@ function renderContactsList(){
           ${c.mobile ? `<a href="tel:${esc(c.mobile.replace(/\s/g,''))}">${esc(c.mobile)}</a>` : '<span></span>'}
           ${c.office ? `<a href="tel:${esc(c.office.replace(/\s/g,''))}">${esc(c.office)} (office)</a>` : '<span></span>'}
           ${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '<span class="contact-cell-empty">—</span>'}
+          <span class="contact-row-actions">
+            <button class="contact-edit-btn" onclick="editContact('${c.id}')">edit</button>
+            <button class="contact-delete-btn" onclick="deleteContact('${c.id}')">delete</button>
+          </span>
         </div>`).join('')}
     </div>`).join('') || '<p style="color:var(--ink-faint);">No contacts found.</p>';
   document.getElementById('contactsList').innerHTML = html;
+}
+function toggleContactForm(){
+  const form = document.getElementById('contactForm');
+  if(form.style.display === 'none'){ cancelContactForm(); form.style.display = 'block'; }
+  else form.style.display = 'none';
+}
+function cancelContactForm(){
+  document.getElementById('contactForm').style.display = 'none';
+  ['cfId','cfName','cfTitle','cfRegion','cfMobile','cfOffice','cfEmail'].forEach(id=>document.getElementById(id).value = '');
+  document.getElementById('contactFormSave').textContent = '+ Add';
+}
+function editContact(id){
+  const c = companyContacts.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('cfId').value = c.id;
+  document.getElementById('cfName').value = c.name || '';
+  document.getElementById('cfTitle').value = c.title || '';
+  document.getElementById('cfRegion').value = c.region || '';
+  document.getElementById('cfMobile').value = c.mobile || '';
+  document.getElementById('cfOffice').value = c.office || '';
+  document.getElementById('cfEmail').value = c.email || '';
+  document.getElementById('contactFormSave').textContent = 'Save changes';
+  document.getElementById('contactForm').style.display = 'block';
+}
+async function saveContactForm(){
+  const name = document.getElementById('cfName').value.trim();
+  if(!name) return;
+  const id = document.getElementById('cfId').value || (crypto.randomUUID ? crypto.randomUUID() : 'c'+Date.now());
+  const row = {
+    id,
+    name,
+    title: document.getElementById('cfTitle').value.trim(),
+    region: document.getElementById('cfRegion').value.trim(),
+    mobile: document.getElementById('cfMobile').value.trim(),
+    office: document.getElementById('cfOffice').value.trim(),
+    email: document.getElementById('cfEmail').value.trim()
+  };
+  await withSync(async ()=>{
+    await sbFetch('contacts?on_conflict=id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[row] });
+    const idx = companyContacts.findIndex(c=>c.id===id);
+    if(idx >= 0) companyContacts[idx] = Object.assign({}, companyContacts[idx], row);
+    else companyContacts.push(row);
+    cancelContactForm();
+    populateContactsRegionFilter();
+    renderContactsList();
+    showToast(`${name} saved to Contacts`);
+  }, 'Save failed — check connection');
+}
+async function deleteContact(id){
+  const c = companyContacts.find(x=>x.id===id);
+  if(!confirm(`Remove ${c ? c.name : 'this contact'} from Contacts?`)) return;
+  await withSync(async ()=>{
+    await sbFetch('contacts?id=eq.' + encodeURIComponent(id), { method:'DELETE' });
+    companyContacts = companyContacts.filter(c=>c.id!==id);
+    populateContactsRegionFilter();
+    renderContactsList();
+  }, 'Delete failed — check connection');
 }
 function openRegionLinksModal(){
   const list = document.getElementById('regionLinksList');

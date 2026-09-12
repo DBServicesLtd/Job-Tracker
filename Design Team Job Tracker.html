@@ -1604,6 +1604,12 @@ const LOCKED_TAB = urlParams.get('tab') || '';
 const VIEW_ALL_READONLY = urlParams.get('view') === 'readonly';
 const READ_ONLY = !!LOCKED_REGION || !!LOCKED_WHO || VIEW_ALL_READONLY;
 const SUPABASE_KEY = 'sb_publishable_SydrZ17z4xJGOVT7B7yZAA_UrG6qJSV';
+const JOB_REGION_TO_CONTACT_REGION = {
+  'Northland':'DB Northland','North Auckland':'DB North Auckland','Waikato':'DB Waikato',
+  'BOP':'DB Bay of Plenty (BOP)','Taupo':'DB Taupo','Hawkes Bay':'DB Hawkes Bay (HB)',
+  'Manawatu':'DB Manawatu','Wellington':'DB Wellington','Canterbury':'DB Canterbury'
+};
+const LOCKED_CONTACT_REGION = LOCKED_REGION ? (JOB_REGION_TO_CONTACT_REGION[LOCKED_REGION] || LOCKED_REGION) : '';
 
 async function sbFetch(path, opts){
   opts = opts || {};
@@ -2775,6 +2781,12 @@ function openContactsModal(){
 function closeContactsModal(){ document.getElementById('contactsOverlay').classList.remove('open'); }
 function populateContactsRegionFilter(){
   const sel = document.getElementById('contactsRegionFilter');
+  if(LOCKED_CONTACT_REGION){
+    sel.innerHTML = `<option value="${esc(LOCKED_CONTACT_REGION)}">${esc(LOCKED_CONTACT_REGION)}</option>`;
+    sel.value = LOCKED_CONTACT_REGION;
+    sel.disabled = true;
+    return;
+  }
   const current = sel.value;
   const regionsList = [...new Set(companyContacts.map(c=>c.region).filter(Boolean))].sort();
   sel.innerHTML = '<option value="">All regions</option>' + regionsList.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
@@ -2782,7 +2794,7 @@ function populateContactsRegionFilter(){
   document.getElementById('cfRegionList').innerHTML = regionsList.map(r=>`<option value="${esc(r)}">`).join('');
 }
 function renderContactsList(){
-  const filter = document.getElementById('contactsRegionFilter').value;
+  const filter = LOCKED_CONTACT_REGION || document.getElementById('contactsRegionFilter').value;
   const groups = {};
   companyContacts.filter(c=>!filter || c.region===filter).forEach(c=>{
     if(!groups[c.region]) groups[c.region] = [];
@@ -2826,15 +2838,21 @@ function toggleContactForm(){
 function cancelContactForm(){
   document.getElementById('contactForm').style.display = 'none';
   ['cfId','cfName','cfTitle','cfRegion','cfMobile','cfOffice','cfEmail'].forEach(id=>document.getElementById(id).value = '');
+  if(LOCKED_CONTACT_REGION){
+    document.getElementById('cfRegion').value = LOCKED_CONTACT_REGION;
+    document.getElementById('cfRegion').disabled = true;
+  }
   document.getElementById('contactFormSave').textContent = '+ Add';
 }
 function editContact(id){
   const c = companyContacts.find(x=>x.id===id);
   if(!c) return;
+  if(LOCKED_CONTACT_REGION && c.region !== LOCKED_CONTACT_REGION) return;
   document.getElementById('cfId').value = c.id;
   document.getElementById('cfName').value = c.name || '';
   document.getElementById('cfTitle').value = c.title || '';
   document.getElementById('cfRegion').value = c.region || '';
+  document.getElementById('cfRegion').disabled = !!LOCKED_CONTACT_REGION;
   document.getElementById('cfMobile').value = c.mobile || '';
   document.getElementById('cfOffice').value = c.office || '';
   document.getElementById('cfEmail').value = c.email || '';
@@ -2845,11 +2863,13 @@ async function saveContactForm(){
   const name = document.getElementById('cfName').value.trim();
   if(!name) return;
   const id = document.getElementById('cfId').value || (crypto.randomUUID ? crypto.randomUUID() : 'c'+Date.now());
+  const existing = companyContacts.find(c=>c.id===id);
+  if(LOCKED_CONTACT_REGION && existing && existing.region !== LOCKED_CONTACT_REGION) return;
   const row = {
     id,
     name,
     title: document.getElementById('cfTitle').value.trim(),
-    region: document.getElementById('cfRegion').value.trim(),
+    region: LOCKED_CONTACT_REGION || document.getElementById('cfRegion').value.trim(),
     mobile: document.getElementById('cfMobile').value.trim(),
     office: document.getElementById('cfOffice').value.trim(),
     email: document.getElementById('cfEmail').value.trim()
@@ -2867,7 +2887,9 @@ async function saveContactForm(){
 }
 async function deleteContact(id){
   const c = companyContacts.find(x=>x.id===id);
-  if(!confirm(`Remove ${c ? c.name : 'this contact'} from Contacts?`)) return;
+  if(!c) return;
+  if(LOCKED_CONTACT_REGION && c.region !== LOCKED_CONTACT_REGION) return;
+  if(!confirm(`Remove ${c.name} from Contacts?`)) return;
   await withSync(async ()=>{
     await sbFetch('contacts?id=eq.' + encodeURIComponent(id), { method:'DELETE' });
     companyContacts = companyContacts.filter(c=>c.id!==id);
@@ -3793,7 +3815,8 @@ function applyReadOnlyMode(){
     document.getElementById('showArchived').closest('label').style.display = 'none';
     document.body.classList.add('readonly-mode');
   }
-  document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
+  document.getElementById('settingsBtn').style.display = 'none';
+  if(!LOCKED_REGION) document.getElementById('contactsBtn').style.display = 'none';
   document.querySelector('[data-tab="workload"]').style.display = 'none';
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
   document.querySelector('[data-tab="addresses"]').style.display = 'none';
@@ -3823,7 +3846,8 @@ if(LOCKED_TAB){
   document.querySelectorAll('#mainTabsLeft .tab').forEach(t=>{
     if(t.dataset.tab !== LOCKED_TAB) t.style.display = 'none';
   });
-  document.getElementById('settingsBtn').closest('.settings-wrap').style.display = 'none';
+  document.getElementById('settingsBtn').style.display = 'none';
+  if(!LOCKED_REGION) document.getElementById('contactsBtn').style.display = 'none';
 }
 applyReadOnlyMode();
 window.addEventListener('resize', ()=>{ setStickyOffsets(); sizeKpiScroll(); });

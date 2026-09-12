@@ -80,6 +80,24 @@ a{color:var(--blue);}
 .btn-refresh:disabled:hover{border-color:var(--line-strong);color:var(--ink-soft);}
 
 .tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.dash-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px;}
+.dash-card-wide{grid-column:1/-1;}
+.dash-card-title{font-family:'DM Serif Display',serif;font-style:italic;font-size:16px;color:var(--ink);margin-bottom:14px;}
+.dash-stage-row{display:flex;gap:14px;flex-wrap:wrap;}
+.dash-stage-stat{flex:1;min-width:110px;background:var(--paper);border-radius:6px;padding:12px 14px;cursor:pointer;transition:background .15s;}
+.dash-stage-stat:hover{background:var(--blue-soft);}
+.dash-stage-num{font-family:'DM Serif Display',serif;font-size:28px;color:var(--ink);line-height:1;}
+.dash-stage-label{font-size:11.5px;color:var(--ink-soft);margin-top:4px;text-transform:uppercase;letter-spacing:.03em;}
+.dash-stat{font-family:'DM Serif Display',serif;font-size:40px;color:var(--ink);line-height:1;}
+.dash-stat-sub{font-size:12px;color:var(--ink-faint);margin-top:6px;}
+.dash-person-row{display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid var(--line);cursor:pointer;}
+.dash-person-row:last-child{border-bottom:none;}
+.dash-person-row:hover{background:var(--paper);}
+.dash-person-name{flex:1;font-size:13px;color:var(--ink);}
+.dash-person-bar{height:6px;border-radius:3px;background:var(--blue-mid);}
+.dash-person-count{font-size:12.5px;color:var(--ink-soft);min-width:18px;text-align:right;}
+@media (max-width:720px){.dash-grid{grid-template-columns:1fr;}}
 .region-address-bar{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--ink-soft);}
 .region-address-label{font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;font-size:10.5px;}
 .region-address-value{cursor:text;border-bottom:1px dashed transparent;min-width:60px;}
@@ -521,7 +539,8 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
 
   <div class="tabs">
     <div class="tabs-left" id="mainTabsLeft">
-      <button class="tab active" data-tab="jobs" onclick="switchTab('jobs')">Job Board</button>
+      <button class="tab active" data-tab="dashboard" id="dashboardTab" onclick="switchTab('dashboard')">Dashboard</button>
+      <button class="tab" data-tab="jobs" onclick="switchTab('jobs')">Job Board</button>
       <button class="tab" data-tab="workload" onclick="switchTab('workload')">Staff Workload</button>
       <button class="tab" data-tab="kpi" onclick="switchTab('kpi')">KPI Tracker</button>
       <button class="tab" data-tab="stagetimes" onclick="switchTab('stagetimes')">Stage Times</button>
@@ -551,7 +570,25 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
     </div>
   </div>
 
-  <div class="view active" id="view-jobs">
+  <div class="view active" id="view-dashboard">
+    <div class="dash-grid">
+      <div class="dash-card dash-card-wide">
+        <div class="dash-card-title">Jobs by stage</div>
+        <div class="dash-stage-row" id="dashStageRow"></div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-title">Stale jobs</div>
+        <div class="dash-stat" id="dashStaleCount">0</div>
+        <div class="dash-stat-sub">No updates in 60+ days</div>
+      </div>
+      <div class="dash-card dash-card-wide">
+        <div class="dash-card-title">Jobs per person</div>
+        <div id="dashPeopleList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-jobs">
     <div class="toolbar">
       <div class="field grow">
         <span class="search-icon">⌕</span>
@@ -1879,15 +1916,52 @@ function copyAsTable(){
 
 function switchTab(name){
   document.querySelectorAll('#mainTabsLeft .tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  document.getElementById('view-dashboard').classList.toggle('active', name==='dashboard');
   document.getElementById('view-jobs').classList.toggle('active', name==='jobs');
   document.getElementById('view-workload').classList.toggle('active', name==='workload');
   document.getElementById('view-stagetimes').classList.toggle('active', name==='stagetimes');
   document.getElementById('view-addresses').classList.toggle('active', name==='addresses');
   document.getElementById('view-kpi').classList.toggle('active', name==='kpi');
+  if(name==='dashboard') renderDashboard();
   if(name==='workload') renderWorkload();
   if(name==='stagetimes') loadAndRenderStageTimes();
   if(name==='addresses') renderAddresses();
   if(name==='kpi') loadAndRenderKpi().then(sizeKpiScroll);
+}
+function goToJobsFiltered(stage, personName){
+  document.getElementById('stageFilter').value = stage || '';
+  document.getElementById('searchInput').value = personName || '';
+  switchTab('jobs');
+  renderJobs();
+}
+function renderDashboard(){
+  const active = jobs.filter(j=>!j.archived);
+  const stageCounts = {SP:0, PD:0, WD:0, 'On Site':0};
+  active.forEach(j=>{ if(stageCounts.hasOwnProperty(j.stage)) stageCounts[j.stage]++; });
+  const stageLabels = {SP:'SP — Concept', PD:'PD — Preliminary', WD:'WD — Working Dwgs', 'On Site':'On Site'};
+  document.getElementById('dashStageRow').innerHTML = STAGE_ORDER.map(s=>`
+    <div class="dash-stage-stat" onclick="goToJobsFiltered('${s}')">
+      <div class="dash-stage-num">${stageCounts[s]}</div>
+      <div class="dash-stage-label">${esc(stageLabels[s])}</div>
+    </div>`).join('');
+
+  const staleCount = active.filter(j=>staleDaysAgo(j) > 0).length;
+  document.getElementById('dashStaleCount').textContent = staleCount;
+
+  const peopleCounts = {};
+  active.forEach(j=>{
+    (j.who||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(name=>{
+      peopleCounts[name] = (peopleCounts[name]||0) + 1;
+    });
+  });
+  const maxCount = Math.max(1, ...Object.values(peopleCounts));
+  const sortedPeople = Object.keys(peopleCounts).sort((a,b)=>peopleCounts[b]-peopleCounts[a]);
+  document.getElementById('dashPeopleList').innerHTML = sortedPeople.map(name=>`
+    <div class="dash-person-row" onclick="goToJobsFiltered('', '${esc(name).replace(/'/g,"\\'")}')">
+      <span class="dash-person-name">${esc(name)}</span>
+      <span class="dash-person-bar" style="width:${Math.round((peopleCounts[name]/maxCount)*120)}px;"></span>
+      <span class="dash-person-count">${peopleCounts[name]}</span>
+    </div>`).join('') || '<p style="color:var(--ink-faint);font-size:13px;">No jobs assigned yet.</p>';
 }
 function renderAddresses(){
   const showArchived = document.getElementById('addressesShowArchived').checked;
@@ -3831,6 +3905,11 @@ function applyReadOnlyMode(){
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
   document.querySelector('[data-tab="addresses"]').style.display = 'none';
   if(!LOCKED_WHO) document.querySelector('[data-tab="kpi"]').style.display = 'none';
+  document.getElementById('dashboardTab').style.display = 'none';
+  document.getElementById('dashboardTab').classList.remove('active');
+  document.getElementById('view-dashboard').classList.remove('active');
+  document.querySelector('[data-tab="jobs"]').classList.add('active');
+  document.getElementById('view-jobs').classList.add('active');
   const banner = document.getElementById('readOnlyBanner');
   const parts = [];
   if(LOCKED_REGION) parts.push(LOCKED_REGION);
@@ -3867,6 +3946,7 @@ window.addEventListener('resize', ()=>{ setStickyOffsets(); sizeKpiScroll(); });
 loadAll(true).then(()=>{
   setStickyOffsets();
   if(LOCKED_TAB) switchTab(LOCKED_TAB);
+  else if(!READ_ONLY) renderDashboard();
   if(LOCKED_CONTACT_REGION){
     document.getElementById('regionAddressValue').textContent = regionAddresses[LOCKED_CONTACT_REGION] || '';
   }

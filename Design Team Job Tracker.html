@@ -364,7 +364,19 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 .region-link-name{font-weight:600;color:var(--ink);font-size:13.5px;}
 .region-link-url{font-size:11px;color:var(--ink-faint);word-break:break-all;margin-top:2px;}
 .contact-region-group{margin-bottom:14px;}
-.contact-region-heading{font-family:'DM Serif Display',serif;font-size:14px;color:#01003A;border-bottom:1px solid var(--line-strong);padding-bottom:3px;margin-bottom:4px;}
+.contact-region-heading{
+  display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:16px;color:#fff;
+  background:var(--blue-deep);padding:6px 10px;border-radius:4px;margin:14px 0 6px;
+}
+.contact-region-heading:first-child{margin-top:0;}
+.contact-region-address{
+  font-family:'Open Sans',sans-serif;font-style:normal;font-weight:400;font-size:11.5px;color:#C1DCEA;
+  cursor:text;border-bottom:1px dashed transparent;
+}
+.contact-region-address:hover{border-bottom-color:#C1DCEA;}
+.contact-region-address:empty::before{content:'Add address…';color:#8593B0;}
+.contact-region-address:focus{outline:none;border-bottom:1px solid #fff;color:#fff;}
 .contact-row{display:grid;grid-template-columns:150px 130px 105px 130px 1fr auto;align-items:baseline;column-gap:14px;padding:5px 2px;border-bottom:1px solid var(--line);font-size:12.5px;}
 .contact-row:last-child{border-bottom:none;}
 .contact-name{font-weight:600;color:var(--ink);}
@@ -1733,6 +1745,9 @@ async function loadAll(silent){
     if(regionRows.length) regions = regionRows.map(r=>r.name);
     const contactRows = await sbFetch('contacts?select=*');
     companyContacts = contactRows;
+    const regionAddressRows = await sbFetch('region_addresses?select=*');
+    regionAddresses = {};
+    regionAddressRows.forEach(r=>{ regionAddresses[r.region] = r.address; });
     const guideRows = await sbFetch('timeline_guides?select=data&id=eq.1');
     if(guideRows.length && guideRows[0].data) timelineGuides = guideRows[0].data;
     const widthRows = await sbFetch('column_widths?select=widths&id=eq.1');
@@ -2750,6 +2765,7 @@ function baseUrl(){
   return window.location.origin + window.location.pathname;
 }
 let companyContacts = [];
+let regionAddresses = {};
 function openContactsModal(){
   populateContactsRegionFilter();
   cancelContactForm();
@@ -2783,7 +2799,10 @@ function renderContactsList(){
   });
   const html = sortedRegions.map(region=>`
     <div class="contact-region-group">
-      <div class="contact-region-heading">${esc(region)}</div>
+      <div class="contact-region-heading">
+        <span>${esc(region)}</span>
+        <span class="contact-region-address" contenteditable="true" data-region="${esc(region)}" onblur="saveRegionAddress(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${esc(regionAddresses[region] || '')}</span>
+      </div>
       ${groups[region].map(c=>`
         <div class="contact-row">
           <span class="contact-name">${esc(c.name)}</span>
@@ -2855,6 +2874,15 @@ async function deleteContact(id){
     populateContactsRegionFilter();
     renderContactsList();
   }, 'Delete failed — check connection');
+}
+async function saveRegionAddress(el){
+  const region = el.dataset.region;
+  const address = el.textContent.trim();
+  if((regionAddresses[region] || '') === address) return;
+  await withSync(async ()=>{
+    await sbFetch('region_addresses?on_conflict=region', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{region, address}] });
+    regionAddresses[region] = address;
+  }, 'Save failed — check connection');
 }
 function openRegionLinksModal(){
   const list = document.getElementById('regionLinksList');

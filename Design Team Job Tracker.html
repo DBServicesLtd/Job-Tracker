@@ -2781,12 +2781,6 @@ function openContactsModal(){
 function closeContactsModal(){ document.getElementById('contactsOverlay').classList.remove('open'); }
 function populateContactsRegionFilter(){
   const sel = document.getElementById('contactsRegionFilter');
-  if(LOCKED_CONTACT_REGION){
-    sel.innerHTML = `<option value="${esc(LOCKED_CONTACT_REGION)}">${esc(LOCKED_CONTACT_REGION)}</option>`;
-    sel.value = LOCKED_CONTACT_REGION;
-    sel.disabled = true;
-    return;
-  }
   const current = sel.value;
   const regionsList = [...new Set(companyContacts.map(c=>c.region).filter(Boolean))].sort();
   sel.innerHTML = '<option value="">All regions</option>' + regionsList.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
@@ -2794,7 +2788,7 @@ function populateContactsRegionFilter(){
   document.getElementById('cfRegionList').innerHTML = regionsList.map(r=>`<option value="${esc(r)}">`).join('');
 }
 function renderContactsList(){
-  const filter = LOCKED_CONTACT_REGION || document.getElementById('contactsRegionFilter').value;
+  const filter = document.getElementById('contactsRegionFilter').value;
   const groups = {};
   companyContacts.filter(c=>!filter || c.region===filter).forEach(c=>{
     if(!groups[c.region]) groups[c.region] = [];
@@ -2822,10 +2816,11 @@ function renderContactsList(){
           ${c.mobile ? `<a href="tel:${esc(c.mobile.replace(/\s/g,''))}">${esc(c.mobile)}</a>` : '<span></span>'}
           ${c.office ? `<a href="tel:${esc(c.office.replace(/\s/g,''))}">${esc(c.office)} (office)</a>` : '<span></span>'}
           ${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '<span class="contact-cell-empty">—</span>'}
+          ${(!LOCKED_CONTACT_REGION || c.region === LOCKED_CONTACT_REGION) ? `
           <span class="contact-row-actions">
             <button class="contact-edit-btn" onclick="editContact('${c.id}')">edit</button>
             <button class="contact-delete-btn" onclick="deleteContact('${c.id}')">delete</button>
-          </span>
+          </span>` : '<span></span>'}
         </div>`).join('')}
     </div>`).join('') || '<p style="color:var(--ink-faint);">No contacts found.</p>';
   document.getElementById('contactsList').innerHTML = html;

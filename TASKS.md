@@ -16,5 +16,5 @@ This file lets multiple Claude sessions (each run under a separate login) workin
 
 ### Claude-LoginA — session start
 - Set up this coordination convention: added `jobs.last_edited` / `jobs.edited_by` columns in Supabase, created this file.
-- Currently working on: redesigning the header ("DBS, Weekly Job Tracking" title + Design Builders logo) — visual options were shown to Sarah, awaiting her pick before implementing.
-- Next: apply the chosen header redesign and push.
+- Header redesign completed: logo enlarged (34px → 56px height), title restructured into a two-line layout — small gold all-caps "Design Builders Services" eyebrow above the italic serif "Weekly Job Tracking" title (previously a single line "DBS, Weekly Job Tracking" next to a small logo).
+- Next: no open task right now — check in with Sarah for what's next.

@@ -80,6 +80,12 @@ a{color:var(--blue);}
 .btn-refresh:disabled:hover{border-color:var(--line-strong);color:var(--ink-soft);}
 
 .tabs{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+.region-address-bar{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--ink-soft);}
+.region-address-label{font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;font-size:10.5px;}
+.region-address-value{cursor:text;border-bottom:1px dashed transparent;min-width:60px;}
+.region-address-value:hover{border-bottom-color:var(--line-strong);}
+.region-address-value:empty::before{content:'Add address…';color:var(--ink-faint);}
+.region-address-value:focus{outline:none;border-bottom:1px solid var(--blue);}
 .tabs-left{display:flex;gap:4px;}
 .settings-wrap{position:relative;padding-bottom:6px;display:flex;align-items:center;gap:8px;}
 .colvis-wrap{position:relative;display:inline-block;}
@@ -520,6 +526,10 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <button class="tab" data-tab="kpi" onclick="switchTab('kpi')">KPI Tracker</button>
       <button class="tab" data-tab="stagetimes" onclick="switchTab('stagetimes')">Stage Times</button>
       <button class="tab" data-tab="addresses" onclick="switchTab('addresses')">Job Information</button>
+    </div>
+    <div class="region-address-bar" id="regionAddressBar" style="display:none;">
+      <span id="regionAddressLabel" class="region-address-label"></span>
+      <span class="region-address-value" id="regionAddressValue" contenteditable="true" onblur="saveRegionAddress(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
     </div>
     <div class="settings-wrap">
       <button class="settings-btn" id="contactsBtn" onclick="openContactsModal()">👥 Contacts</button>
@@ -3812,6 +3822,11 @@ function applyReadOnlyMode(){
   }
   document.getElementById('settingsBtn').style.display = 'none';
   if(!LOCKED_REGION) document.getElementById('contactsBtn').style.display = 'none';
+  if(LOCKED_REGION && LOCKED_CONTACT_REGION){
+    document.getElementById('regionAddressBar').style.display = 'flex';
+    document.getElementById('regionAddressLabel').textContent = LOCKED_CONTACT_REGION;
+    document.getElementById('regionAddressValue').dataset.region = LOCKED_CONTACT_REGION;
+  }
   document.querySelector('[data-tab="workload"]').style.display = 'none';
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
   document.querySelector('[data-tab="addresses"]').style.display = 'none';
@@ -3849,6 +3864,9 @@ window.addEventListener('resize', ()=>{ setStickyOffsets(); sizeKpiScroll(); });
 loadAll(true).then(()=>{
   setStickyOffsets();
   if(LOCKED_TAB) switchTab(LOCKED_TAB);
+  if(LOCKED_CONTACT_REGION){
+    document.getElementById('regionAddressValue').textContent = regionAddresses[LOCKED_CONTACT_REGION] || '';
+  }
 });
 </script>
 </body>

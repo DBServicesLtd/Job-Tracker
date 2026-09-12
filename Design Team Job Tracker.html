@@ -426,6 +426,10 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
   .modal-body{grid-template-columns:1fr;}
   .col{flex:0 0 250px;}
 }
+@media (max-width:640px){
+  .board{flex-direction:column;overflow-x:visible;}
+  .col{flex:1 1 auto;width:100%;min-width:0;}
+}
 
 @media print{
   .topbar .sync, .btn-refresh, .toolbar, .tabs, .hint{display:none !important;}
@@ -1733,6 +1737,7 @@ let consecutiveFailures = 0;
 let pendingSaves = 0;
 let regions = ["Northland","North Auckland","Waikato","BOP","Taupo","Hawkes Bay","Manawatu","Wellington","Canterbury"];
 let jobView = 'table';
+if(LOCKED_REGION && window.innerWidth <= 640) jobView = 'board';
 let sortCol = localStorage.getItem('jobTrackerSortCol') || 'latestEstimatedCompletion';
 let sortDir = parseInt(localStorage.getItem('jobTrackerSortDir') || '1', 10);
 let currentEditId = null;
@@ -3900,6 +3905,9 @@ function applyReadOnlyMode(){
     document.getElementById('regionAddressBar').style.display = 'flex';
     document.getElementById('regionAddressLabel').textContent = LOCKED_CONTACT_REGION;
     document.getElementById('regionAddressValue').dataset.region = LOCKED_CONTACT_REGION;
+  }
+  if(LOCKED_REGION && window.innerWidth <= 640){
+    document.getElementById('viewToggle').style.display = 'none';
   }
   document.querySelector('[data-tab="workload"]').style.display = 'none';
   document.querySelector('[data-tab="stagetimes"]').style.display = 'none';

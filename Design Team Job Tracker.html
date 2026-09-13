@@ -695,6 +695,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
           <th onclick="sortAddressesBy('jobName')">Client / Job<span class="sort-arrow" id="addrArrow-jobName"></span></th>
           <th style="width:35%;" onclick="sortAddressesBy('address')">Address<span class="sort-arrow" id="addrArrow-address"></span></th>
           <th onclick="sortAddressesBy('council')">Council<span class="sort-arrow" id="addrArrow-council"></span></th>
+          <th onclick="sortAddressesBy('lotDp')">Lot &amp; DP<span class="sort-arrow" id="addrArrow-lotDp"></span></th>
           <th style="cursor:default;">Website</th><th style="cursor:default;">Consent Application</th>
         </tr></thead>
         <tbody id="addressesBody"></tbody>
@@ -1723,6 +1724,7 @@ function jobToRow(j){
     latest_estimated_completion: j.latestEstimatedCompletion || null,
     address: j.address || '',
     council: j.council || '',
+    lot_dp: j.lotDp || '',
     notes: j.notes || '',
     planning: j.planning || '',
     updates_sent: j.updatesSent || null,
@@ -1745,6 +1747,7 @@ function rowToJob(r){
     latestEstimatedCompletion: r.latest_estimated_completion || '',
     address: r.address || '',
     council: r.council || '',
+    lotDp: r.lot_dp || '',
     notes: r.notes || '',
     planning: r.planning || '',
     updatesSent: r.updates_sent || '',
@@ -2005,7 +2008,7 @@ function sortAddressesBy(col){
 }
 function renderAddresses(){
   const showArchived = document.getElementById('addressesShowArchived').checked;
-  ['region','jobNumber','jobName','address','council'].forEach(col=>{
+  ['region','jobNumber','jobName','address','council','lotDp'].forEach(col=>{
     const el = document.getElementById('addrArrow-' + col);
     if(el) el.textContent = addressesSortCol===col ? (addressesSortDir>0?'▲':'▼') : '';
   });
@@ -2026,9 +2029,10 @@ function renderAddresses(){
         ${j.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address)}" target="_blank" rel="noopener" class="address-map-link" title="Open in Google Maps" onclick="event.stopPropagation()">🗺️</a>` : ''}
       </td>
       <td>${j.council ? esc(j.council) : (j.address ? `<span class="council-resolve-link" onclick="resolveCouncilForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
+      <td>${j.lotDp ? esc(j.lotDp) : (j.address ? `<span class="council-resolve-link" onclick="resolveLotDpForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
       <td>${j.council && COUNCIL_INFO[j.council] ? `<a href="${COUNCIL_INFO[j.council].website}" target="_blank" rel="noopener">Website</a>` : ''}</td>
       <td>${j.council && COUNCIL_INFO[j.council] ? `<a href="${COUNCIL_INFO[j.council].consent}" target="_blank" rel="noopener">Apply</a>` : ''}</td>
-    </tr>`).join('') || '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
 }
 let stageHistory = [];
 function openStageTimesModal(){
@@ -2316,7 +2320,8 @@ const FIELD_COLUMN_MAP = {
   updatesSent:'updates_sent',
   engineer:'engineer_date',
   address:'address',
-  council:'council'
+  council:'council',
+  lotDp:'lot_dp'
 };
 async function patchJobField(id, field, value){
   const row = {};
@@ -2618,6 +2623,37 @@ async function resolveCouncilForJob(id, address){
     /* silent — council stays unresolved, address itself is unaffected */
   }
 }
+const LINZ_API_KEY = 'fab9e28f4fb940f690fa52247cbab580';
+async function resolveLotDpForJob(id, address){
+  const j = jobs.find(x=>x.id===id);
+  if(!address){
+    if(j) j.lotDp = '';
+    try{ await patchJobField(id, 'lotDp', ''); }catch(e){}
+    if(document.getElementById('view-addresses').classList.contains('active')) renderAddresses();
+    return;
+  }
+  try{
+    const addyUrl = ADDY_BASE + '/validation?address=' + encodeURIComponent(address) + '&key=' + ADDY_API_KEY;
+    const addyRes = await fetch(addyUrl);
+    if(!addyRes.ok) return;
+    const addyData = await addyRes.json();
+    const lon = addyData && addyData.address && addyData.address.x;
+    const lat = addyData && addyData.address && addyData.address.y;
+    if(lon==null || lat==null) return;
+    const linzUrl = `https://data.linz.govt.nz/services;key=${LINZ_API_KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-50772&outputFormat=json&cql_filter=INTERSECTS(shape,POINT(${lat} ${lon}))`;
+    const linzRes = await fetch(linzUrl);
+    if(!linzRes.ok) return;
+    const linzData = await linzRes.json();
+    const feature = linzData && linzData.features && linzData.features[0];
+    const appellation = feature && feature.properties && feature.properties.appellation;
+    if(!appellation) return;
+    if(j) j.lotDp = appellation;
+    await patchJobField(id, 'lotDp', appellation);
+    if(document.getElementById('view-addresses').classList.contains('active')) renderAddresses();
+  }catch(e){
+    /* silent — Lot & DP stays unresolved, address itself is unaffected */
+  }
+}
 async function saveAddressField(el){
   const id = el.dataset.id;
   const j = jobs.find(x=>x.id===id);
@@ -2631,6 +2667,7 @@ async function saveAddressField(el){
   if((j.address||'') === val){
     refresh();
     if(val && !j.council) resolveCouncilForJob(id, val);
+    if(val && !j.lotDp) resolveLotDpForJob(id, val);
     return;
   }
   j.address = val;
@@ -2639,6 +2676,7 @@ async function saveAddressField(el){
   }, 'Save failed — check connection');
   refresh();
   resolveCouncilForJob(id, val);
+  resolveLotDpForJob(id, val);
 }
 function renderTable(list){
   if(!hasSharedWidths) autoFitDynamicColumns(jobs);

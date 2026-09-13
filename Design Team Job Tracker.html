@@ -106,6 +106,7 @@ a{color:var(--blue);}
 .region-address-value:focus{outline:none;border-bottom:1px solid var(--blue);}
 .tabs-left{display:flex;gap:4px;}
 .settings-wrap{position:relative;padding-bottom:6px;display:flex;align-items:center;gap:8px;}
+.stats-wrap{position:relative;}
 .colvis-wrap{position:relative;display:inline-block;}
 .colvis-wrap .settings-menu{right:auto;left:0;max-height:280px;overflow-y:auto;}
 .settings-btn{
@@ -555,6 +556,12 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
     </div>
     <div class="settings-wrap">
       <button class="settings-btn" id="contactsBtn" onclick="openContactsModal()">👥 Contacts</button>
+      <div class="stats-wrap" id="statsWrap">
+        <button class="settings-btn" id="statsBtn" onclick="toggleStatsMenu()">📊 Stats</button>
+        <div class="settings-menu" id="statsMenu">
+          <button onclick="closeStatsMenu(); openStageTimesModal()">📈 Stage Times</button>
+        </div>
+      </div>
       <button class="settings-btn" id="settingsBtn" onclick="toggleSettingsMenu()">⚙ Settings</button>
       <div class="settings-menu" id="settingsMenu">
         <button onclick="closeSettingsMenu(); openRegionLinksModal()">🔗 Region links</button>
@@ -612,7 +619,6 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <button class="active" data-v="table" onclick="setJobView('table')">Table</button>
       </div>
       <button class="btn-ghost" id="turnaroundGuideBtn" onclick="openGuideModal()">⏱ Turnaround guide</button>
-      <button class="btn-ghost" id="stageTimesBtn" onclick="openStageTimesModal()">📊 Stage Times</button>
       <button class="btn-primary" id="newJobBtn" onclick="openJobModal()" style="flex:1 1 200px;justify-content:center;">+ New job</button>
     </div>
     <p class="hint">Tip: filter to one region, then use Copy as table (in ⚙ Settings) to paste a snapshot straight into an email, or Print view for a PDF.</p>
@@ -3032,11 +3038,15 @@ function openRegionLinksModal(){
   document.getElementById('regionLinksOverlay').classList.add('open');
 }
 function closeRegionLinksModal(){ document.getElementById('regionLinksOverlay').classList.remove('open'); }
-function toggleSettingsMenu(){ document.getElementById('settingsMenu').classList.toggle('open'); }
+function toggleSettingsMenu(){ document.getElementById('settingsMenu').classList.toggle('open'); closeStatsMenu(); }
 function closeSettingsMenu(){ document.getElementById('settingsMenu').classList.remove('open'); }
+function toggleStatsMenu(){ document.getElementById('statsMenu').classList.toggle('open'); closeSettingsMenu(); }
+function closeStatsMenu(){ document.getElementById('statsMenu').classList.remove('open'); }
 document.addEventListener('click', e=>{
   const wrap = document.querySelector('.settings-wrap');
   if(wrap && !wrap.contains(e.target)) closeSettingsMenu();
+  const statsWrap = document.getElementById('statsWrap');
+  if(statsWrap && !statsWrap.contains(e.target)) closeStatsMenu();
   const colWrap = document.getElementById('colVisWrap');
   if(colWrap && !colWrap.contains(e.target)) closeColVisMenu();
 });
@@ -3918,7 +3928,7 @@ function applyReadOnlyMode(){
   if(!isWhoOnly){
     document.getElementById('newJobBtn').style.display = 'none';
     document.getElementById('turnaroundGuideBtn').style.display = 'none';
-  document.getElementById('stageTimesBtn').style.display = 'none';
+  document.getElementById('statsWrap').style.display = 'none';
     document.getElementById('undoBtn').style.display = 'none';
     document.getElementById('showArchived').closest('label').style.display = 'none';
     document.body.classList.add('readonly-mode');

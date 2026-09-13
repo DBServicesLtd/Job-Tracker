@@ -513,6 +513,8 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
 .kpi-legend-btn.armed{border-color:currentColor;background:var(--paper);font-weight:700;}
 .kpi-leave-hint{font-size:11px;color:var(--ink-faint);margin:0 0 4px 0;min-height:0;}
 </style>
+<link rel="stylesheet" type="text/css" href="https://www.addysolutions.com/address-lookup/1.6.2/css/addy.min.css">
+<script src="https://www.addysolutions.com/address-lookup/1.6.2/js/addy.min.js?nzKey=86bf969edbf948f68d02d858924592de&country=nz" defer></script>
 </head>
 <body>
 
@@ -2654,6 +2656,20 @@ async function resolveLotDpForJob(id, address){
     /* silent — Lot & DP stays unresolved, address itself is unaffected */
   }
 }
+function attachAddyAutocomplete(el){
+  if(el.dataset.addyAttached || typeof AddyComplete === 'undefined') return;
+  el.dataset.addyAttached = '1';
+  const ac = new AddyComplete(el, { address1: el });
+  ac.addressSelected = function(a){
+    el.value = a.displayline || el.value;
+    saveAddressField(el);
+  };
+}
+document.addEventListener('focusin', e=>{
+  if(e.target && e.target.matches && e.target.matches('.address-input')){
+    attachAddyAutocomplete(e.target);
+  }
+});
 async function saveAddressField(el){
   const id = el.dataset.id;
   const j = jobs.find(x=>x.id===id);

@@ -1928,6 +1928,10 @@ function switchTab(name){
   document.getElementById('view-addresses').classList.toggle('active', name==='addresses');
   document.getElementById('view-kpi').classList.toggle('active', name==='kpi');
   if(name==='dashboard') renderDashboard();
+  if(name==='jobs' && !columnsAutoFitted && jobs.length){
+    measureAndLockStaticColumnWidths();
+    columnsAutoFitted = true;
+  }
   if(name==='workload') renderWorkload();
   if(name==='stagetimes') loadAndRenderStageTimes();
   if(name==='addresses') renderAddresses();
@@ -2628,7 +2632,7 @@ function renderTable(list){
       ${isColHidden('taskStatus') ? '<td class="col-collapsed"></td>' : `<td class="divider-right"><span class="pill ${taskPillClass(j.taskStatus)}">${esc(j.taskStatus||'In Progress')}</span></td>`}
     </tr>${LOCKED_REGION ? addressSubRowHtml(j) : ''}`).join('');
   document.querySelectorAll('#tableBody .cell-text').forEach(autoGrow);
-  if(!columnsAutoFitted && jobs.length){
+  if(!columnsAutoFitted && jobs.length && document.getElementById('view-jobs').offsetParent !== null){
     measureAndLockStaticColumnWidths();
     columnsAutoFitted = true;
   }

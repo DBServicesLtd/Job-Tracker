@@ -2661,7 +2661,11 @@ function attachAddyAutocomplete(el){
   el.dataset.addyAttached = '1';
   const ac = new AddyComplete(el, { address1: el });
   ac.addressSelected = function(a){
-    el.value = a.displayline || el.value;
+    const city = a.mailtown || a.city || '';
+    const parts = [a.address1, a.suburb, city].filter(v => v && v.trim());
+    let full = parts.join(', ');
+    if(a.postcode) full += ' ' + a.postcode;
+    el.value = full || a.displayline || el.value;
     saveAddressField(el);
   };
 }

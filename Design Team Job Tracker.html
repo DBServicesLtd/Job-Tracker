@@ -696,8 +696,8 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
           <th onclick="sortAddressesBy('jobNumber')">Job #<span class="sort-arrow" id="addrArrow-jobNumber"></span></th>
           <th onclick="sortAddressesBy('jobName')">Client / Job<span class="sort-arrow" id="addrArrow-jobName"></span></th>
           <th style="width:35%;" onclick="sortAddressesBy('address')">Address<span class="sort-arrow" id="addrArrow-address"></span></th>
-          <th onclick="sortAddressesBy('council')">Council<span class="sort-arrow" id="addrArrow-council"></span></th>
           <th onclick="sortAddressesBy('lotDp')">Lot &amp; DP<span class="sort-arrow" id="addrArrow-lotDp"></span></th>
+          <th onclick="sortAddressesBy('council')">Council<span class="sort-arrow" id="addrArrow-council"></span></th>
           <th style="cursor:default;">Website</th><th style="cursor:default;">Consent Application</th>
         </tr></thead>
         <tbody id="addressesBody"></tbody>
@@ -2030,8 +2030,8 @@ function renderAddresses(){
         <input type="text" class="address-input address-input-flat${j.address ? ' has-value' : ''}" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)" onkeydown="if(event.key==='Enter'){this.blur();}">
         ${j.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address)}" target="_blank" rel="noopener" class="address-map-link" title="Open in Google Maps" onclick="event.stopPropagation()">🗺️</a>` : ''}
       </td>
-      <td>${j.council ? esc(j.council) : (j.address ? `<span class="council-resolve-link" onclick="resolveCouncilForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
       <td>${j.lotDp ? esc(j.lotDp) : (j.address ? `<span class="council-resolve-link" onclick="resolveLotDpForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
+      <td>${j.council ? esc(j.council) : (j.address ? `<span class="council-resolve-link" onclick="resolveCouncilForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
       <td>${j.council && COUNCIL_INFO[j.council] ? `<a href="${COUNCIL_INFO[j.council].website}" target="_blank" rel="noopener">Website</a>` : ''}</td>
       <td>${j.council && COUNCIL_INFO[j.council] ? `<a href="${COUNCIL_INFO[j.council].consent}" target="_blank" rel="noopener">Apply</a>` : ''}</td>
     </tr>`).join('') || '<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';

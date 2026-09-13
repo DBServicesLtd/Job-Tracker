@@ -690,7 +690,12 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
     <div class="table-wrap">
       <table class="jobs-table" id="addressesTable" style="table-layout:auto;min-width:0;">
         <thead><tr>
-          <th>Region</th><th>Job #</th><th>Client / Job</th><th style="width:35%;">Address</th><th>Council</th><th>Website</th><th>Consent Application</th>
+          <th onclick="sortAddressesBy('region')">Region<span class="sort-arrow" id="addrArrow-region"></span></th>
+          <th onclick="sortAddressesBy('jobNumber')">Job #<span class="sort-arrow" id="addrArrow-jobNumber"></span></th>
+          <th onclick="sortAddressesBy('jobName')">Client / Job<span class="sort-arrow" id="addrArrow-jobName"></span></th>
+          <th style="width:35%;" onclick="sortAddressesBy('address')">Address<span class="sort-arrow" id="addrArrow-address"></span></th>
+          <th onclick="sortAddressesBy('council')">Council<span class="sort-arrow" id="addrArrow-council"></span></th>
+          <th style="cursor:default;">Website</th><th style="cursor:default;">Consent Application</th>
         </tr></thead>
         <tbody id="addressesBody"></tbody>
       </table>
@@ -1990,11 +1995,25 @@ function renderDashboard(){
       <span class="dash-person-count">${peopleCounts[name]}</span>
     </div>`).join('') || '<p style="color:var(--ink-faint);font-size:13px;">No jobs assigned yet.</p>';
 }
+let addressesSortCol = localStorage.getItem('addressesSortCol') || 'region';
+let addressesSortDir = parseInt(localStorage.getItem('addressesSortDir') || '1', 10);
+function sortAddressesBy(col){
+  if(addressesSortCol===col) addressesSortDir *= -1; else { addressesSortCol=col; addressesSortDir=1; }
+  localStorage.setItem('addressesSortCol', addressesSortCol);
+  localStorage.setItem('addressesSortDir', String(addressesSortDir));
+  renderAddresses();
+}
 function renderAddresses(){
   const showArchived = document.getElementById('addressesShowArchived').checked;
+  ['region','jobNumber','jobName','address','council'].forEach(col=>{
+    const el = document.getElementById('addrArrow-' + col);
+    if(el) el.textContent = addressesSortCol===col ? (addressesSortDir>0?'▲':'▼') : '';
+  });
   const rows = jobs.filter(j=>showArchived || !j.archived).slice().sort((a,b)=>{
-    const ra=(a.region||'').toLowerCase(), rb=(b.region||'').toLowerCase();
-    if(ra!==rb) return ra<rb ? -1 : 1;
+    const va = (a[addressesSortCol]||'').toString().toLowerCase();
+    const vb = (b[addressesSortCol]||'').toString().toLowerCase();
+    if(va<vb) return -1*addressesSortDir;
+    if(va>vb) return 1*addressesSortDir;
     return (a.jobNumber||'').localeCompare(b.jobNumber||'');
   });
   document.getElementById('addressesBody').innerHTML = rows.map(j=>`

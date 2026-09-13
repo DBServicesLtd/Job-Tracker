@@ -547,7 +547,6 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <button class="tab" data-tab="jobs" onclick="switchTab('jobs')">Job Board</button>
       <button class="tab" data-tab="workload" onclick="switchTab('workload')">Staff Workload</button>
       <button class="tab" data-tab="kpi" onclick="switchTab('kpi')">KPI Tracker</button>
-      <button class="tab" data-tab="stagetimes" onclick="switchTab('stagetimes')">Stage Times</button>
       <button class="tab" data-tab="addresses" onclick="switchTab('addresses')">Job Information</button>
     </div>
     <div class="region-address-bar" id="regionAddressBar" style="display:none;">
@@ -613,6 +612,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <button class="active" data-v="table" onclick="setJobView('table')">Table</button>
       </div>
       <button class="btn-ghost" id="turnaroundGuideBtn" onclick="openGuideModal()">⏱ Turnaround guide</button>
+      <button class="btn-ghost" id="stageTimesBtn" onclick="openStageTimesModal()">📊 Stage Times</button>
       <button class="btn-primary" id="newJobBtn" onclick="openJobModal()" style="flex:1 1 200px;justify-content:center;">+ New job</button>
     </div>
     <p class="hint">Tip: filter to one region, then use Copy as table (in ⚙ Settings) to paste a snapshot straight into an email, or Print view for a PDF.</p>
@@ -650,17 +650,31 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
     </div>
   </div>
 
-  <div class="view" id="view-stagetimes">
-    <p class="hint">Actual time spent per stage, measured automatically from when each job's Stage field changes. On Site isn't tracked here. Jobs that haven't changed stage since tracking began show a single starting point rather than a full history.</p>
-    <div class="stage-summary-row" id="stageTimesSummary"></div>
-    <div class="table-wrap">
-      <table class="jobs-table" id="stageTimesTable" style="table-layout:auto;min-width:0;">
-        <thead><tr>
-          <th>Region</th><th>Job #</th><th>Client / Job</th>
-          <th>SP (days)</th><th>PD (days)</th><th>WD (days)</th><th>Current stage</th>
-        </tr></thead>
-        <tbody id="stageTimesBody"></tbody>
-      </table>
+  <div class="overlay" id="stageTimesOverlay">
+    <div class="modal" style="max-width:900px;">
+      <div class="modal-head">
+        <h2>Stage Times</h2>
+        <button class="modal-close" onclick="closeStageTimesModal()">✕</button>
+      </div>
+      <div class="modal-body" style="grid-template-columns:1fr;">
+        <p class="hint">Actual time spent per stage, measured automatically from when each job's Stage field changes. On Site isn't tracked here. Jobs that haven't changed stage since tracking began show a single starting point rather than a full history.</p>
+        <div class="stage-summary-row" id="stageTimesSummary"></div>
+        <div class="table-wrap" style="max-height:60vh;overflow-y:auto;">
+          <table class="jobs-table" id="stageTimesTable" style="table-layout:auto;min-width:0;">
+            <thead><tr>
+              <th>Region</th><th>Job #</th><th>Client / Job</th>
+              <th>SP (days)</th><th>PD (days)</th><th>WD (days)</th><th>Current stage</th>
+            </tr></thead>
+            <tbody id="stageTimesBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <span></span>
+        <div class="foot-right">
+          <button class="btn-ghost" onclick="closeStageTimesModal()">Close</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1924,7 +1938,6 @@ function switchTab(name){
   document.getElementById('view-dashboard').classList.toggle('active', name==='dashboard');
   document.getElementById('view-jobs').classList.toggle('active', name==='jobs');
   document.getElementById('view-workload').classList.toggle('active', name==='workload');
-  document.getElementById('view-stagetimes').classList.toggle('active', name==='stagetimes');
   document.getElementById('view-addresses').classList.toggle('active', name==='addresses');
   document.getElementById('view-kpi').classList.toggle('active', name==='kpi');
   if(name==='dashboard') renderDashboard();
@@ -1933,7 +1946,6 @@ function switchTab(name){
     columnsAutoFitted = true;
   }
   if(name==='workload') renderWorkload();
-  if(name==='stagetimes') loadAndRenderStageTimes();
   if(name==='addresses') renderAddresses();
   if(name==='kpi') loadAndRenderKpi().then(sizeKpiScroll);
 }
@@ -1994,6 +2006,13 @@ function renderAddresses(){
     </tr>`).join('') || '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
 }
 let stageHistory = [];
+function openStageTimesModal(){
+  document.getElementById('stageTimesOverlay').classList.add('open');
+  loadAndRenderStageTimes();
+}
+function closeStageTimesModal(){
+  document.getElementById('stageTimesOverlay').classList.remove('open');
+}
 async function loadAndRenderStageTimes(){
   try{
     stageHistory = await sbFetch('stage_history?select=*');
@@ -3899,6 +3918,7 @@ function applyReadOnlyMode(){
   if(!isWhoOnly){
     document.getElementById('newJobBtn').style.display = 'none';
     document.getElementById('turnaroundGuideBtn').style.display = 'none';
+  document.getElementById('stageTimesBtn').style.display = 'none';
     document.getElementById('undoBtn').style.display = 'none';
     document.getElementById('showArchived').closest('label').style.display = 'none';
     document.body.classList.add('readonly-mode');
@@ -3914,7 +3934,6 @@ function applyReadOnlyMode(){
     document.getElementById('viewToggle').style.display = 'none';
   }
   document.querySelector('[data-tab="workload"]').style.display = 'none';
-  document.querySelector('[data-tab="stagetimes"]').style.display = 'none';
   document.querySelector('[data-tab="addresses"]').style.display = 'none';
   if(!LOCKED_WHO) document.querySelector('[data-tab="kpi"]').style.display = 'none';
   document.getElementById('dashboardTab').style.display = 'none';

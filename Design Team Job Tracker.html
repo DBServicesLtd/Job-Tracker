@@ -584,6 +584,10 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <div class="dash-stage-row" id="dashStageRow"></div>
       </div>
       <div class="dash-card">
+        <div class="dash-card-title">Upcoming jobs</div>
+        <div id="dashUpcomingList"></div>
+      </div>
+      <div class="dash-card">
         <div class="dash-card-title">Stale jobs</div>
         <div class="dash-stat" id="dashStaleCount">0</div>
         <div class="dash-stat-sub">No updates in 60+ days</div>
@@ -1979,6 +1983,15 @@ function renderDashboard(){
 
   const staleCount = active.filter(j=>staleDaysAgo(j) > 0).length;
   document.getElementById('dashStaleCount').textContent = staleCount;
+
+  const upcoming = active.filter(j=>j.latestEstimatedCompletion && j.stage!=='On Site')
+    .sort((a,b)=>a.latestEstimatedCompletion.localeCompare(b.latestEstimatedCompletion))
+    .slice(0,5);
+  document.getElementById('dashUpcomingList').innerHTML = upcoming.map(j=>`
+    <div class="dash-person-row" onclick="goToJobsFiltered('', '${esc(j.jobName||'').replace(/'/g,"\\'")}')">
+      <span class="dash-person-name">${esc(j.jobName||'Untitled')}</span>
+      <span class="${dateUrgencyClass(j.latestEstimatedCompletion)}" style="font-size:12.5px;">${fmtDate(j.latestEstimatedCompletion)}</span>
+    </div>`).join('') || '<p style="color:var(--ink-faint);font-size:13px;">No estimated completion dates set.</p>';
 
   const peopleCounts = {};
   active.forEach(j=>{

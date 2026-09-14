@@ -98,8 +98,6 @@ a{color:var(--blue);}
 .dash-person-bar{height:6px;border-radius:3px;background:var(--blue-mid);}
 .dash-person-count{font-size:12.5px;color:var(--ink-soft);min-width:18px;text-align:right;}
 @media (max-width:720px){.dash-grid{grid-template-columns:1fr;}}
-.region-address-bar{display:flex;align-items:center;font-size:12px;color:var(--ink-soft);}
-.region-address-label{font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;font-size:10.5px;}
 .region-address-value{cursor:text;border-bottom:1px dashed transparent;min-width:80px;font-size:15px;line-height:1.35;font-weight:600;color:var(--ink);white-space:pre-line;}
 .region-address-value:hover{border-bottom-color:var(--line-strong);}
 .region-address-value:empty::before{content:'Add address…';color:var(--ink-faint);}
@@ -553,11 +551,8 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <button class="tab" data-tab="kpi" onclick="switchTab('kpi')">KPI Tracker</button>
     </div>
     <div class="settings-wrap">
-      <div class="region-address-bar" id="regionAddressBar" style="display:none;">
-        <span id="regionAddressLabel" class="region-address-label"></span>
-      </div>
-      <button class="settings-btn" id="contactsBtn" onclick="openContactsModal()">👥 Contacts</button>
       <div class="region-address-value" id="regionAddressValue" contenteditable="true" style="display:none;" onblur="saveRegionAddress(this)"></div>
+      <button class="settings-btn" id="contactsBtn" onclick="openContactsModal()">👥 Contacts</button>
       <div class="stats-wrap" id="statsWrap">
         <button class="settings-btn" id="statsBtn" onclick="toggleStatsMenu()">📊 Stats</button>
         <div class="settings-menu" id="statsMenu">
@@ -4013,8 +4008,6 @@ function applyReadOnlyMode(){
   document.getElementById('settingsBtn').style.display = 'none';
   if(!LOCKED_REGION) document.getElementById('contactsBtn').style.display = 'none';
   if(LOCKED_REGION && LOCKED_CONTACT_REGION){
-    document.getElementById('regionAddressBar').style.display = 'flex';
-    document.getElementById('regionAddressLabel').textContent = LOCKED_CONTACT_REGION;
     document.getElementById('regionAddressValue').style.display = 'block';
     document.getElementById('regionAddressValue').dataset.region = LOCKED_CONTACT_REGION;
   }

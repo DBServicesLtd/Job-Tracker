@@ -98,14 +98,14 @@ a{color:var(--blue);}
 .dash-person-bar{height:6px;border-radius:3px;background:var(--blue-mid);}
 .dash-person-count{font-size:12.5px;color:var(--ink-soft);min-width:18px;text-align:right;}
 @media (max-width:720px){.dash-grid{grid-template-columns:1fr;}}
-.region-address-bar{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--ink-soft);}
+.region-address-bar{display:flex;align-items:center;font-size:12px;color:var(--ink-soft);}
 .region-address-label{font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;font-size:10.5px;}
-.region-address-value{cursor:text;border-bottom:1px dashed transparent;min-width:60px;}
+.region-address-value{cursor:text;border-bottom:1px dashed transparent;min-width:80px;font-size:15px;line-height:1.35;font-weight:600;color:var(--ink);white-space:pre-line;}
 .region-address-value:hover{border-bottom-color:var(--line-strong);}
 .region-address-value:empty::before{content:'Add address…';color:var(--ink-faint);}
 .region-address-value:focus{outline:none;border-bottom:1px solid var(--blue);}
 .tabs-left{display:flex;gap:4px;}
-.settings-wrap{position:relative;padding-bottom:6px;display:flex;align-items:center;gap:8px;}
+.settings-wrap{position:relative;padding-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .stats-wrap{position:relative;}
 .colvis-wrap{position:relative;display:inline-block;}
 .colvis-wrap .settings-menu{right:auto;left:0;max-height:280px;overflow-y:auto;}
@@ -215,8 +215,8 @@ select.select, .toolbar select{
 .address-map-link:hover{opacity:1;}
 .council-resolve-link{cursor:pointer;font-size:11.5px;color:var(--ink-faint);text-decoration:underline;}
 .council-resolve-link:hover{color:var(--blue);}
-.address-pin-indicator{cursor:pointer;font-size:12px;opacity:0.75;}
-.address-pin-indicator:hover{opacity:1;}
+.address-pin-indicator{cursor:pointer;font-size:18px;opacity:1;margin-left:6px;vertical-align:middle;}
+.address-pin-indicator:hover{transform:scale(1.15);}
 
 .board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
 .col{
@@ -552,12 +552,12 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <button class="tab" data-tab="workload" onclick="switchTab('workload')">Staff Workload</button>
       <button class="tab" data-tab="kpi" onclick="switchTab('kpi')">KPI Tracker</button>
     </div>
-    <div class="region-address-bar" id="regionAddressBar" style="display:none;">
-      <span id="regionAddressLabel" class="region-address-label"></span>
-      <span class="region-address-value" id="regionAddressValue" contenteditable="true" onblur="saveRegionAddress(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></span>
-    </div>
     <div class="settings-wrap">
+      <div class="region-address-bar" id="regionAddressBar" style="display:none;">
+        <span id="regionAddressLabel" class="region-address-label"></span>
+      </div>
       <button class="settings-btn" id="contactsBtn" onclick="openContactsModal()">👥 Contacts</button>
+      <div class="region-address-value" id="regionAddressValue" contenteditable="true" style="display:none;" onblur="saveRegionAddress(this)"></div>
       <div class="stats-wrap" id="statsWrap">
         <button class="settings-btn" id="statsBtn" onclick="toggleStatsMenu()">📊 Stats</button>
         <div class="settings-menu" id="statsMenu">
@@ -670,7 +670,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <div class="table-wrap" style="max-height:60vh;overflow-y:auto;">
           <table class="jobs-table" id="stageTimesTable" style="table-layout:auto;min-width:0;">
             <thead><tr>
-              <th>Region</th><th>Job #</th><th>Client / Job</th>
+              <th>Region</th><th>Job #</th><th>Client Name</th>
               <th>SP (days)</th><th>PD (days)</th><th>WD (days)</th><th>Current stage</th>
             </tr></thead>
             <tbody id="stageTimesBody"></tbody>
@@ -694,7 +694,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <thead><tr>
           <th onclick="sortAddressesBy('region')">Region<span class="sort-arrow" id="addrArrow-region"></span></th>
           <th onclick="sortAddressesBy('jobNumber')">Job #<span class="sort-arrow" id="addrArrow-jobNumber"></span></th>
-          <th onclick="sortAddressesBy('jobName')">Client / Job<span class="sort-arrow" id="addrArrow-jobName"></span></th>
+          <th onclick="sortAddressesBy('jobName')">Client Name<span class="sort-arrow" id="addrArrow-jobName"></span></th>
           <th style="width:35%;" onclick="sortAddressesBy('address')">Address<span class="sort-arrow" id="addrArrow-address"></span></th>
           <th onclick="sortAddressesBy('lotDp')">Lot &amp; DP<span class="sort-arrow" id="addrArrow-lotDp"></span></th>
           <th onclick="sortAddressesBy('council')">Council<span class="sort-arrow" id="addrArrow-council"></span></th>
@@ -2271,7 +2271,7 @@ function cardHtml(j){
 const TABLE_COLS = [
   {key:'region',label:'Region',w:110,fit:true},
   {key:'jobNumber',label:'Job #',w:80,fit:true},
-  {key:'jobName',label:'Client / Job',w:160,fit:true,min:140,max:400},
+  {key:'jobName',label:'Client Name',w:160,fit:true,min:140,max:400},
   {key:'stage',label:'Stage',w:64,fit:true},
   {key:'who',label:'Who',w:120,fit:true},
   {key:'status',label:'State',w:130,fit:true},
@@ -3089,7 +3089,7 @@ async function deleteContact(id){
 }
 async function saveRegionAddress(el){
   const region = el.dataset.region;
-  const address = el.textContent.trim();
+  const address = el.innerText.trim();
   if((regionAddresses[region] || '') === address) return;
   await withSync(async ()=>{
     await sbFetch('region_addresses?on_conflict=region', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{region, address}] });
@@ -4015,6 +4015,7 @@ function applyReadOnlyMode(){
   if(LOCKED_REGION && LOCKED_CONTACT_REGION){
     document.getElementById('regionAddressBar').style.display = 'flex';
     document.getElementById('regionAddressLabel').textContent = LOCKED_CONTACT_REGION;
+    document.getElementById('regionAddressValue').style.display = 'block';
     document.getElementById('regionAddressValue').dataset.region = LOCKED_CONTACT_REGION;
   }
   if(LOCKED_REGION && window.innerWidth <= 640){

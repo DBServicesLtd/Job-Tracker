@@ -2036,9 +2036,11 @@ function renderAddresses(){
       <td>${esc(j.region||'')}</td>
       <td>${esc(j.jobNumber||'')}</td>
       <td><strong>${esc(j.jobName||'Untitled')}</strong>${j.archived ? ' <span style="color:var(--ink-faint);font-weight:400;">(archived)</span>' : ''}</td>
-      <td class="address-cell-flat">
-        <input type="text" class="address-input address-input-flat${j.address ? ' has-value' : ''}" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)" onkeydown="if(event.key==='Enter'){this.blur();}">
-        ${j.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address)}" target="_blank" rel="noopener" class="address-map-link" title="Open in Google Maps" onclick="event.stopPropagation()">🗺️</a>` : ''}
+      <td>
+        <div class="address-cell-flat">
+          <input type="text" class="address-input address-input-flat${j.address ? ' has-value' : ''}" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)" onkeydown="if(event.key==='Enter'){this.blur();}">
+          ${j.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address)}" target="_blank" rel="noopener" class="address-map-link" title="Open in Google Maps" onclick="event.stopPropagation()">🗺️</a>` : ''}
+        </div>
       </td>
       <td>${j.lotDp ? esc(j.lotDp) : (j.address ? `<span class="council-resolve-link" onclick="resolveLotDpForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
       <td>${j.council ? esc(j.council) : (j.address ? `<span class="council-resolve-link" onclick="resolveCouncilForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>

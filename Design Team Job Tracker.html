@@ -2837,7 +2837,7 @@ function openJobModal(id){
   document.getElementById('f-planning').value = richHtmlToPlain(j?.planning || '');
   document.getElementById('jobOverlay').classList.add('open');
   if(!j){
-    document.getElementById('f-stageStart').value = new Date().toISOString().slice(0,10);
+    document.getElementById('f-stageStart').value = isoDate(new Date());
     autoCalcDates(false);
   }
 }
@@ -3296,7 +3296,7 @@ async function saveJob(){
   if(prevTaskStatus==='In Progress' && data.taskStatus==='Completed'){
     data.earliestEstimatedCompletion = '';
     data.latestEstimatedCompletion = '';
-    data.updatesSent = new Date().toISOString().slice(0,10);
+    data.updatesSent = isoDate(new Date());
   }
   await withSync(async ()=>{
     if(currentEditId){
@@ -3374,7 +3374,7 @@ function getMonday(d){
 function weekKeyFor(offset){
   const base = getMonday(new Date());
   base.setDate(base.getDate() + offset*7);
-  return base.toISOString().slice(0,10);
+  return isoDate(base);
 }
 function shiftWeek(delta, reset){
   weekOffset = reset ? 0 : weekOffset+delta;

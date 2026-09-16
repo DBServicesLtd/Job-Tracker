@@ -181,11 +181,11 @@ select.select, .toolbar select{
 
 .stamp{
   font-family:'Open Sans',sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.03em;
-  border:1.3px solid currentColor;border-radius:3px;padding:2px 6px;display:inline-block;
+  border:1.3px solid currentColor;border-radius:3px;padding:1px 6px;display:inline-block;
 }
 .stage-SP{color:#01003A;} .stage-PD{color:#180F5E;} .stage-WD{color:#006699;} .stage-OnSite{color:#408CB2;}
 .pill{
-  font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;display:inline-block;white-space:nowrap;
+  font-size:11px;font-weight:700;padding:1px 8px;border-radius:4px;display:inline-block;white-space:nowrap;
 }
 .pill-InProgress{background:#FBF0C7;color:#8A6D00;}
 .pill-Completed{background:#E9E9E7;color:#54524C;}
@@ -1907,7 +1907,7 @@ const TASK_PILL_COLORS = {
 function inlinePillHtml(text, colors){
   if(!text) return '';
   if(!colors) return esc(text);
-  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:700;padding:3px 10px;border-radius:4px;min-width:100px;text-align:center;">${esc(text)}</span>`;
+  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:700;padding:1px 8px;border-radius:4px;min-width:100px;text-align:center;">${esc(text)}</span>`;
 }
 function copyAsTable(){
   const list = getFiltered().slice().sort((a,b)=>{

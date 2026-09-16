@@ -1824,8 +1824,10 @@ async function seedInitialData(){
 async function loadAll(silent){
   setSync(true);
   try{
-    const jobRows = await sbFetch('jobs?select=*');
-    const staffRows = await sbFetch('staff?select=*');
+    const [jobRows, staffRows] = await Promise.all([
+      sbFetch('jobs?select=*'),
+      sbFetch('staff?select=*')
+    ]);
     if(jobRows.length===0 && staffRows.length===0 && !seedAttempted){
       seedAttempted = true;
       await seedInitialData();
@@ -1834,31 +1836,33 @@ async function loadAll(silent){
       jobs = jobRows.map(rowToJob);
       staff = staffRows;
     }
-    const regionRows = await sbFetch('regions?select=name');
+    const [regionRows, contactRows, regionAddressRows, guideRows, widthRows, noteRows] = await Promise.all([
+      sbFetch('regions?select=name'),
+      sbFetch('contacts?select=*'),
+      sbFetch('region_addresses?select=*'),
+      sbFetch('timeline_guides?select=data&id=eq.1'),
+      sbFetch('column_widths?select=widths&id=eq.1'),
+      LOCKED_WHO ? sbFetch('personal_notes?select=job_id,note&who=eq.' + encodeURIComponent(LOCKED_WHO)) : Promise.resolve(null)
+    ]);
     if(regionRows.length) regions = regionRows.map(r=>r.name);
-    const contactRows = await sbFetch('contacts?select=*');
     companyContacts = contactRows;
-    const regionAddressRows = await sbFetch('region_addresses?select=*');
     regionAddresses = {};
     regionAddressRows.forEach(r=>{ regionAddresses[r.region] = r.address; });
-    const guideRows = await sbFetch('timeline_guides?select=data&id=eq.1');
     if(guideRows.length && guideRows[0].data) timelineGuides = guideRows[0].data;
-    const widthRows = await sbFetch('column_widths?select=widths&id=eq.1');
     if(widthRows.length && Array.isArray(widthRows[0].widths) && widthRows[0].widths.length===TABLE_COLS.length){
       TABLE_COLS.forEach((c,i)=>{
         if(!STATIC_FIT_KEYS.includes(c.key)) columnWidths[i] = widthRows[0].widths[i];
       });
       hasSharedWidths = true;
     }
+    if(LOCKED_WHO && noteRows){
+      personalNotes = {};
+      noteRows.forEach(r=>{ personalNotes[r.job_id] = r.note || ''; });
+    }
 
     connectionOk = true;
     consecutiveFailures = 0;
     populateRegionFilters();
-    if(LOCKED_WHO){
-      const noteRows = await sbFetch('personal_notes?select=job_id,note&who=eq.' + encodeURIComponent(LOCKED_WHO));
-      personalNotes = {};
-      noteRows.forEach(r=>{ personalNotes[r.job_id] = r.note || ''; });
-    }
     renderJobs();
     await loadWorkloadForCurrentWeek();
   }catch(e){

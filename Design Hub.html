@@ -181,11 +181,11 @@ select.select, .toolbar select{
 
 .stamp{
   font-family:'Open Sans',sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.03em;
-  border:1.3px solid currentColor;border-radius:3px;padding:1px 6px;display:inline-block;
+  border:1.3px solid currentColor;border-radius:3px;padding:2px 7px;display:inline-block;
 }
 .stage-SP{color:#01003A;} .stage-PD{color:#180F5E;} .stage-WD{color:#006699;} .stage-OnSite{color:#408CB2;}
 .pill{
-  font-size:11px;font-weight:700;padding:1px 8px;border-radius:4px;display:inline-block;white-space:nowrap;
+  font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;display:inline-block;white-space:nowrap;
 }
 .pill-InProgress{background:#FBF0C7;color:#8A6D00;}
 .pill-Completed{background:#E9E9E7;color:#54524C;}
@@ -201,7 +201,7 @@ select.select, .toolbar select{
 .pill-state-withServices{background:#EBB5C8;color:#7A1F42;}
 .pill-state-default{background:#A1D6CC;color:#0B4A3E;}
 
-.address-subrow td{background:#FBFAF7;border-top:none;padding:3px 14px;font-size:11.5px;color:var(--ink-faint);}
+.address-subrow td{background:#FBFAF7;border-top:none;padding:6px 14px;font-size:12px;color:var(--ink-faint);}
 .address-subrow-label{font-weight:500;margin-right:8px;color:var(--ink-faint);}
 .address-input{border:1px solid #E6E3D8;border-radius:4px;padding:3px 7px;font-size:11.5px;width:300px;font-family:'Open Sans',sans-serif;color:var(--ink-soft);background:#fff;}
 .address-input:focus{outline:none;border-color:var(--blue-soft, #A9C6E0);color:var(--ink);}
@@ -271,7 +271,7 @@ table.jobs-table th{
 }
 table.jobs-table th:hover{color:#C9A227;}
 table.jobs-table td{padding:0 10px;border-bottom:1px solid var(--line-strong);border-right:1px solid var(--line);vertical-align:middle;font-size:13px;}
-#jobsTable td{padding:0 10px;line-height:1.15;}
+#jobsTable td{padding:0 10px;line-height:1.05;}
 table.jobs-table tbody tr{cursor:pointer;}
 table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 #jobsTable tbody tr:nth-child(even){background:var(--paper);}
@@ -1911,7 +1911,7 @@ const TASK_PILL_COLORS = {
 function inlinePillHtml(text, colors){
   if(!text) return '';
   if(!colors) return esc(text);
-  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:700;padding:1px 8px;border-radius:4px;min-width:100px;text-align:center;">${esc(text)}</span>`;
+  return `<span style="display:inline-block;background:${colors.bg};color:${colors.fg};font-weight:700;padding:3px 10px;border-radius:4px;min-width:100px;text-align:center;">${esc(text)}</span>`;
 }
 function copyAsTable(){
   const list = getFiltered().slice().sort((a,b)=>{

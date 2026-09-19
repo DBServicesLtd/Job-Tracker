@@ -318,9 +318,12 @@ table.jobs-table tbody tr:hover{background:var(--blue-soft);}
 .divider-right{border-right:1px solid var(--line);}
 .td-editable{padding:0 !important;}
 .cell-text{width:100%;min-height:38px;border:none;background:none;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);resize:none;overflow:hidden;display:block;}
+.cell-text-empty{min-height:19px;padding:4.5px 10px;}
 .cell-text:focus{outline:none;background:var(--blue-soft);}
 .cell-rich{width:100%;min-height:38px;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);outline:none;white-space:pre-wrap;}
 .cell-rich-view{width:100%;padding:9px 10px;font-family:'Open Sans',sans-serif;font-size:13px;color:var(--ink-soft);white-space:pre-wrap;}
+.cell-rich-empty{min-height:19px;padding:4.5px 10px;}
+.cell-rich-view-empty{padding:4.5px 10px;}
 .my-note-wrap{border-top:1px solid #E5E2D6;border-left:none;padding:4px 8px 5px;background:transparent;margin-top:4px;}
 .my-note-label{font-size:10px;font-weight:500;letter-spacing:.01em;text-transform:none;color:var(--ink-faint);margin-bottom:2px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;opacity:0.85;}
 .my-note-label::before{content:'📌';font-size:10px;opacity:0.7;}
@@ -2615,8 +2618,9 @@ function dateCell(j, field){
 function textCell(j, field){
   if(isColHidden(field)) return '<td class="col-collapsed"></td>';
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
+  const isEmpty = !j[field];
   if(READ_ONLY) return `<td class="td-notes ${divider}">${esc(j[field]||'')}</td>`;
-  return `<td class="td-notes td-editable ${divider}"><textarea class="cell-text" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="saveInlineField(this)" onkeydown="handleGridNavKey(event)">${esc(j[field]||'')}</textarea></td>`;
+  return `<td class="td-notes td-editable ${divider}"><textarea class="cell-text${isEmpty ? ' cell-text-empty' : ''}" rows="1" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="saveInlineField(this)" onkeydown="handleGridNavKey(event)">${esc(j[field]||'')}</textarea></td>`;
 }
 const RICH_ALLOWED_TAGS = {B:1,STRONG:1,I:1,EM:1,MARK:1,BR:1};
 function sanitizeRich(html){
@@ -2667,12 +2671,13 @@ function richTextCell(j, field){
   if(isColHidden(field)) return '<td class="col-collapsed"></td>';
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
   const html = sanitizeRich(j[field]||'');
+  const isEmpty = !j[field];
   const myNoteVal = personalNotes[j.id]||'';
   const myNote = (field==='notes' && LOCKED_WHO)
     ? `<div class="my-note-wrap"><div class="my-note-label${myNoteVal ? '' : ' collapsed'}" onclick="toggleMyNote(this)" style="margin-bottom:0;">My Note</div><div class="my-note-body${myNoteVal ? ' open' : ''}"><textarea class="cell-text my-note" data-id="${j.id}" onclick="event.stopPropagation()" oninput="autoGrow(this)" onblur="savePersonalNote(this)" placeholder="Just for you…">${esc(myNoteVal)}</textarea></div></div>`
     : '';
-  if(READ_ONLY) return `<td class="td-notes ${divider}"><div class="cell-rich-view">${html}</div>${myNote}</td>`;
-  return `<td class="td-notes td-editable ${divider}"><div class="cell-rich" contenteditable="true" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" onblur="saveRichCell(this)" onkeydown="handleGridNavKey(event)">${html}</div>${myNote}</td>`;
+  if(READ_ONLY) return `<td class="td-notes ${divider}"><div class="cell-rich-view${isEmpty ? ' cell-rich-view-empty' : ''}">${html}</div>${myNote}</td>`;
+  return `<td class="td-notes td-editable ${divider}"><div class="cell-rich${isEmpty ? ' cell-rich-empty' : ''}" contenteditable="true" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" onblur="saveRichCell(this)" onkeydown="handleGridNavKey(event)">${html}</div>${myNote}</td>`;
 }
 let activeRichEl = null;
 function toggleInlineTag(tagName){

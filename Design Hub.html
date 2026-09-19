@@ -736,9 +736,9 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
     <div class="table-wrap">
       <table class="jobs-table" id="addressesTable" style="table-layout:auto;min-width:0;">
         <thead><tr>
-          <th onclick="sortAddressesBy('region')">Region<span class="sort-arrow" id="addrArrow-region"></span></th>
-          <th onclick="sortAddressesBy('jobNumber')">Job #<span class="sort-arrow" id="addrArrow-jobNumber"></span></th>
-          <th onclick="sortAddressesBy('jobName')">Client Name<span class="sort-arrow" id="addrArrow-jobName"></span></th>
+          <th id="addrTh-region" onclick="sortAddressesBy('region')">Region<span class="sort-arrow" id="addrArrow-region"></span></th>
+          <th id="addrTh-jobNumber" onclick="sortAddressesBy('jobNumber')">Job #<span class="sort-arrow" id="addrArrow-jobNumber"></span></th>
+          <th id="addrTh-jobName" onclick="sortAddressesBy('jobName')">Client Name<span class="sort-arrow" id="addrArrow-jobName"></span></th>
           <th style="width:35%;" onclick="sortAddressesBy('address')">Address<span class="sort-arrow" id="addrArrow-address"></span></th>
           <th onclick="sortAddressesBy('lotDp')">Lot &amp; DP<span class="sort-arrow" id="addrArrow-lotDp"></span></th>
           <th onclick="sortAddressesBy('council')">Council<span class="sort-arrow" id="addrArrow-council"></span></th>
@@ -2077,6 +2077,10 @@ function sortAddressesBy(col){
 }
 function renderAddresses(){
   const showArchived = document.getElementById('addressesShowArchived').checked;
+  ['region','jobNumber','jobName'].forEach((col,i)=>{
+    const th = document.getElementById('addrTh-' + col);
+    if(th && columnWidths[i]) th.style.width = columnWidths[i] + 'px';
+  });
   ['region','jobNumber','jobName','address','council','lotDp'].forEach(col=>{
     const el = document.getElementById('addrArrow-' + col);
     if(el) el.textContent = addressesSortCol===col ? (addressesSortDir>0?'▲':'▼') : '';

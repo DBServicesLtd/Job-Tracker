@@ -204,6 +204,9 @@ select.select, .toolbar select{
 .stage-group{display:inline-flex;align-items:center;}
 .consultant-indicator{cursor:pointer;display:inline-flex;align-items:center;opacity:0.85;color:var(--blue);margin-left:5px;}
 .consultant-indicator:hover{opacity:1;}
+.consultant-indicator-empty{opacity:0.3;}
+.consultant-indicator-empty:hover{opacity:0.75;}
+.consultant-popover-empty{padding:10px 10px 4px;font-size:12px;color:var(--ink-faint);font-style:italic;}
 .consultant-indicator svg{display:block;}
 .consultant-popover{
   position:fixed;z-index:500;background:#fff;border:1px solid var(--line-strong);border-radius:6px;
@@ -2190,8 +2193,9 @@ function stageClass(s){ return s==='On Site' ? 'stage-OnSite' : 'stage-'+s; }
 function stageDisplay(s){ return s==='On Site' ? 'Site' : s; }
 const CONSULTANT_ICON_SVG = '<svg viewBox="0 0 24 24" width="17.6" height="17.6"><rect x="2" y="5" width="20" height="14" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="12" r="2.1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4.6 16.4c0-1.8 1.5-3 3.4-3s3.4 1.2 3.4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="14" y="8.4" width="5.3" height="1.4" rx="0.5" fill="currentColor"/><rect x="14" y="11.3" width="5.3" height="1.4" rx="0.5" fill="currentColor"/><rect x="14" y="14.2" width="3.4" height="1.4" rx="0.5" fill="currentColor"/></svg>';
 function stageCellHtml(j){
-  const showIcon = CONSULTANT_GATE_STAGES.includes(j.stage) && j.consultants && j.consultants.length > 0;
-  const icon = showIcon ? `<span class="consultant-indicator" onclick="event.stopPropagation(); toggleConsultantPopover('${j.id}', event)">${CONSULTANT_ICON_SVG}</span>` : '';
+  const gated = CONSULTANT_GATE_STAGES.includes(j.stage);
+  const hasConsultants = j.consultants && j.consultants.length > 0;
+  const icon = gated ? `<span class="consultant-indicator${hasConsultants ? '' : ' consultant-indicator-empty'}" onclick="event.stopPropagation(); toggleConsultantPopover('${j.id}', event)" title="${hasConsultants ? 'View/edit consultants' : 'Add a consultant'}">${CONSULTANT_ICON_SVG}</span>` : '';
   return `<span class="stage-group"><span class="stamp ${stageClass(j.stage)}">${esc(stageDisplay(j.stage))}</span>${icon}</span>`;
 }
 function closeConsultantPopover(){
@@ -2213,7 +2217,10 @@ function toggleConsultantPopover(jobId, evt){
   div.className = 'consultant-popover';
   div.style.top = (r.bottom + 5) + 'px';
   div.style.left = Math.max(8, Math.min(window.innerWidth - 258, r.right - 250)) + 'px';
-  div.innerHTML = consultantPopoverRowsHtml(j) + `<div class="consultant-popover-add" onclick="showAddConsultantForm('${jobId}', this)">+ Add consultant</div>`;
+  const rowsHtml = (j.consultants && j.consultants.length)
+    ? consultantPopoverRowsHtml(j)
+    : `<div class="consultant-popover-empty">No consultants logged yet.</div>`;
+  div.innerHTML = rowsHtml + `<div class="consultant-popover-add" onclick="showAddConsultantForm('${jobId}', this)">+ Add consultant</div>`;
   div.addEventListener('click', e => e.stopPropagation());
   document.body.appendChild(div);
   setTimeout(() => document.addEventListener('click', closeConsultantPopover), 0);

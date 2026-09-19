@@ -201,6 +201,38 @@ select.select, .toolbar select{
 .pill-state-withServices{background:#EBB5C8;color:#7A1F42;}
 .pill-state-default{background:#A1D6CC;color:#0B4A3E;}
 
+.stage-group{display:inline-flex;align-items:center;}
+.consultant-indicator{cursor:pointer;display:inline-flex;align-items:center;opacity:0.85;color:var(--blue);margin-left:5px;}
+.consultant-indicator:hover{opacity:1;}
+.consultant-indicator svg{display:block;}
+.consultant-popover{
+  position:fixed;z-index:500;background:#fff;border:1px solid var(--line-strong);border-radius:6px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.2);padding:4px;font-family:'Open Sans',sans-serif;width:250px;
+}
+.consultant-popover-row{padding:8px 10px;border-bottom:1px solid var(--line);position:relative;}
+.consultant-popover-row:last-child{border-bottom:none;}
+.consultant-role{font-weight:700;color:var(--blue);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;}
+.consultant-name{font-weight:600;color:var(--ink);font-size:12.5px;margin-top:2px;}
+.consultant-company{color:var(--ink-soft);font-size:11.5px;}
+.consultant-contact{color:var(--ink-faint);font-size:11px;margin-top:2px;}
+.consultant-remove{position:absolute;top:7px;right:8px;cursor:pointer;opacity:0.4;font-size:11px;color:var(--ink-faint);}
+.consultant-remove:hover{opacity:0.9;color:#A13B2A;}
+.consultant-popover-add{padding:9px 10px;font-size:12px;color:var(--blue);cursor:pointer;font-weight:600;}
+.consultant-popover-add:hover{background:#F4F8FB;}
+.consultant-form{padding:9px 10px;}
+.consultant-form label{display:block;font-size:10.5px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.02em;margin:7px 0 2px;}
+.consultant-form label:first-child{margin-top:0;}
+.consultant-form select, .consultant-form input{
+  width:100%;font-family:'Open Sans',sans-serif;font-size:12.5px;padding:5px 7px;
+  border:1px solid var(--line-strong);border-radius:4px;color:var(--ink);box-sizing:border-box;
+}
+.consultant-form-actions{display:flex;gap:6px;margin-top:10px;}
+.consultant-form-actions button{
+  flex:1;font-family:'Open Sans',sans-serif;font-size:12px;font-weight:600;padding:6px;
+  border-radius:4px;cursor:pointer;border:1px solid var(--line-strong);background:#fff;color:var(--ink-soft);
+}
+.consultant-form-actions button.primary{background:var(--blue);border-color:var(--blue);color:#fff;}
+
 .address-subrow td{background:#FBFAF7;border-top:none;padding:6px 14px;font-size:12px;color:var(--ink-faint);}
 .address-subrow-label{font-weight:500;margin-right:8px;color:var(--ink-faint);}
 .address-input{border:1px solid #E6E3D8;border-radius:4px;padding:3px 7px;font-size:11.5px;width:300px;font-family:'Open Sans',sans-serif;color:var(--ink-soft);background:#fff;}
@@ -1762,7 +1794,8 @@ function rowToJob(r){
     updatesSent: r.updates_sent || '',
     engineer: r.engineer_date || '',
     updatedAt: r.updated_at || null,
-    archived: !!r.archived
+    archived: !!r.archived,
+    consultants: []
   };
 }
 
@@ -1838,13 +1871,14 @@ async function loadAll(silent){
       jobs = jobRows.map(rowToJob);
       staff = staffRows;
     }
-    const [regionRows, contactRows, regionAddressRows, guideRows, widthRows, noteRows] = await Promise.all([
+    const [regionRows, contactRows, regionAddressRows, guideRows, widthRows, noteRows, consultantRows] = await Promise.all([
       sbFetch('regions?select=name'),
       sbFetch('contacts?select=*'),
       sbFetch('region_addresses?select=*'),
       sbFetch('timeline_guides?select=data&id=eq.1'),
       sbFetch('column_widths?select=widths&id=eq.1'),
-      LOCKED_WHO ? sbFetch('personal_notes?select=job_id,note&who=eq.' + encodeURIComponent(LOCKED_WHO)) : Promise.resolve(null)
+      LOCKED_WHO ? sbFetch('personal_notes?select=job_id,note&who=eq.' + encodeURIComponent(LOCKED_WHO)) : Promise.resolve(null),
+      sbFetch('job_consultants?select=*&order=created_at.asc')
     ]);
     if(regionRows.length) regions = regionRows.map(r=>r.name);
     companyContacts = contactRows;
@@ -1861,6 +1895,13 @@ async function loadAll(silent){
       personalNotes = {};
       noteRows.forEach(r=>{ personalNotes[r.job_id] = r.note || ''; });
     }
+    const consultantsByJob = {};
+    (consultantRows||[]).forEach(r=>{
+      (consultantsByJob[r.job_id] = consultantsByJob[r.job_id] || []).push({
+        id:r.id, role:r.role, name:r.name, company:r.company||'', phone:r.phone||'', email:r.email||''
+      });
+    });
+    jobs.forEach(j=>{ j.consultants = consultantsByJob[j.id] || []; });
 
     connectionOk = true;
     consecutiveFailures = 0;
@@ -2147,6 +2188,95 @@ function dateSortKey(v){
 }
 function stageClass(s){ return s==='On Site' ? 'stage-OnSite' : 'stage-'+s; }
 function stageDisplay(s){ return s==='On Site' ? 'Site' : s; }
+const CONSULTANT_ICON_SVG = '<svg viewBox="0 0 24 24" width="17.6" height="17.6"><rect x="2" y="5" width="20" height="14" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="12" r="2.1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4.6 16.4c0-1.8 1.5-3 3.4-3s3.4 1.2 3.4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="14" y="8.4" width="5.3" height="1.4" rx="0.5" fill="currentColor"/><rect x="14" y="11.3" width="5.3" height="1.4" rx="0.5" fill="currentColor"/><rect x="14" y="14.2" width="3.4" height="1.4" rx="0.5" fill="currentColor"/></svg>';
+function stageCellHtml(j){
+  const showIcon = CONSULTANT_GATE_STAGES.includes(j.stage) && j.consultants && j.consultants.length > 0;
+  const icon = showIcon ? `<span class="consultant-indicator" onclick="event.stopPropagation(); toggleConsultantPopover('${j.id}', event)">${CONSULTANT_ICON_SVG}</span>` : '';
+  return `<span class="stage-group"><span class="stamp ${stageClass(j.stage)}">${esc(stageDisplay(j.stage))}</span>${icon}</span>`;
+}
+function closeConsultantPopover(){
+  const existing = document.getElementById('consultantPopoverPortal');
+  if(existing) existing.remove();
+  openConsultantPopoverJobId = null;
+  document.removeEventListener('click', closeConsultantPopover);
+}
+function toggleConsultantPopover(jobId, evt){
+  const wasOpenForThisJob = openConsultantPopoverJobId === jobId;
+  closeConsultantPopover();
+  if(wasOpenForThisJob) return;
+  const j = jobs.find(x=>x.id===jobId);
+  if(!j) return;
+  openConsultantPopoverJobId = jobId;
+  const r = evt.currentTarget.getBoundingClientRect();
+  const div = document.createElement('div');
+  div.id = 'consultantPopoverPortal';
+  div.className = 'consultant-popover';
+  div.style.top = (r.bottom + 5) + 'px';
+  div.style.left = Math.max(8, Math.min(window.innerWidth - 258, r.right - 250)) + 'px';
+  div.innerHTML = consultantPopoverRowsHtml(j) + `<div class="consultant-popover-add" onclick="showAddConsultantForm('${jobId}', this)">+ Add consultant</div>`;
+  div.addEventListener('click', e => e.stopPropagation());
+  document.body.appendChild(div);
+  setTimeout(() => document.addEventListener('click', closeConsultantPopover), 0);
+}
+function consultantPopoverRowsHtml(j){
+  return (j.consultants||[]).map(c => `
+    <div class="consultant-popover-row">
+      <span class="consultant-remove" title="Remove" onclick="removeConsultant('${j.id}','${c.id}')">✕</span>
+      <div class="consultant-role">${esc(c.role)}</div>
+      <div class="consultant-name">${esc(c.name)}</div>
+      <div class="consultant-company">${esc(c.company)}</div>
+      <div class="consultant-contact">${esc(c.phone)}${c.phone && c.email ? ' · ' : ''}${esc(c.email)}</div>
+    </div>`).join('');
+}
+function showAddConsultantForm(jobId, addLinkEl){
+  addLinkEl.outerHTML = `
+    <div class="consultant-form">
+      <label>Role</label>
+      <select id="newConsultantRole">${CONSULTANT_ROLES.map(r=>`<option>${esc(r)}</option>`).join('')}</select>
+      <label>Name</label>
+      <input id="newConsultantName" type="text" placeholder="Full name">
+      <label>Company</label>
+      <input id="newConsultantCompany" type="text" placeholder="Company">
+      <label>Phone</label>
+      <input id="newConsultantPhone" type="text" placeholder="027 123 4567">
+      <label>Email</label>
+      <input id="newConsultantEmail" type="text" placeholder="name@company.co.nz">
+      <div class="consultant-form-actions">
+        <button onclick="closeConsultantPopover()">Cancel</button>
+        <button class="primary" onclick="saveConsultant('${jobId}')">Add</button>
+      </div>
+    </div>`;
+}
+async function saveConsultant(jobId){
+  const role = document.getElementById('newConsultantRole').value;
+  const name = document.getElementById('newConsultantName').value.trim();
+  const company = document.getElementById('newConsultantCompany').value.trim();
+  const phone = document.getElementById('newConsultantPhone').value.trim();
+  const email = document.getElementById('newConsultantEmail').value.trim();
+  if(!name){ showToast('Name is required'); return; }
+  await withSync(async () => {
+    const rows = await sbFetch('job_consultants', {
+      method:'POST', headers:{'Prefer':'return=representation'},
+      body:[{ job_id: jobId, role, name, company, phone, email }]
+    });
+    const j = jobs.find(x=>x.id===jobId);
+    if(j && rows && rows[0]){
+      j.consultants = j.consultants || [];
+      j.consultants.push({ id:rows[0].id, role, name, company, phone, email });
+    }
+    closeConsultantPopover();
+    renderJobs();
+  }, "Couldn't save consultant — will retry");
+}
+async function removeConsultant(jobId, consultantId){
+  await withSync(async () => {
+    await sbFetch('job_consultants?id=eq.' + encodeURIComponent(consultantId), { method:'DELETE' });
+    const j = jobs.find(x=>x.id===jobId);
+    if(j) j.consultants = (j.consultants||[]).filter(c=>c.id!==consultantId);
+    closeConsultantPopover();
+    renderJobs();
+  }, "Couldn't remove consultant — will retry");
+}
 function taskPillClass(s){ return 'pill-' + (s||'In Progress').replace(/\s/g,''); }
 function stateCategory(s){
   if(!s) return 'default';
@@ -2264,6 +2394,9 @@ function renderJobs(){
 
 const STAGE_ORDER = ['SP','PD','WD','On Site'];
 const STAGE_COLORS = { SP:'#01003A', PD:'#180F5E', WD:'#006699', 'On Site':'#408CB2' };
+const CONSULTANT_GATE_STAGES = ['WD','On Site'];
+const CONSULTANT_ROLES = ['Structural Engineer','Geotechnical','Other'];
+let openConsultantPopoverJobId = null;
 function renderBoard(list){
   const wrap = document.getElementById('boardWrap');
   const groups = STAGE_ORDER.map(s=>({key:s,label: s==='On Site'?'On Site':s+' — '+({SP:'Concept',PD:'Preliminary',WD:'Working Dwgs'}[s]||''),color:STAGE_COLORS[s]}));
@@ -2748,7 +2881,7 @@ function renderTable(list){
       ${isColHidden('region') ? '' : `<td>${esc(j.region||'')}</td>`}
       ${isColHidden('jobNumber') ? '<td class="col-collapsed"></td>' : `<td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>`}
       ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td class="td-jobname"><strong>${esc(j.jobName||'Untitled')}</strong>${LOCKED_REGION && j.address && !addressExpandedIds.has(j.id) ? `<span class="address-pin-indicator" title="${esc(j.address)}" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')">📍</span>` : ''}</td>`}
-      ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td><span class="stamp ${stageClass(j.stage)}">${esc(stageDisplay(j.stage))}</span></td>`}
+      ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td style="text-align:center;">${stageCellHtml(j)}</td>`}
       ${isColHidden('who') ? '' : `<td style="white-space:nowrap;">${esc(j.who||'')}</td>`}
       ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>`}
       ${richTextCell(j,'notes')}

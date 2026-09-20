@@ -525,6 +525,7 @@ tbody tr.kpi-weekend .staff-block-b td{background:#E9E9E7 !important;}
 .kpi-defaults-popover input{width:100%;border:1px solid var(--line-strong);border-radius:5px;padding:5px 7px;font-size:13px;}
 .kpi-defaults-popover .btn-refresh{margin-top:10px;width:100%;justify-content:center;}
 .day-cell{position:sticky;left:0;background:var(--panel);font-weight:700;padding:9px 14px;z-index:3;border-right:2px solid var(--line-strong);white-space:nowrap;min-width:100px;}
+.kpi-holiday-label{display:block;font-weight:400;font-style:italic;font-size:10.5px;color:var(--ink-faint);white-space:normal;max-width:150px;line-height:1.3;margin-top:1px;}
 th.day-cell{background:#1A3A5C;color:#F4F5F3;}
 .staff-name-hdr{
   font-family:'DM Serif Display',serif !important;font-style:italic !important;font-weight:400 !important;
@@ -3058,28 +3059,46 @@ function nzEasterSunday(year){
   return new Date(year, month-1, day);
 }
 const nzHolidayCache = {};
-function getNZHolidays(year){
-  if(nzHolidayCache[year]) return nzHolidayCache[year];
+const nzHolidayDetailsCache = {};
+function getNZHolidayDetails(year){
+  if(nzHolidayDetailsCache[year]) return nzHolidayDetailsCache[year];
   const list = [];
   const [ny1, ny2] = mondayisePair(new Date(year,0,1));
-  list.push(ny1, ny2);
-  list.push(mondayiseSingle(new Date(year,1,6)));
+  list.push({date:ny1, name:"New Year's Day"});
+  list.push({date:ny2, name:'Day after New Year\'s Day'});
+  list.push({date:mondayiseSingle(new Date(year,1,6)), name:'Waitangi Day'});
   const easter = nzEasterSunday(year);
   const goodFriday = new Date(easter); goodFriday.setDate(goodFriday.getDate()-2);
   const easterMonday = new Date(easter); easterMonday.setDate(easterMonday.getDate()+1);
-  list.push(goodFriday, easterMonday);
-  list.push(mondayiseSingle(new Date(year,3,25)));
-  list.push(nthWeekdayOfMonth(year,5,1,1));
+  list.push({date:goodFriday, name:'Good Friday'});
+  list.push({date:easterMonday, name:'Easter Monday'});
+  list.push({date:mondayiseSingle(new Date(year,3,25)), name:'ANZAC Day'});
+  list.push({date:nthWeekdayOfMonth(year,5,1,1), name:"King's Birthday"});
   if(MATARIKI_DATES[year]){
     const [mm,dd] = MATARIKI_DATES[year].split('-').map(Number);
-    list.push(new Date(year, mm-1, dd));
+    list.push({date:new Date(year, mm-1, dd), name:'Matariki'});
   }
-  list.push(nthWeekdayOfMonth(year,9,1,4));
+  const labourDay = nthWeekdayOfMonth(year,9,1,4);
+  list.push({date:labourDay, name:'Labour Day'});
+  const hbAnniversary = new Date(labourDay); hbAnniversary.setDate(hbAnniversary.getDate()-3);
+  list.push({date:hbAnniversary, name:"Hawke's Bay Anniversary Day"});
   const [xmas, boxing] = mondayisePair(new Date(year,11,25));
-  list.push(xmas, boxing);
-  const isoList = list.map(isoDate);
+  list.push({date:xmas, name:'Christmas Day'});
+  list.push({date:boxing, name:'Boxing Day'});
+  const details = list.map(h=>({iso:isoDate(h.date), name:h.name}));
+  nzHolidayDetailsCache[year] = details;
+  return details;
+}
+function getNZHolidays(year){
+  if(nzHolidayCache[year]) return nzHolidayCache[year];
+  const isoList = getNZHolidayDetails(year).map(h=>h.iso);
   nzHolidayCache[year] = isoList;
   return isoList;
+}
+function getNZHolidayName(iso){
+  const year = Number(iso.slice(0,4));
+  const found = getNZHolidayDetails(year).find(h=>h.iso===iso);
+  return found ? found.name : '';
 }
 function countWeekdayHolidaysBetween(startISO, endISO){
   if(!startISO || !endISO) return 0;
@@ -3868,7 +3887,8 @@ function renderKpiDaily(){
     const dow = dateObj.getDay();
     const isWeekend = dow===0||dow===6;
     const isHoliday = holidaySet.has(iso);
-    rows += `<tr class="${isHoliday?'kpi-holiday':(isWeekend?'kpi-weekend':'')}"><td class="day-cell">${dayNames[dow]} ${day}${isHoliday?' 🎉':''}</td>`;
+    const holidayName = isHoliday ? getNZHolidayName(iso) : '';
+    rows += `<tr class="${isHoliday?'kpi-holiday':(isWeekend?'kpi-weekend':'')}"><td class="day-cell">${dayNames[dow]} ${day}${isHoliday?` <span class="kpi-holiday-label">${esc(holidayName)}</span>`:''}</td>`;
     staff.forEach((s,idx)=>{
       const cls = 'staff-block-'+(idx%2===0?'a':'b');
       if(isHoliday){

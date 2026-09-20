@@ -398,6 +398,7 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 }
 .wl-name .rm{float:right;color:var(--ink-faint);background:none;border:none;font-size:12px;padding:0 2px;}
 .wl-name .rm:hover{color:var(--red);}
+.wl-region-select{display:block;margin-top:5px;font-size:11px;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:4px;padding:2px 4px;max-width:135px;background:#fff;}
 .wl-cell{min-width:150px;}
 .wl-cell textarea{
   width:100%;height:100%;min-height:78px;border:none;background:none;padding:10px;resize:vertical;
@@ -535,6 +536,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
 }
 .kpi-other-hdr{padding:1px 0 !important;}
 .kpi-holiday td{background:#DCEFF0 !important;}
+.kpi-holiday-cell{background:#DCEFF0 !important;}
 .kpi-fortnight-row .day-cell{font-style:italic;color:var(--ink-soft);font-weight:600;}
 .kpi-fortnight-row td.kpi-fortnight-blank{background:var(--panel);}
 .kpi-fortnight-row td.kpi-total{background:#1A3A5C !important;color:#F4F5F3;}
@@ -3080,14 +3082,32 @@ function getNZHolidayDetails(year){
   }
   const labourDay = nthWeekdayOfMonth(year,9,1,4);
   list.push({date:labourDay, name:'Labour Day'});
-  const hbAnniversary = new Date(labourDay); hbAnniversary.setDate(hbAnniversary.getDate()-3);
-  list.push({date:hbAnniversary, name:"Hawke's Bay Anniversary Day"});
   const [xmas, boxing] = mondayisePair(new Date(year,11,25));
   list.push({date:xmas, name:'Christmas Day'});
   list.push({date:boxing, name:'Boxing Day'});
   const details = list.map(h=>({iso:isoDate(h.date), name:h.name}));
   nzHolidayDetailsCache[year] = details;
   return details;
+}
+const nzRegionalHolidayCache = {};
+function getNZRegionalHolidayDetails(year){
+  if(nzRegionalHolidayCache[year]) return nzRegionalHolidayCache[year];
+  const labourDay = nthWeekdayOfMonth(year,9,1,4);
+  const hbAnniversary = new Date(labourDay); hbAnniversary.setDate(hbAnniversary.getDate()-3);
+  const firstTuesNov = nthWeekdayOfMonth(year,10,2,1);
+  const cantAnniversary = new Date(firstTuesNov); cantAnniversary.setDate(cantAnniversary.getDate()+10);
+  const list = [
+    {iso:isoDate(hbAnniversary), name:"Hawke's Bay Anniversary Day", region:'Hawkes Bay'},
+    {iso:isoDate(cantAnniversary), name:'Canterbury Anniversary Day', region:'Canterbury'}
+  ];
+  nzRegionalHolidayCache[year] = list;
+  return list;
+}
+function getRegionalHolidayName(iso, region){
+  if(!region) return '';
+  const year = Number(iso.slice(0,4));
+  const found = getNZRegionalHolidayDetails(year).find(h=>h.iso===iso && h.region===region);
+  return found ? found.name : '';
 }
 function getNZHolidays(year){
   if(nzHolidayCache[year]) return nzHolidayCache[year];
@@ -3598,7 +3618,12 @@ function renderWorkload(){
   document.getElementById('wlBody').innerHTML = staff.filter(s=>s.show_in_workload!==false).slice().sort((a,b)=>a.name.localeCompare(b.name)).map(s=>{
     const row = data[s.id] || {};
     return `<tr>
-      <td class="wl-name">${esc(s.name)}<button class="rm" title="Remove" onclick="removeStaff('${s.id}')">✕</button></td>
+      <td class="wl-name">${esc(s.name)}<button class="rm" title="Remove" onclick="removeStaff('${s.id}')">✕</button>
+        <select class="wl-region-select" data-staff="${s.id}" onchange="saveStaffRegion(this)">
+          <option value="">No region</option>
+          ${regions.map(r=>`<option value="${esc(r)}" ${s.region===r?'selected':''}>${esc(r)}</option>`).join('')}
+        </select>
+      </td>
       ${DAYS.map(d=>`<td class="wl-cell ${d===tk?'today':''}"><textarea data-staff="${s.id}" data-day="${d}" onblur="saveWorkloadCell(this)" placeholder="…">${esc(row[d]||'')}</textarea></td>`).join('')}
       <td class="wl-cell"><textarea data-staff="${s.id}" data-day="upcoming" onblur="saveWorkloadCell(this)" placeholder="Upcoming / to lodge…">${esc(row.upcoming||'')}</textarea></td>
     </tr>`;
@@ -3632,6 +3657,15 @@ async function saveWorkloadCell(el){
   await withSync(async ()=>{
     await sbFetch('workload?on_conflict=week_key,staff_id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{ week_key:key, staff_id:sid, data: workloadCache[key][sid] }] });
   }, 'Save failed — check connection');
+}
+async function saveStaffRegion(el){
+  const staffId = el.dataset.staff;
+  const region = el.value;
+  const s = staff.find(x=>x.id===staffId);
+  if(s) s.region = region;
+  await withSync(async ()=>{
+    await sbFetch('staff?id=eq.' + encodeURIComponent(staffId), { method:'PATCH', body:{region} });
+  }, "Couldn't save region — will retry");
 }
 async function addStaff(){
   const input = document.getElementById('newStaffName');
@@ -3880,6 +3914,8 @@ function renderKpiDaily(){
   }).join('');
   const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const holidaySet = new Set(getNZHolidays(year));
+  const regionalHolidays = getNZRegionalHolidayDetails(year);
+  const staffRegions = new Set(staff.map(s=>s.region).filter(Boolean));
   let rows = '';
   for(let day=1; day<=total; day++){
     const dateObj = new Date(year, month-1, day);
@@ -3887,12 +3923,17 @@ function renderKpiDaily(){
     const dow = dateObj.getDay();
     const isWeekend = dow===0||dow===6;
     const isHoliday = holidaySet.has(iso);
-    const holidayName = isHoliday ? getNZHolidayName(iso) : '';
-    rows += `<tr class="${isHoliday?'kpi-holiday':(isWeekend?'kpi-weekend':'')}"><td class="day-cell">${dayNames[dow]} ${day}${isHoliday?` <span class="kpi-holiday-label">${esc(holidayName)}</span>`:''}</td>`;
+    const todaysRegionalHolidays = regionalHolidays.filter(h=>h.iso===iso && staffRegions.has(h.region));
+    const labelNames = [isHoliday ? getNZHolidayName(iso) : null, ...todaysRegionalHolidays.map(h=>h.name)].filter(Boolean);
+    const showLabel = labelNames.length > 0;
+    rows += `<tr class="${isHoliday?'kpi-holiday':(isWeekend?'kpi-weekend':'')}"><td class="day-cell">${dayNames[dow]} ${day}${showLabel?` <span class="kpi-holiday-label">${esc(labelNames.join(' / '))}</span>`:''}</td>`;
     staff.forEach((s,idx)=>{
       const cls = 'staff-block-'+(idx%2===0?'a':'b');
-      if(isHoliday){
-        rows += `<td class="${cls} staff-block-start"></td><td class="${cls}"></td><td class="${cls}"></td><td class="${cls}"></td><td class="${cls}"></td><td></td>`;
+      const regionalHolidayToday = s.region ? todaysRegionalHolidays.find(h=>h.region===s.region) : null;
+      const staffIsHoliday = isHoliday || !!regionalHolidayToday;
+      if(staffIsHoliday){
+        const cellCls = cls + (!isHoliday && regionalHolidayToday ? ' kpi-holiday-cell' : '');
+        rows += `<td class="${cellCls} staff-block-start" title="${esc(regionalHolidayToday ? regionalHolidayToday.name : '')}"></td><td class="${cellCls}"></td><td class="${cellCls}"></td><td class="${cellCls}"></td><td class="${cellCls}"></td><td></td>`;
         return;
       }
       const leaveType = kpiLeaveDays[s.id+'|'+iso] || '';

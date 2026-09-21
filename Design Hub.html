@@ -3067,7 +3067,7 @@ function getNZHolidayDetails(year){
   const list = [];
   const [ny1, ny2] = mondayisePair(new Date(year,0,1));
   list.push({date:ny1, name:"New Year's Day"});
-  list.push({date:ny2, name:'Day after New Year\'s Day'});
+  list.push({date:ny2, name:'Day after New Year\'s'});
   list.push({date:mondayiseSingle(new Date(year,1,6)), name:'Waitangi Day'});
   const easter = nzEasterSunday(year);
   const goodFriday = new Date(easter); goodFriday.setDate(goodFriday.getDate()-2);
@@ -3097,8 +3097,8 @@ function getNZRegionalHolidayDetails(year){
   const firstTuesNov = nthWeekdayOfMonth(year,10,2,1);
   const cantAnniversary = new Date(firstTuesNov); cantAnniversary.setDate(cantAnniversary.getDate()+10);
   const list = [
-    {iso:isoDate(hbAnniversary), name:"Hawke's Bay Anniversary Day", region:'Hawkes Bay'},
-    {iso:isoDate(cantAnniversary), name:'Canterbury Anniversary Day', region:'Canterbury'}
+    {iso:isoDate(hbAnniversary), name:'HB Anniversary Day', region:'Hawkes Bay'},
+    {iso:isoDate(cantAnniversary), name:'Cant. Anniversary Day', region:'Canterbury'}
   ];
   nzRegionalHolidayCache[year] = list;
   return list;

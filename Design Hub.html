@@ -172,6 +172,42 @@ select.select, .toolbar select{
 .btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
 .hint{font-size:11.5px;color:var(--ink-faint);margin:-6px 0 14px 2px;}
 .f-hint{font-size:11px;color:var(--ink-faint);margin-top:4px;}
+.modal-tabs{display:flex;gap:4px;padding:0 24px;border-bottom:1px solid var(--line-strong);}
+.modal-tab{
+  font-family:'Open Sans',sans-serif;font-size:13px;font-weight:600;color:var(--ink-faint);
+  background:none;border:none;padding:12px 4px;margin-right:20px;cursor:pointer;border-bottom:2px solid transparent;
+}
+.modal-tab.active{color:var(--navy);border-bottom-color:var(--blue);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.stage-who-row{
+  display:grid;grid-template-columns:34px 100px 1fr;align-items:center;gap:10px;
+  padding:10px 10px;border:1px solid var(--line-strong);border-radius:8px;margin-bottom:7px;background:#fff;
+}
+.stage-who-row.is-current{border-color:var(--blue);background:#F4F9FB;}
+.stage-who-radio{width:17px;height:17px;accent-color:var(--blue);cursor:pointer;}
+.stage-who-name{font-weight:700;font-size:12.5px;color:var(--ink);}
+.stage-who-name small{display:block;font-weight:400;color:var(--ink-faint);font-size:10px;text-transform:none;}
+.stage-who-current-badge{display:inline-block;margin-left:5px;font-size:9px;font-weight:700;color:var(--blue);background:#E3F0F5;border-radius:3px;padding:1px 5px;vertical-align:1px;letter-spacing:.02em;}
+.who-chip{display:inline-flex;align-items:center;gap:5px;background:#EFEDE6;border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:600;color:var(--ink);}
+.who-chip .x{cursor:pointer;color:var(--ink-faint);font-size:10px;}
+.who-chip .x:hover{color:var(--red);}
+.who-add-btn{background:none;border:1px dashed var(--line-strong);border-radius:20px;padding:3px 11px;font-size:11.5px;color:var(--blue);cursor:pointer;font-weight:600;}
+.who-add-btn:hover{background:#F4F9FB;}
+.who-area{display:flex;flex-wrap:wrap;gap:6px;align-items:center;position:relative;}
+.who-popover{position:absolute;top:28px;left:0;z-index:50;background:#fff;border:1px solid var(--line-strong);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.18);padding:6px;width:170px;}
+.who-popover label{display:flex;align-items:center;gap:8px;padding:6px 8px;font-size:12.5px;border-radius:5px;cursor:pointer;}
+.who-popover label:hover{background:#F4F9FB;}
+.who-popover input{accent-color:var(--blue);}
+.modal-consultant-row{
+  display:grid;grid-template-columns:150px 1fr 1fr auto;align-items:center;gap:10px;
+  padding:10px 12px;border:1px solid var(--line-strong);border-radius:8px;margin-bottom:8px;background:#fff;
+}
+.modal-consultant-empty{border:1px dashed var(--line-strong);border-radius:8px;padding:14px;font-size:12.5px;color:var(--ink-faint);text-align:center;margin-bottom:10px;}
+.modal-consultant-add-toggle{background:none;border:1px dashed var(--line-strong);border-radius:6px;padding:8px 14px;font-size:13px;color:var(--blue);font-weight:600;cursor:pointer;}
+.modal-consultant-add-toggle:hover{background:#F4F9FB;}
+.modal-consultant-add-form{border:1px solid var(--line-strong);border-radius:8px;padding:14px;margin-top:4px;}
+.modal-consultant-add-form .full{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;}
 .stage-summary-row{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
 .stage-summary-card{
   flex:1 1 200px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow);
@@ -201,40 +237,9 @@ select.select, .toolbar select{
 .pill-state-withServices{background:#EBB5C8;color:#7A1F42;}
 .pill-state-default{background:#A1D6CC;color:#0B4A3E;}
 
-.stage-group{display:inline-flex;align-items:center;}
-.consultant-indicator{cursor:pointer;display:inline-flex;align-items:center;opacity:0.85;color:var(--blue);margin-left:5px;}
-.consultant-indicator:hover{opacity:1;}
-.consultant-indicator-empty{opacity:0.3;}
-.consultant-indicator-empty:hover{opacity:0.75;}
-.consultant-popover-empty{padding:10px 10px 4px;font-size:12px;color:var(--ink-faint);font-style:italic;}
-.consultant-indicator svg{display:block;}
-.consultant-popover{
-  position:fixed;z-index:500;background:#fff;border:1px solid var(--line-strong);border-radius:6px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.2);padding:4px;font-family:'Open Sans',sans-serif;width:250px;
-}
-.consultant-popover-row{padding:8px 10px;border-bottom:1px solid var(--line);position:relative;}
-.consultant-popover-row:last-child{border-bottom:none;}
-.consultant-role{font-weight:600;color:var(--blue);font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;}
-.consultant-name{font-weight:600;color:var(--ink);font-size:12.5px;margin-top:2px;}
-.consultant-company{color:var(--ink-soft);font-size:11.5px;}
-.consultant-contact{color:var(--ink-faint);font-size:11px;margin-top:2px;}
-.consultant-remove{position:absolute;top:7px;right:8px;cursor:pointer;opacity:0.4;font-size:11px;color:var(--ink-faint);}
-.consultant-remove:hover{opacity:0.9;color:#A13B2A;}
-.consultant-popover-add{padding:9px 10px;font-size:12px;color:var(--blue);cursor:pointer;font-weight:600;}
-.consultant-popover-add:hover{background:#F4F8FB;}
-.consultant-form{padding:9px 10px;}
-.consultant-form label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;margin:7px 0 2px;}
-.consultant-form label:first-child{margin-top:0;}
-.consultant-form select, .consultant-form input{
-  width:100%;font-family:'Open Sans',sans-serif;font-size:12.5px;padding:5px 7px;
-  border:1px solid var(--line-strong);border-radius:4px;color:var(--ink);box-sizing:border-box;
-}
-.consultant-form-actions{display:flex;gap:6px;margin-top:10px;}
-.consultant-form-actions button{
-  flex:1;font-family:'Open Sans',sans-serif;font-size:12px;font-weight:600;padding:6px;
-  border-radius:4px;cursor:pointer;border:1px solid var(--line-strong);background:#fff;color:var(--ink-soft);
-}
-.consultant-form-actions button.primary{background:var(--blue);border-color:var(--blue);color:#fff;}
+.consultant-role-tag{font-weight:600;color:var(--blue);font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;}
+.consultant-remove-btn{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:13px;}
+.consultant-remove-btn:hover{color:#A13B2A;}
 
 .address-subrow td{background:#FBFAF7;border-top:none;padding:6px 14px;font-size:12px;color:var(--ink-faint);}
 .address-subrow-label{font-weight:500;margin-right:8px;color:var(--ink-faint);}
@@ -244,6 +249,8 @@ select.select, .toolbar select{
 .address-input-flat.has-value{border:none;background:transparent;color:var(--blue);font-weight:600;padding-left:0;}
 .address-input-flat.has-value:focus{border:1px solid var(--blue-soft);background:#fff;color:var(--ink);font-weight:400;padding-left:7px;}
 .address-cell-flat{display:flex;align-items:center;gap:8px;}
+.address-display{font-size:13px;color:var(--blue);font-weight:600;}
+.address-display-empty{color:var(--ink-faint);font-weight:400;font-style:italic;}
 .address-map-link{text-decoration:none;font-size:14px;opacity:0.75;flex-shrink:0;}
 .address-map-link:hover{opacity:1;}
 .council-resolve-link{cursor:pointer;font-size:11.5px;color:var(--ink-faint);text-decoration:underline;}
@@ -791,27 +798,21 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <h2 id="modalTitle">New job</h2>
       <button class="modal-close" onclick="closeJobModal()">✕</button>
     </div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="jobTabBtn-details" onclick="switchJobModalTab('details')" type="button">Details</button>
+      <button class="modal-tab" id="jobTabBtn-consultants" onclick="switchJobModalTab('consultants')" type="button">Consultants</button>
+    </div>
     <div class="modal-body">
+     <div class="tab-panel active" id="jobTabPanel-details">
       <div class="full" style="display:grid;grid-template-columns:1fr 120px 2fr;gap:14px;">
         <div><label class="f-label">Region</label><input class="f-input" id="f-region" list="regionList"></div>
         <div><label class="f-label">Job number</label><input class="f-input" id="f-jobNumber" placeholder="e.g. 27002"></div>
         <div><label class="f-label">Client / job name</label><input class="f-input" id="f-jobName" placeholder="e.g. Coelho &amp; Campbell"></div>
       </div>
-      <div class="full" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;">
-        <div><label class="f-label">Stage</label>
-          <select class="f-select" id="f-stage" onchange="autoCalcDates(false); populateStateOptions(this.value, '', false);">
-            <option value="SP">SP — Concept</option>
-            <option value="PD">PD — Preliminary</option>
-            <option value="WD">WD — Working Drawings</option>
-            <option value="On Site">On Site</option>
-          </select>
-        </div>
+      <div class="full" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;">
+        <div><label class="f-label">Address</label><input class="f-input" id="f-address" placeholder="Site address"></div>
         <div><label class="f-label">State</label>
           <select class="f-select" id="f-status"></select>
-        </div>
-        <div><label class="f-label">Assigned to</label>
-          <select class="f-select" id="f-who" multiple size="4"></select>
-          <div class="f-hint">Ctrl/Cmd-click to select more than one person</div>
         </div>
         <div><label class="f-label">Task status</label>
           <select class="f-select" id="f-taskStatus">
@@ -820,6 +821,12 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
             <option value="On Hold">On Hold</option>
           </select>
         </div>
+      </div>
+      <input type="hidden" id="f-stage" value="SP">
+      <div class="full" style="border-top:1px solid var(--line);padding-top:12px;margin-top:2px;">
+        <span style="font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;">Stage &amp; who</span>
+        <div class="f-hint" style="margin:2px 0 10px;">Tick the current stage. Add people to whichever stage they actually worked — nothing is lost as the job moves forward.</div>
+        <div id="stageWhoRows"></div>
       </div>
       <div class="full" style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:12px;margin-top:2px;">
         <span style="font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;">Estimated completion</span>
@@ -836,6 +843,11 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <div><label class="f-label">Planning</label><textarea class="f-textarea" id="f-planning" placeholder="Use **bold**, *italic*, ==highlight== for formatting…"></textarea></div>
         <div><label class="f-label">Engineer</label><textarea class="f-textarea" id="f-engineer"></textarea></div>
       </div>
+     </div>
+     <div class="tab-panel" id="jobTabPanel-consultants">
+      <div id="modalConsultantList"></div>
+      <div id="modalConsultantAddArea"></div>
+     </div>
     </div>
     <div class="modal-foot">
       <div class="foot-left">
@@ -1804,7 +1816,8 @@ function rowToJob(r){
     engineer: r.engineer_date || '',
     updatedAt: r.updated_at || null,
     archived: !!r.archived,
-    consultants: []
+    consultants: [],
+    stageWho: { SP:[], PD:[], WD:[], 'On Site':[] }
   };
 }
 
@@ -1880,14 +1893,15 @@ async function loadAll(silent){
       jobs = jobRows.map(rowToJob);
       staff = staffRows;
     }
-    const [regionRows, contactRows, regionAddressRows, guideRows, widthRows, noteRows, consultantRows] = await Promise.all([
+    const [regionRows, contactRows, regionAddressRows, guideRows, widthRows, noteRows, consultantRows, stageWhoRows] = await Promise.all([
       sbFetch('regions?select=name'),
       sbFetch('contacts?select=*'),
       sbFetch('region_addresses?select=*'),
       sbFetch('timeline_guides?select=data&id=eq.1'),
       sbFetch('column_widths?select=widths&id=eq.1'),
       LOCKED_WHO ? sbFetch('personal_notes?select=job_id,note&who=eq.' + encodeURIComponent(LOCKED_WHO)) : Promise.resolve(null),
-      sbFetch('job_consultants?select=*&order=created_at.asc')
+      sbFetch('job_consultants?select=*&order=created_at.asc'),
+      sbFetch('job_stage_who?select=*')
     ]);
     if(regionRows.length) regions = regionRows.map(r=>r.name);
     companyContacts = contactRows;
@@ -1911,6 +1925,13 @@ async function loadAll(silent){
       });
     });
     jobs.forEach(j=>{ j.consultants = consultantsByJob[j.id] || []; });
+    const stageWhoByJob = {};
+    (stageWhoRows||[]).forEach(r=>{
+      const bucket = (stageWhoByJob[r.job_id] = stageWhoByJob[r.job_id] || { SP:[], PD:[], WD:[], 'On Site':[] });
+      if(bucket[r.stage]) bucket[r.stage].push(r.staff_name);
+    });
+    jobs.forEach(j=>{ j.stageWho = stageWhoByJob[j.id] || { SP:[], PD:[], WD:[], 'On Site':[] }; });
+
 
     connectionOk = true;
     consecutiveFailures = 0;
@@ -1982,6 +2003,8 @@ function copyAsTable(){
         cellHtml = inlinePillHtml(j.status, STATE_PILL_COLORS[stateCategory(j.status)]);
       } else if(c.key === 'taskStatus'){
         cellHtml = inlinePillHtml(j.taskStatus || 'In Progress', TASK_PILL_COLORS[j.taskStatus || 'In Progress']);
+      } else if(c.key === 'who'){
+        cellHtml = esc((j.stageWho && j.stageWho[j.stage] || []).join(', '));
       } else {
         const val = dateFields.has(c.key) ? fmtDate(j[c.key]) : (j[c.key]||'');
         cellHtml = (c.key==='notes' || c.key==='planning') ? sanitizeRich(val) : esc(val);
@@ -2057,7 +2080,7 @@ function renderDashboard(){
 
   const peopleCounts = {};
   active.forEach(j=>{
-    (j.who||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(name=>{
+    ((j.stageWho && j.stageWho[j.stage]) || []).forEach(name=>{
       peopleCounts[name] = (peopleCounts[name]||0) + 1;
     });
   });
@@ -2102,7 +2125,7 @@ function renderAddresses(){
       <td><strong>${esc(j.jobName||'Untitled')}</strong>${j.archived ? ' <span style="color:var(--ink-faint);font-weight:400;">(archived)</span>' : ''}</td>
       <td>
         <div class="address-cell-flat">
-          <input type="text" class="address-input address-input-flat${j.address ? ' has-value' : ''}" data-id="${j.id}" value="${esc(j.address||'')}" placeholder="Add site address…" onblur="saveAddressField(this)" onkeydown="if(event.key==='Enter'){this.blur();}">
+          <span class="address-display${j.address ? '' : ' address-display-empty'}">${j.address ? esc(j.address) : 'No address yet — edit job to add'}</span>
           ${j.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address)}" target="_blank" rel="noopener" class="address-map-link" title="Open in Google Maps" onclick="event.stopPropagation()">🗺️</a>` : ''}
         </div>
       </td>
@@ -2201,97 +2224,75 @@ function dateSortKey(v){
 }
 function stageClass(s){ return s==='On Site' ? 'stage-OnSite' : 'stage-'+s; }
 function stageDisplay(s){ return s==='On Site' ? 'Site' : s; }
-const CONSULTANT_ICON_SVG = '<svg viewBox="0 0 24 24" width="17.6" height="17.6"><rect x="2" y="5" width="20" height="14" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="12" r="2.1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4.6 16.4c0-1.8 1.5-3 3.4-3s3.4 1.2 3.4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="14" y="8.4" width="5.3" height="1.4" rx="0.5" fill="currentColor"/><rect x="14" y="11.3" width="5.3" height="1.4" rx="0.5" fill="currentColor"/><rect x="14" y="14.2" width="3.4" height="1.4" rx="0.5" fill="currentColor"/></svg>';
 function stageCellHtml(j){
-  const gated = CONSULTANT_GATE_STAGES.includes(j.stage);
-  const hasConsultants = j.consultants && j.consultants.length > 0;
-  const icon = gated ? `<span class="consultant-indicator${hasConsultants ? '' : ' consultant-indicator-empty'}" onclick="event.stopPropagation(); toggleConsultantPopover('${j.id}', event)" title="${hasConsultants ? 'View/edit consultants' : 'Add a consultant'}">${CONSULTANT_ICON_SVG}</span>` : '';
-  return `<span class="stage-group"><span class="stamp ${stageClass(j.stage)}">${esc(stageDisplay(j.stage))}</span>${icon}</span>`;
+  return `<span class="stamp ${stageClass(j.stage)}">${esc(stageDisplay(j.stage))}</span>`;
 }
-function closeConsultantPopover(){
-  const existing = document.getElementById('consultantPopoverPortal');
-  if(existing) existing.remove();
-  openConsultantPopoverJobId = null;
-  document.removeEventListener('click', closeConsultantPopover);
+function renderModalConsultants(){
+  const j = currentEditId ? jobs.find(x=>x.id===currentEditId) : null;
+  const listEl = document.getElementById('modalConsultantList');
+  const addArea = document.getElementById('modalConsultantAddArea');
+  if(!listEl || !addArea) return;
+  if(!j){
+    listEl.innerHTML = `<div class="modal-consultant-empty">Save the job first, then come back here to add consultants.</div>`;
+    addArea.innerHTML = '';
+    return;
+  }
+  const list = j.consultants || [];
+  listEl.innerHTML = list.length ? list.map(c => `
+    <div class="modal-consultant-row">
+      <div class="consultant-role-tag">${esc(c.role)}</div>
+      <div><strong>${esc(c.name)}</strong><div style="font-size:11.5px;color:var(--ink-soft);">${esc(c.company)}</div></div>
+      <div style="font-size:12px;color:var(--ink-faint);">${esc(c.phone)}${c.phone && c.email ? ' · ' : ''}${esc(c.email)}</div>
+      <button type="button" class="consultant-remove-btn" onclick="removeModalConsultant('${c.id}')">✕</button>
+    </div>`).join('') : `<div class="modal-consultant-empty">No consultants logged yet.</div>`;
+  if(!modalConsultantFormOpen){
+    addArea.innerHTML = `<button type="button" class="modal-consultant-add-toggle" onclick="modalConsultantFormOpen=true; renderModalConsultants();">+ Add consultant</button>`;
+  } else {
+    addArea.innerHTML = `
+      <div class="modal-consultant-add-form">
+        <div class="full">
+          <div><label class="f-label">Role</label><select class="f-select" id="mc-role">${CONSULTANT_ROLES.map(r=>`<option>${esc(r)}</option>`).join('')}</select></div>
+          <div><label class="f-label">Name</label><input class="f-input" id="mc-name" placeholder="Full name"></div>
+        </div>
+        <div class="full">
+          <div><label class="f-label">Company</label><input class="f-input" id="mc-company" placeholder="Company"></div>
+          <div><label class="f-label">Phone / Email</label><input class="f-input" id="mc-contact" placeholder="027 123 4567 / name@company.co.nz"></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn-ghost" onclick="modalConsultantFormOpen=false; renderModalConsultants();">Cancel</button>
+          <button type="button" class="btn-primary" onclick="saveModalConsultant()">Add consultant</button>
+        </div>
+      </div>`;
+  }
 }
-function toggleConsultantPopover(jobId, evt){
-  const wasOpenForThisJob = openConsultantPopoverJobId === jobId;
-  closeConsultantPopover();
-  if(wasOpenForThisJob) return;
-  const j = jobs.find(x=>x.id===jobId);
-  if(!j) return;
-  openConsultantPopoverJobId = jobId;
-  const r = evt.currentTarget.getBoundingClientRect();
-  const div = document.createElement('div');
-  div.id = 'consultantPopoverPortal';
-  div.className = 'consultant-popover';
-  div.style.top = (r.bottom + 5) + 'px';
-  div.style.left = Math.max(8, Math.min(window.innerWidth - 258, r.right - 250)) + 'px';
-  const rowsHtml = (j.consultants && j.consultants.length)
-    ? consultantPopoverRowsHtml(j)
-    : `<div class="consultant-popover-empty">No consultants logged yet.</div>`;
-  div.innerHTML = rowsHtml + `<div class="consultant-popover-add" onclick="showAddConsultantForm('${jobId}', this)">+ Add consultant</div>`;
-  div.addEventListener('click', e => e.stopPropagation());
-  document.body.appendChild(div);
-  setTimeout(() => document.addEventListener('click', closeConsultantPopover), 0);
-}
-function consultantPopoverRowsHtml(j){
-  return (j.consultants||[]).map(c => `
-    <div class="consultant-popover-row">
-      <span class="consultant-remove" title="Remove" onclick="removeConsultant('${j.id}','${c.id}')">✕</span>
-      <div class="consultant-role">${esc(c.role)}</div>
-      <div class="consultant-name">${esc(c.name)}</div>
-      <div class="consultant-company">${esc(c.company)}</div>
-      <div class="consultant-contact">${esc(c.phone)}${c.phone && c.email ? ' · ' : ''}${esc(c.email)}</div>
-    </div>`).join('');
-}
-function showAddConsultantForm(jobId, addLinkEl){
-  addLinkEl.outerHTML = `
-    <div class="consultant-form">
-      <label>Role</label>
-      <select id="newConsultantRole">${CONSULTANT_ROLES.map(r=>`<option>${esc(r)}</option>`).join('')}</select>
-      <label>Name</label>
-      <input id="newConsultantName" type="text" placeholder="Full name">
-      <label>Company</label>
-      <input id="newConsultantCompany" type="text" placeholder="Company">
-      <label>Phone</label>
-      <input id="newConsultantPhone" type="text" placeholder="027 123 4567">
-      <label>Email</label>
-      <input id="newConsultantEmail" type="text" placeholder="name@company.co.nz">
-      <div class="consultant-form-actions">
-        <button onclick="closeConsultantPopover()">Cancel</button>
-        <button class="primary" onclick="saveConsultant('${jobId}')">Add</button>
-      </div>
-    </div>`;
-}
-async function saveConsultant(jobId){
-  const role = document.getElementById('newConsultantRole').value;
-  const name = document.getElementById('newConsultantName').value.trim();
-  const company = document.getElementById('newConsultantCompany').value.trim();
-  const phone = document.getElementById('newConsultantPhone').value.trim();
-  const email = document.getElementById('newConsultantEmail').value.trim();
+async function saveModalConsultant(){
+  if(!currentEditId) return;
+  const role = document.getElementById('mc-role').value;
+  const name = document.getElementById('mc-name').value.trim();
+  const company = document.getElementById('mc-company').value.trim();
+  const contact = document.getElementById('mc-contact').value.trim();
   if(!name){ showToast('Name is required'); return; }
   await withSync(async () => {
     const rows = await sbFetch('job_consultants', {
       method:'POST', headers:{'Prefer':'return=representation'},
-      body:[{ job_id: jobId, role, name, company, phone, email }]
+      body:[{ job_id: currentEditId, role, name, company, phone: contact, email:'' }]
     });
-    const j = jobs.find(x=>x.id===jobId);
+    const j = jobs.find(x=>x.id===currentEditId);
     if(j && rows && rows[0]){
       j.consultants = j.consultants || [];
-      j.consultants.push({ id:rows[0].id, role, name, company, phone, email });
+      j.consultants.push({ id:rows[0].id, role, name, company, phone: contact, email:'' });
     }
-    closeConsultantPopover();
-    renderJobs();
+    modalConsultantFormOpen = false;
+    renderModalConsultants();
   }, "Couldn't save consultant — will retry");
 }
-async function removeConsultant(jobId, consultantId){
+async function removeModalConsultant(consultantId){
+  if(!currentEditId) return;
   await withSync(async () => {
     await sbFetch('job_consultants?id=eq.' + encodeURIComponent(consultantId), { method:'DELETE' });
-    const j = jobs.find(x=>x.id===jobId);
+    const j = jobs.find(x=>x.id===currentEditId);
     if(j) j.consultants = (j.consultants||[]).filter(c=>c.id!==consultantId);
-    closeConsultantPopover();
-    renderJobs();
+    renderModalConsultants();
   }, "Couldn't remove consultant — will retry");
 }
 function taskPillClass(s){ return 'pill-' + (s||'In Progress').replace(/\s/g,''); }
@@ -2380,14 +2381,18 @@ function getFiltered(){
       if(!showCompleted && j.taskStatus === 'Completed') return false;
     }
     if(region && j.region !== region) return false;
-    if(LOCKED_WHO && !(j.who||'').split(',').map(s=>s.trim()).includes(LOCKED_WHO)) return false;
+    if(LOCKED_WHO && !allStageWhoNames(j).includes(LOCKED_WHO)) return false;
     if(stage && j.stage !== stage) return false;
     if(q){
-      const hay = [j.jobNumber,j.jobName,j.notes,j.who,j.address,j.status].join(' ').toLowerCase();
+      const hay = [j.jobNumber,j.jobName,j.notes,allStageWhoNames(j).join(' '),j.address,j.status].join(' ').toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   });
+}
+function allStageWhoNames(j){
+  if(!j.stageWho) return [];
+  return [...(j.stageWho.SP||[]), ...(j.stageWho.PD||[]), ...(j.stageWho.WD||[]), ...(j.stageWho['On Site']||[])];
 }
 
 function setJobView(v){
@@ -2411,9 +2416,71 @@ function renderJobs(){
 
 const STAGE_ORDER = ['SP','PD','WD','On Site'];
 const STAGE_COLORS = { SP:'#01003A', PD:'#180F5E', WD:'#006699', 'On Site':'#408CB2' };
-const CONSULTANT_GATE_STAGES = ['WD','On Site'];
 const CONSULTANT_ROLES = ['Structural Engineer','Geotechnical','Other'];
-let openConsultantPopoverJobId = null;
+const WHO_ROSTER = ['Dan A','Dan W','Hannah','Hayley','Sarah'];
+let modalConsultantFormOpen = false;
+let modalStageWho = { SP:[], PD:[], WD:[], 'On Site':[] };
+let modalCurrentStage = 'SP';
+let modalWhoPopoverStage = null;
+function switchJobModalTab(tab){
+  document.querySelectorAll('#jobOverlay .modal-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#jobOverlay .tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('jobTabBtn-'+tab).classList.add('active');
+  document.getElementById('jobTabPanel-'+tab).classList.add('active');
+  if(tab==='consultants') renderModalConsultants();
+}
+const STAGE_WHO_META = [
+  {key:'SP', label:'SP', sub:'Concept'},
+  {key:'PD', label:'PD', sub:'Preliminary'},
+  {key:'WD', label:'WD', sub:'Working Dwgs'},
+  {key:'On Site', label:'On Site', sub:''}
+];
+function renderStageWhoRows(){
+  const container = document.getElementById('stageWhoRows');
+  if(!container) return;
+  container.innerHTML = STAGE_WHO_META.map(st => {
+    const isCurrent = st.key === modalCurrentStage;
+    const people = modalStageWho[st.key] || [];
+    const chips = people.map(name => `<span class="who-chip">${esc(name)}<span class="x" onclick="removeStageWhoPerson('${st.key}','${esc(name)}')">✕</span></span>`).join('');
+    const popover = modalWhoPopoverStage === st.key ? `
+      <div class="who-popover" onclick="event.stopPropagation()">
+        ${WHO_ROSTER.map(name => `<label><input type="checkbox" ${people.includes(name) ? 'checked' : ''} onchange="toggleStageWhoPerson('${st.key}','${esc(name)}')">${esc(name)}</label>`).join('')}
+      </div>` : '';
+    return `
+      <div class="stage-who-row ${isCurrent ? 'is-current' : ''}">
+        <input type="radio" name="modalStageRadio" class="stage-who-radio" ${isCurrent ? 'checked' : ''} onchange="setModalCurrentStage('${st.key}')">
+        <div class="stage-who-name">${st.label}${st.sub ? `<small>${st.sub}</small>` : ''}${isCurrent ? '<span class="stage-who-current-badge">CURRENT</span>' : ''}</div>
+        <div class="who-area">
+          ${chips}
+          <button type="button" class="who-add-btn" onclick="toggleWhoAddPopover('${st.key}', event)">+ Add</button>
+          ${popover}
+        </div>
+      </div>`;
+  }).join('');
+}
+function setModalCurrentStage(key){
+  modalCurrentStage = key;
+  document.getElementById('f-stage').value = key;
+  autoCalcDates(false);
+  populateStateOptions(key, '', false);
+  renderStageWhoRows();
+}
+function toggleWhoAddPopover(key, evt){
+  evt.stopPropagation();
+  modalWhoPopoverStage = (modalWhoPopoverStage === key) ? null : key;
+  renderStageWhoRows();
+}
+function toggleStageWhoPerson(stageKey, name){
+  const list = modalStageWho[stageKey];
+  const idx = list.indexOf(name);
+  if(idx === -1) list.push(name); else list.splice(idx,1);
+  renderStageWhoRows();
+}
+function removeStageWhoPerson(stageKey, name){
+  modalStageWho[stageKey] = (modalStageWho[stageKey]||[]).filter(n => n !== name);
+  renderStageWhoRows();
+}
+document.addEventListener('click', () => { if(modalWhoPopoverStage){ modalWhoPopoverStage = null; renderStageWhoRows(); } });
 function renderBoard(list){
   const wrap = document.getElementById('boardWrap');
   const groups = STAGE_ORDER.map(s=>({key:s,label: s==='On Site'?'On Site':s+' — '+({SP:'Concept',PD:'Preliminary',WD:'Working Dwgs'}[s]||''),color:STAGE_COLORS[s]}));
@@ -2901,7 +2968,7 @@ function renderTable(list){
       ${isColHidden('jobNumber') ? '<td class="col-collapsed"></td>' : `<td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>`}
       ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td class="td-jobname"><strong>${esc(j.jobName||'Untitled')}</strong>${LOCKED_REGION && j.address && !addressExpandedIds.has(j.id) ? `<span class="address-pin-indicator" title="${esc(j.address)}" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')">📍</span>` : ''}</td>`}
       ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td style="text-align:center;">${stageCellHtml(j)}</td>`}
-      ${isColHidden('who') ? '' : `<td style="white-space:nowrap;">${esc(j.who||'')}</td>`}
+      ${isColHidden('who') ? '' : `<td style="white-space:nowrap;">${esc((j.stageWho && j.stageWho[j.stage] || []).join(', '))}</td>`}
       ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>`}
       ${richTextCell(j,'notes')}
       ${richTextCell(j,'planning')}
@@ -2984,14 +3051,19 @@ function openJobModal(id){
   document.getElementById('recalcBtn').style.display = READ_ONLY ? 'none' : 'inline-block';
   document.querySelectorAll('#jobOverlay input, #jobOverlay select, #jobOverlay textarea').forEach(el=>{ el.disabled = READ_ONLY; });
   populateStateOptions(j?.stage || 'SP', j?.status || '', true);
-  const currentWho = (j?.who || '').split(',').map(s=>s.trim()).filter(Boolean);
-  const whoOptions = staff.map(s=>s.name).sort((a,b)=>a.localeCompare(b));
-  currentWho.forEach(n=>{ if(!whoOptions.includes(n)) whoOptions.push(n); });
-  document.getElementById('f-who').innerHTML = whoOptions.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
-  Array.from(document.getElementById('f-who').options).forEach(o=>{ o.selected = currentWho.includes(o.value); });
+  modalCurrentStage = j?.stage || 'SP';
+  modalStageWho = { SP:[], PD:[], WD:[], 'On Site':[] };
+  if(j?.stageWho){
+    STAGE_WHO_META.forEach(st => { modalStageWho[st.key] = [...(j.stageWho[st.key] || [])]; });
+  }
+  modalWhoPopoverStage = null;
+  modalConsultantFormOpen = false;
+  switchJobModalTab('details');
+  renderStageWhoRows();
   document.getElementById('f-region').value = j?.region || '';
   document.getElementById('f-jobNumber').value = j?.jobNumber || (!id ? suggestNextJobNumber() : '');
   document.getElementById('f-jobName').value = j?.jobName || '';
+  document.getElementById('f-address').value = j?.address || '';
   document.getElementById('f-stage').value = j?.stage || 'SP';
   document.getElementById('f-taskStatus').value = j?.taskStatus || 'In Progress';
   document.getElementById('f-stageStart').value = j?.stageStartDate || '';
@@ -3461,8 +3533,12 @@ async function performUndo(){
       j[entry.field] = entry.oldValue;
       await patchJobField(entry.id, entry.field, entry.oldValue);
     } else if(entry.type==='full'){
+      const newStageWho = JSON.parse(JSON.stringify(j.stageWho || {SP:[],PD:[],WD:[],'On Site':[]}));
+      const oldStageWho = entry.oldJob.stageWho || {SP:[],PD:[],WD:[],'On Site':[]};
       Object.assign(j, entry.oldJob);
+      j.stageWho = oldStageWho;
       await sbFetch('jobs?id=eq.' + encodeURIComponent(entry.id), { method:'PATCH', body: jobToRow(j) });
+      await syncStageWho(entry.id, newStageWho, oldStageWho);
     }
     showToast('Undone');
     renderJobs();
@@ -3480,14 +3556,13 @@ async function saveJob(){
     region,
     jobNumber: document.getElementById('f-jobNumber').value.trim(),
     jobName: document.getElementById('f-jobName').value.trim(),
-    stage: document.getElementById('f-stage').value,
+    stage: modalCurrentStage,
     status: document.getElementById('f-status').value.trim(),
-    who: Array.from(document.getElementById('f-who').selectedOptions).map(o=>o.value).join(', '),
     taskStatus: document.getElementById('f-taskStatus').value,
     stageStartDate: document.getElementById('f-stageStart').value,
     earliestEstimatedCompletion: document.getElementById('f-earliestDate').value,
     latestEstimatedCompletion: document.getElementById('f-latestDate').value,
-    address: (jobs.find(x=>x.id===currentEditId)?.address) || '',
+    address: document.getElementById('f-address').value.trim(),
     updatesSent: document.getElementById('f-updatesSent').value,
     engineer: document.getElementById('f-engineer').value.trim(),
     notes: plainToRichHtml(document.getElementById('f-notes').value.trim()),
@@ -3501,22 +3576,49 @@ async function saveJob(){
     data.updatesSent = isoDate(new Date());
   }
   await withSync(async ()=>{
+    let jobId;
+    let originalStageWho = { SP:[], PD:[], WD:[], 'On Site':[] };
     if(currentEditId){
+      jobId = currentEditId;
       data.id = currentEditId;
       const j = jobs.find(x=>x.id===currentEditId);
-      pushUndo({type:'full', id: currentEditId, oldJob: {...j}});
+      pushUndo({type:'full', id: currentEditId, oldJob: {...j, stageWho: JSON.parse(JSON.stringify(j.stageWho || {SP:[],PD:[],WD:[],'On Site':[]}))}});
+      STAGE_WHO_META.forEach(st => { originalStageWho[st.key] = [...(j.stageWho?.[st.key] || [])]; });
       await sbFetch('jobs?id=eq.' + encodeURIComponent(currentEditId), { method:'PATCH', body: jobToRow(data) });
       Object.assign(j, data);
+      j.stageWho = j.stageWho || { SP:[], PD:[], WD:[], 'On Site':[] };
+      STAGE_WHO_META.forEach(st => { j.stageWho[st.key] = [...(modalStageWho[st.key] || [])]; });
     } else {
       data.id = (crypto.randomUUID ? crypto.randomUUID() : 'j'+Date.now()+Math.random());
+      jobId = data.id;
       const inserted = await sbFetch('jobs', { method:'POST', headers:{'Prefer':'return=representation'}, body:[jobToRow(data)] });
-      jobs.push(rowToJob(inserted[0]));
+      const newJob = rowToJob(inserted[0]);
+      newJob.stageWho = { SP:[], PD:[], WD:[], 'On Site':[] };
+      STAGE_WHO_META.forEach(st => { newJob.stageWho[st.key] = [...(modalStageWho[st.key] || [])]; });
+      jobs.push(newJob);
     }
+    await syncStageWho(jobId, originalStageWho, modalStageWho);
     await logStageChange(data.id, previousStage, data.stage);
     closeJobModal();
     renderJobs();
     showToast('Job saved');
   }, 'Save failed — check connection');
+}
+async function syncStageWho(jobId, before, after){
+  const toInsert = [];
+  const toDeleteConditions = [];
+  STAGE_WHO_META.forEach(st => {
+    const beforeList = before[st.key] || [];
+    const afterList = after[st.key] || [];
+    afterList.forEach(name => { if(!beforeList.includes(name)) toInsert.push({job_id: jobId, stage: st.key, staff_name: name}); });
+    beforeList.forEach(name => { if(!afterList.includes(name)) toDeleteConditions.push({stage: st.key, staff_name: name}); });
+  });
+  if(toInsert.length){
+    await sbFetch('job_stage_who', { method:'POST', headers:{'Prefer':'resolution=ignore-duplicates'}, body: toInsert });
+  }
+  for(const cond of toDeleteConditions){
+    await sbFetch('job_stage_who?job_id=eq.' + encodeURIComponent(jobId) + '&stage=eq.' + encodeURIComponent(cond.stage) + '&staff_name=eq.' + encodeURIComponent(cond.staff_name), { method:'DELETE' });
+  }
 }
 async function archiveCurrentJob(){
   if(!currentEditId) return;

@@ -182,14 +182,15 @@ select.select, .toolbar select{
 .modal-body>.tab-panel{grid-column:1/-1;}
 .tab-panel.active{display:block;}
 .stage-who-row{
-  display:grid;grid-template-columns:34px 100px 1fr;align-items:center;gap:10px;
-  padding:10px 10px;border:1px solid var(--line-strong);border-radius:8px;margin-bottom:7px;background:#fff;
+  display:grid;grid-template-columns:22px 88px 1fr;align-items:center;gap:8px;
+  padding:6px 8px;border:1px solid var(--line-strong);border-radius:6px;margin-bottom:4px;background:#fff;
 }
 .stage-who-row.is-current{border-color:var(--blue);background:#F4F9FB;}
-.stage-who-radio{width:17px;height:17px;accent-color:var(--blue);cursor:pointer;}
-.stage-who-name{font-weight:700;font-size:12.5px;color:var(--ink);}
-.stage-who-name small{display:block;font-weight:400;color:var(--ink-faint);font-size:10px;text-transform:none;}
-.stage-who-current-badge{display:inline-block;margin-left:5px;font-size:9px;font-weight:700;color:var(--blue);background:#E3F0F5;border-radius:3px;padding:1px 5px;vertical-align:1px;letter-spacing:.02em;}
+.stage-who-radio{width:15px;height:15px;accent-color:var(--blue);cursor:pointer;}
+.stage-who-name{font-weight:700;font-size:12px;color:var(--ink);white-space:nowrap;}
+.stage-who-name small{display:inline;font-weight:400;color:var(--ink-faint);font-size:10px;text-transform:none;margin-left:4px;}
+.stage-who-current-badge{display:none;}
+.details-split{display:grid;grid-template-columns:210px 1fr;gap:14px;align-items:start;}
 .who-chip{display:inline-flex;align-items:center;gap:5px;background:#EFEDE6;border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:600;color:var(--ink);}
 .who-chip .x{cursor:pointer;color:var(--ink-faint);font-size:10px;}
 .who-chip .x:hover{color:var(--red);}
@@ -477,6 +478,7 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 @media (max-width:640px){
   .app{padding:16px;}
   .modal-body{grid-template-columns:1fr;}
+  .details-split{grid-template-columns:1fr;}
   .col{flex:0 0 250px;}
 }
 @media (max-width:640px){
@@ -805,29 +807,30 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
     </div>
     <div class="modal-body">
      <div class="tab-panel active" id="jobTabPanel-details">
-      <div class="full" style="display:grid;grid-template-columns:1fr 120px 2fr;gap:14px;">
-        <div><label class="f-label">Region</label><input class="f-input" id="f-region" list="regionList"></div>
-        <div><label class="f-label">Job number</label><input class="f-input" id="f-jobNumber" placeholder="e.g. 27002"></div>
-        <div><label class="f-label">Client / job name</label><input class="f-input" id="f-jobName" placeholder="e.g. Coelho &amp; Campbell"></div>
-      </div>
-      <div class="full" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;">
-        <div><label class="f-label">Address</label><input class="f-input" id="f-address" placeholder="Site address"></div>
-        <div><label class="f-label">State</label>
-          <select class="f-select" id="f-status"></select>
-        </div>
-        <div><label class="f-label">Task status</label>
-          <select class="f-select" id="f-taskStatus">
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-            <option value="On Hold">On Hold</option>
-          </select>
-        </div>
-      </div>
       <input type="hidden" id="f-stage" value="SP">
-      <div class="full" style="border-top:1px solid var(--line);padding-top:12px;margin-top:2px;">
-        <span style="font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;">Stage &amp; who</span>
-        <div class="f-hint" style="margin:2px 0 10px;">Tick the current stage. Add people to whichever stage they actually worked — nothing is lost as the job moves forward.</div>
-        <div id="stageWhoRows"></div>
+      <div class="full details-split">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div><label class="f-label">Job number</label><input class="f-input" id="f-jobNumber" placeholder="e.g. 27002"></div>
+          <div><label class="f-label">Region</label><input class="f-input" id="f-region" list="regionList"></div>
+          <div><label class="f-label">State</label>
+            <select class="f-select" id="f-status"></select>
+          </div>
+          <div><label class="f-label">Task status</label>
+            <select class="f-select" id="f-taskStatus">
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="On Hold">On Hold</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div><label class="f-label">Client / job name</label><input class="f-input" id="f-jobName" placeholder="e.g. Coelho &amp; Campbell"></div>
+          <div><label class="f-label">Address</label><input class="f-input" id="f-address" placeholder="Site address"></div>
+          <div>
+            <span style="font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;">Stage &amp; who</span>
+            <div id="stageWhoRows" style="margin-top:8px;"></div>
+          </div>
+        </div>
       </div>
       <div class="full" style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:12px;margin-top:2px;">
         <span style="font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;">Estimated completion</span>

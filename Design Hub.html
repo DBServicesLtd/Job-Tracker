@@ -172,10 +172,10 @@ select.select, .toolbar select{
 .btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
 .hint{font-size:11.5px;color:var(--ink-faint);margin:-6px 0 14px 2px;}
 .f-hint{font-size:11px;color:var(--ink-faint);margin-top:4px;}
-.modal-tabs{display:flex;gap:4px;padding:0 24px;border-bottom:1px solid var(--line-strong);}
+.modal-tabs{display:flex;align-items:center;}
 .modal-tab{
-  font-family:'Open Sans',sans-serif;font-size:13px;font-weight:600;color:var(--ink-faint);
-  background:none;border:none;padding:12px 4px;margin-right:20px;cursor:pointer;border-bottom:2px solid transparent;
+  font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;font-size:17px;color:var(--ink-faint);
+  background:none;border:none;padding:2px 0 4px;margin-right:24px;cursor:pointer;border-bottom:2px solid transparent;
 }
 .modal-tab.active{color:var(--navy);border-bottom-color:var(--blue);}
 .tab-panel{display:none;}
@@ -798,12 +798,12 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
 <div class="overlay" id="jobOverlay" onclick="if(event.target===this){ READ_ONLY ? closeJobModal() : saveJob(); }">
   <div class="modal">
     <div class="modal-head">
-      <h2 id="modalTitle">New job</h2>
+      <h2 id="modalTitle" style="display:none;">New job</h2>
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="jobTabBtn-details" onclick="switchJobModalTab('details')" type="button">Job Details</button>
+        <button class="modal-tab" id="jobTabBtn-consultants" onclick="switchJobModalTab('consultants')" type="button">Consultants</button>
+      </div>
       <button class="modal-close" onclick="closeJobModal()">✕</button>
-    </div>
-    <div class="modal-tabs">
-      <button class="modal-tab active" id="jobTabBtn-details" onclick="switchJobModalTab('details')" type="button">Details</button>
-      <button class="modal-tab" id="jobTabBtn-consultants" onclick="switchJobModalTab('consultants')" type="button">Consultants</button>
     </div>
     <div class="modal-body">
      <div class="tab-panel active" id="jobTabPanel-details">
@@ -1946,6 +1946,7 @@ async function loadAll(silent){
     consecutiveFailures++;
     connectionOk = false;
     console.warn(e);
+    populateRegionFilters();
   }finally{
     updateStorageBanner();
     setSync(false);
@@ -4406,6 +4407,7 @@ if(!READ_ONLY){
   document.getElementById('brandTitle').textContent = 'The Design Hub';
 }
 window.addEventListener('resize', ()=>{ setStickyOffsets(); sizeKpiScroll(); });
+populateRegionFilters();
 loadAll(true).then(()=>{
   setStickyOffsets();
   if(LOCKED_TAB) switchTab(LOCKED_TAB);

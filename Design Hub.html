@@ -415,6 +415,7 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 .staff-edit-row input,.staff-edit-row select{font-size:12.5px;padding:5px 6px;border:1px solid var(--line-strong);border-radius:5px;background:#fff;width:100%;}
 .staff-edit-row .rm{color:var(--ink-faint);background:none;border:none;font-size:13px;cursor:pointer;padding:2px;}
 .staff-edit-row .rm:hover{color:#c0392b;}
+.staff-hrs-calc{font-size:12.5px;color:var(--ink-soft);font-weight:600;}
 .wl-cell{min-width:150px;}
 .wl-cell textarea{
   width:100%;height:100%;min-height:78px;border:none;background:none;padding:10px;resize:vertical;
@@ -3791,6 +3792,13 @@ function openStaffModal(){
 function closeStaffModal(){
   document.getElementById('staffOverlay').classList.remove('open');
 }
+function computeHoursPerDay(s){
+  if(s.default_start && s.default_finish){
+    const raw = (timeStrToDecimal(s.default_finish) - timeStrToDecimal(s.default_start)) - ((s.default_lunch_minutes||0)/60);
+    return Math.max(0, Math.round(raw * 4) / 4);
+  }
+  return s.hours_per_day || 8;
+}
 function renderStaffEditRows(){
   const wrap = document.getElementById('staffEditRows');
   if(!wrap) return;
@@ -3802,7 +3810,7 @@ function renderStaffEditRows(){
         <option value="">No region</option>
         ${regions.map(r=>`<option value="${esc(r)}" ${s.region===r?'selected':''}>${esc(r)}</option>`).join('')}
       </select>
-      <input type="number" min="1" max="24" step="0.5" value="${s.hours_per_day||8}" data-staff="${s.id}" data-field="hours_per_day" onchange="saveStaffField(this)">
+      <span class="staff-hrs-calc" data-staff="${s.id}" title="Calculated from Start, Finish and Lunch">${computeHoursPerDay(s)}h</span>
       <input type="text" inputmode="numeric" maxlength="5" placeholder="e.g. 8" value="${hhmm(s.default_start)}" data-staff="${s.id}" data-field="default_start" onblur="saveStaffField(this)">
       <input type="text" inputmode="numeric" maxlength="5" placeholder="e.g. 17" value="${hhmm(s.default_finish)}" data-staff="${s.id}" data-field="default_finish" onblur="saveStaffField(this)">
       <input type="number" min="0" step="5" placeholder="30" value="${s.default_lunch_minutes||''}" data-staff="${s.id}" data-field="default_lunch_minutes" onchange="saveStaffField(this)">
@@ -3822,17 +3830,20 @@ async function saveStaffField(el){
     s.name = val; body.name = val;
   } else if(field==='region'){
     s.region = val; body.region = val;
-  } else if(field==='hours_per_day'){
-    val = parseFloat(val) || 8;
-    s.hours_per_day = val; body.hours_per_day = val;
   } else if(field==='default_start' || field==='default_finish'){
     const normalized = val ? normalizeTime(val) : null;
     if(val && normalized===null){ showToast('Enter a time like 08:00 (24-hour)'); el.value = hhmm(s[field]); return; }
     s[field] = normalized; body[field] = normalized;
     el.value = hhmm(normalized);
+    s.hours_per_day = computeHoursPerDay(s); body.hours_per_day = s.hours_per_day;
+    const calcEl = document.querySelector(`.staff-hrs-calc[data-staff="${staffId}"]`);
+    if(calcEl) calcEl.textContent = s.hours_per_day + 'h';
   } else if(field==='default_lunch_minutes'){
     val = val ? (parseInt(val,10)||null) : null;
     s.default_lunch_minutes = val; body.default_lunch_minutes = val;
+    s.hours_per_day = computeHoursPerDay(s); body.hours_per_day = s.hours_per_day;
+    const calcEl = document.querySelector(`.staff-hrs-calc[data-staff="${staffId}"]`);
+    if(calcEl) calcEl.textContent = s.hours_per_day + 'h';
   }
   await withSync(async ()=>{
     await sbFetch('staff?id=eq.' + encodeURIComponent(staffId), { method:'PATCH', body });

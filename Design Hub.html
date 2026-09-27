@@ -408,6 +408,13 @@ table.wl-table td{border-bottom:1px solid var(--line-strong);border-right:1px so
 .wl-name .rm{float:right;color:var(--ink-faint);background:none;border:none;font-size:12px;padding:0 2px;}
 .wl-name .rm:hover{color:var(--red);}
 .wl-region-select{display:block;margin-top:5px;font-size:11px;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:4px;padding:2px 4px;max-width:135px;background:#fff;}
+.staff-edit-header,.staff-edit-row{display:grid;grid-template-columns:1fr 128px 84px 66px 66px 74px 24px;gap:8px;align-items:center;padding:6px 4px;}
+.staff-edit-header{font-size:10.5px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--line-strong);padding-bottom:6px;}
+.staff-edit-row{border-bottom:1px solid var(--line);}
+.staff-edit-row:last-child{border-bottom:none;}
+.staff-edit-row input,.staff-edit-row select{font-size:12.5px;padding:5px 6px;border:1px solid var(--line-strong);border-radius:5px;background:#fff;width:100%;}
+.staff-edit-row .rm{color:var(--ink-faint);background:none;border:none;font-size:13px;cursor:pointer;padding:2px;}
+.staff-edit-row .rm:hover{color:#c0392b;}
 .wl-cell{min-width:150px;}
 .wl-cell textarea{
   width:100%;height:100%;min-height:78px;border:none;background:none;padding:10px;resize:vertical;
@@ -624,13 +631,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <button onclick="closeSettingsMenu(); navigator.clipboard.writeText(baseUrl()+'?tab=kpi').then(()=>showToast('KPI Tracker link copied'))">📊 Copy KPI Tracker link</button>
         <button onclick="closeSettingsMenu(); copyAsTable()">📋 Copy as table</button>
         <button onclick="closeSettingsMenu(); window.print()">🖶 Print view</button>
-        <div style="border-top:1px solid var(--line);margin:4px 0;padding:8px 10px 4px;">
-          <div style="font-size:11px;color:var(--ink-faint);font-weight:600;margin-bottom:6px;">ADD TEAM MEMBER</div>
-          <div style="display:flex;gap:6px;">
-            <input id="newStaffName" placeholder="Name…" style="flex:1;padding:6px 8px;border:1px solid var(--line-strong);border-radius:5px;font-size:13px;" onkeydown="if(event.key==='Enter')addStaff()">
-            <button class="btn-ghost" onclick="addStaff()">+ Add</button>
-          </div>
-        </div>
+        <button onclick="closeSettingsMenu(); openStaffModal()">👤 Manage team</button>
       </div>
     </div>
   </div>
@@ -925,6 +926,29 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <span></span>
       <div class="foot-right">
         <button class="btn-ghost" onclick="closeMyWorkLinksModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="staffOverlay">
+  <div class="modal" style="max-width:840px;">
+    <div class="modal-head">
+      <h2>Manage team</h2>
+      <button class="modal-close" onclick="closeStaffModal()">✕</button>
+    </div>
+    <div class="modal-body" style="grid-template-columns:1fr;">
+      <p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Region (used for regional public holidays), target hours/day, and default start/finish/lunch times — used across Staff Workload and KPI Tracker.</p>
+      <div id="staffEditRows"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input id="newStaffName" placeholder="Add team member…" class="f-input" style="flex:1;" onkeydown="if(event.key==='Enter')addStaff()">
+        <button class="btn-ghost" onclick="addStaff()">+ Add</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div class="foot-right">
+        <button class="btn-ghost" onclick="closeStaffModal()">Close</button>
       </div>
     </div>
   </div>
@@ -3725,12 +3749,7 @@ function renderWorkload(){
   document.getElementById('wlBody').innerHTML = staff.filter(s=>s.show_in_workload!==false).slice().sort((a,b)=>a.name.localeCompare(b.name)).map(s=>{
     const row = data[s.id] || {};
     return `<tr>
-      <td class="wl-name">${esc(s.name)}<button class="rm" title="Remove" onclick="removeStaff('${s.id}')">✕</button>
-        <select class="wl-region-select" data-staff="${s.id}" onchange="saveStaffRegion(this)">
-          <option value="">No region</option>
-          ${regions.map(r=>`<option value="${esc(r)}" ${s.region===r?'selected':''}>${esc(r)}</option>`).join('')}
-        </select>
-      </td>
+      <td class="wl-name">${esc(s.name)}<button class="rm" title="Remove" onclick="removeStaff('${s.id}')">✕</button></td>
       ${DAYS.map(d=>`<td class="wl-cell ${d===tk?'today':''}"><textarea data-staff="${s.id}" data-day="${d}" onblur="saveWorkloadCell(this)" placeholder="…">${esc(row[d]||'')}</textarea></td>`).join('')}
       <td class="wl-cell"><textarea data-staff="${s.id}" data-day="upcoming" onblur="saveWorkloadCell(this)" placeholder="Upcoming / to lodge…">${esc(row.upcoming||'')}</textarea></td>
     </tr>`;
@@ -3765,14 +3784,64 @@ async function saveWorkloadCell(el){
     await sbFetch('workload?on_conflict=week_key,staff_id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{ week_key:key, staff_id:sid, data: workloadCache[key][sid] }] });
   }, 'Save failed — check connection');
 }
-async function saveStaffRegion(el){
-  const staffId = el.dataset.staff;
-  const region = el.value;
+function openStaffModal(){
+  renderStaffEditRows();
+  document.getElementById('staffOverlay').classList.add('open');
+}
+function closeStaffModal(){
+  document.getElementById('staffOverlay').classList.remove('open');
+}
+function renderStaffEditRows(){
+  const wrap = document.getElementById('staffEditRows');
+  if(!wrap) return;
+  const header = `<div class="staff-edit-header"><span>Name</span><span>Region</span><span>Hrs/day</span><span>Start</span><span>Finish</span><span>Lunch (min)</span><span></span></div>`;
+  const rows = staff.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(s=>`
+    <div class="staff-edit-row">
+      <input type="text" value="${esc(s.name)}" data-staff="${s.id}" data-field="name" onblur="saveStaffField(this)">
+      <select data-staff="${s.id}" data-field="region" onchange="saveStaffField(this)">
+        <option value="">No region</option>
+        ${regions.map(r=>`<option value="${esc(r)}" ${s.region===r?'selected':''}>${esc(r)}</option>`).join('')}
+      </select>
+      <input type="number" min="1" max="24" step="0.5" value="${s.hours_per_day||8}" data-staff="${s.id}" data-field="hours_per_day" onchange="saveStaffField(this)">
+      <input type="text" inputmode="numeric" maxlength="5" placeholder="e.g. 8" value="${hhmm(s.default_start)}" data-staff="${s.id}" data-field="default_start" onblur="saveStaffField(this)">
+      <input type="text" inputmode="numeric" maxlength="5" placeholder="e.g. 17" value="${hhmm(s.default_finish)}" data-staff="${s.id}" data-field="default_finish" onblur="saveStaffField(this)">
+      <input type="number" min="0" step="5" placeholder="30" value="${s.default_lunch_minutes||''}" data-staff="${s.id}" data-field="default_lunch_minutes" onchange="saveStaffField(this)">
+      <button class="rm" title="Remove" onclick="removeStaff('${s.id}')">✕</button>
+    </div>`).join('') || `<p style="color:var(--ink-faint);font-size:12.5px;padding:8px 0;">No team members yet — add one below.</p>`;
+  wrap.innerHTML = header + rows;
+}
+async function saveStaffField(el){
+  const staffId = el.dataset.staff, field = el.dataset.field;
   const s = staff.find(x=>x.id===staffId);
-  if(s) s.region = region;
+  if(!s) return;
+  let val = el.value;
+  let body = {};
+  if(field==='name'){
+    val = val.trim();
+    if(!val){ el.value = s.name; return; }
+    s.name = val; body.name = val;
+  } else if(field==='region'){
+    s.region = val; body.region = val;
+  } else if(field==='hours_per_day'){
+    val = parseFloat(val) || 8;
+    s.hours_per_day = val; body.hours_per_day = val;
+  } else if(field==='default_start' || field==='default_finish'){
+    const normalized = val ? normalizeTime(val) : null;
+    if(val && normalized===null){ showToast('Enter a time like 08:00 (24-hour)'); el.value = hhmm(s[field]); return; }
+    s[field] = normalized; body[field] = normalized;
+    el.value = hhmm(normalized);
+  } else if(field==='default_lunch_minutes'){
+    val = val ? (parseInt(val,10)||null) : null;
+    s.default_lunch_minutes = val; body.default_lunch_minutes = val;
+  }
   await withSync(async ()=>{
-    await sbFetch('staff?id=eq.' + encodeURIComponent(staffId), { method:'PATCH', body:{region} });
-  }, "Couldn't save region — will retry");
+    await sbFetch('staff?id=eq.' + encodeURIComponent(staffId), { method:'PATCH', body });
+  }, 'Save failed — check connection');
+  renderWorkload();
+  renderJobs();
+  if(document.getElementById('view-kpi')?.classList.contains('active')){
+    if(kpiViewMode==='daily') renderKpiDaily(); else renderKpiAnnual();
+  }
 }
 async function addStaff(){
   const input = document.getElementById('newStaffName');
@@ -3784,18 +3853,19 @@ async function addStaff(){
     staff.push({id, name, show_in_workload:true});
     staff.sort((a,b)=>a.name.localeCompare(b.name));
     input.value='';
-    closeSettingsMenu();
+    renderStaffEditRows();
     renderWorkload();
     renderJobs();
     showToast(`${name} added to team`);
   }, 'Save failed — check connection');
 }
 async function removeStaff(id){
-  if(!confirm('Remove this team member from the workload grid?')) return;
+  if(!confirm('Remove this team member? This deletes them from the workload grid and KPI tracker.')) return;
   await withSync(async ()=>{
     await sbFetch('staff?id=eq.' + encodeURIComponent(id), { method:'DELETE' });
     staff = staff.filter(s=>s.id!==id);
     renderWorkload();
+    renderStaffEditRows();
   }, 'Delete failed — check connection');
 }
 
@@ -4289,10 +4359,7 @@ function renderKpiAnnual(){
   const months = kpiFyMonths(fyStart);
   document.getElementById('kpiHeadRow1').innerHTML = '<th class="day-cell" style="z-index:4;" rowspan="2">Month</th>' + staff.map((s,idx)=>{
     const cls = 'staff-block-'+(idx%2===0?'a':'b');
-    const targetHtml = LOCKED_WHO
-      ? `<span style="font-size:12px;color:var(--ink-soft);">Target: ${s.hours_per_day||8}h/day</span>`
-      : `<span style="font-size:12px;color:var(--ink-soft);">Target: </span><input type="number" min="1" max="24" step="0.5" class="kpi-target" data-staff="${s.id}" value="${s.hours_per_day||8}" onchange="saveStaffTarget(this)">`;
-    return `<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} <span class="kpi-defaults-btn" onclick="openDefaultsPopover(this,'${s.id}')" title="Set default times">⚙</span> ${targetHtml}</th>`;
+    return `<th colspan="6" class="staff-name-hdr staff-block-${idx%2===0?'a':'b'} staff-block-start" style="text-align:center;">${esc(s.name)} <span style="font-size:12px;color:var(--ink-soft);">— Target: ${s.hours_per_day||8}h/day</span></th>`;
   }).join('');
   document.getElementById('kpiHeadRow2').innerHTML = staff.map((s,idx)=>{
     const cls = 'staff-block-'+(idx%2===0?'a':'b');

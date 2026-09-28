@@ -3797,7 +3797,7 @@ function computeHoursPerDay(s){
     const raw = (timeStrToDecimal(s.default_finish) - timeStrToDecimal(s.default_start)) - ((s.default_lunch_minutes||0)/60);
     return Math.max(0, Math.round(raw * 4) / 4);
   }
-  return s.hours_per_day || 8;
+  return 8;
 }
 function renderStaffEditRows(){
   const wrap = document.getElementById('staffEditRows');

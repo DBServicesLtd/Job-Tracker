@@ -1003,6 +1003,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
   <button type="button" class="rt-h" onmousedown="event.preventDefault()" onclick="applyRichFormat('mark')">H</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.js"></script>
 <script>
 const SEED_JOBS = [
   {
@@ -1992,7 +1993,58 @@ function isEditingNow(){
   const modalOpen = document.getElementById('jobOverlay').classList.contains('open');
   return inlineEditing || modalOpen || pendingSaves > 0;
 }
-setInterval(()=>{ if(!isEditingNow()) loadAll(true); }, 20000);
+let realtimeChannel = null;
+let realtimeConnected = false;
+function initRealtime(){
+  if(typeof supabase === 'undefined' || !supabase.createClient) return;
+  try{
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    realtimeChannel = client
+      .channel('design-hub-sync')
+      .on('postgres_changes', {event:'*', schema:'public', table:'jobs'}, handleJobRealtimeChange)
+      .on('postgres_changes', {event:'*', schema:'public', table:'staff'}, handleStaffRealtimeChange)
+      .subscribe(status => { realtimeConnected = (status === 'SUBSCRIBED'); });
+  }catch(e){ console.warn('Realtime init failed', e); }
+}
+function handleJobRealtimeChange(payload){
+  if(payload.eventType === 'DELETE'){
+    if(!payload.old || !payload.old.id) return;
+    jobs = jobs.filter(j => j.id !== payload.old.id);
+  } else {
+    const incoming = rowToJob(payload.new);
+    const existing = jobs.find(j => j.id === incoming.id);
+    if(existing){
+      incoming.consultants = existing.consultants;
+      incoming.stageWho = existing.stageWho;
+      Object.assign(existing, incoming);
+    } else {
+      jobs.push(incoming);
+    }
+  }
+  if(!isEditingNow()){
+    renderJobs();
+    renderWorkload();
+  }
+}
+function handleStaffRealtimeChange(payload){
+  if(payload.eventType === 'DELETE'){
+    if(!payload.old || !payload.old.id) return;
+    staff = staff.filter(s => s.id !== payload.old.id);
+  } else {
+    const existing = staff.find(s => s.id === payload.new.id);
+    if(existing){
+      Object.assign(existing, payload.new);
+    } else {
+      staff.push(payload.new);
+    }
+  }
+  if(!isEditingNow()){
+    renderJobs();
+    renderWorkload();
+    if(document.getElementById('staffOverlay').classList.contains('open')) renderStaffEditRows();
+  }
+}
+setInterval(()=>{ if(!isEditingNow()) loadAll(true); }, 90000);
 setInterval(()=>{
   if(consecutiveFailures>0 && consecutiveFailures<10 && !isEditingNow()) loadAll(true);
 }, 6000);
@@ -4486,6 +4538,7 @@ if(!READ_ONLY){
 }
 window.addEventListener('resize', ()=>{ setStickyOffsets(); sizeKpiScroll(); });
 populateRegionFilters();
+initRealtime();
 loadAll(true).then(()=>{
   setStickyOffsets();
   if(LOCKED_TAB) switchTab(LOCKED_TAB);

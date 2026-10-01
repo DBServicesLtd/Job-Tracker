@@ -2003,6 +2003,7 @@ function initRealtime(){
       .channel('design-hub-sync')
       .on('postgres_changes', {event:'*', schema:'public', table:'jobs'}, handleJobRealtimeChange)
       .on('postgres_changes', {event:'*', schema:'public', table:'staff'}, handleStaffRealtimeChange)
+      .on('postgres_changes', {event:'*', schema:'public', table:'workload'}, handleWorkloadRealtimeChange)
       .subscribe(status => { realtimeConnected = (status === 'SUBSCRIBED'); });
   }catch(e){ console.warn('Realtime init failed', e); }
 }
@@ -2043,6 +2044,17 @@ function handleStaffRealtimeChange(payload){
     renderWorkload();
     if(document.getElementById('staffOverlay').classList.contains('open')) renderStaffEditRows();
   }
+}
+function handleWorkloadRealtimeChange(payload){
+  const row = payload.eventType === 'DELETE' ? payload.old : payload.new;
+  if(!row || !row.week_key || !row.staff_id) return;
+  if(!workloadCache[row.week_key]) workloadCache[row.week_key] = {};
+  if(payload.eventType === 'DELETE'){
+    delete workloadCache[row.week_key][row.staff_id];
+  } else {
+    workloadCache[row.week_key][row.staff_id] = row.data;
+  }
+  if(!isEditingNow()) renderWorkload();
 }
 setInterval(()=>{ if(!isEditingNow()) loadAll(true); }, 90000);
 setInterval(()=>{

@@ -254,6 +254,40 @@ select.select, .toolbar select{
 .bc-note{font-size:11px;color:var(--ink-faint);line-height:1.4;}
 .bc-detail{font-size:12px;line-height:1.5;color:var(--ink-soft);}
 .bc-detail .bc-clock{display:inline-block;width:auto;margin:0 0 3px 0;}
+.jobname-link{color:inherit;text-decoration:none;}
+.jobname-link:hover strong{text-decoration:underline dotted;text-underline-offset:3px;}
+body.job-page-mode .tabs, body.job-page-mode #colVisWrap{display:none !important;}
+body.job-page-mode .view{display:none !important;}
+body.job-page-mode #view-job{display:block !important;}
+.jp-wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding:6px 0 40px;}
+.jp-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+.jp-title{font-family:'DM Serif Display',serif;font-style:italic;font-size:32px;line-height:1.1;color:var(--ink);}
+.jp-sub{font-size:13px;color:var(--ink-soft);margin-top:6px;}
+.jp-actions{display:flex;align-items:center;gap:8px;}
+.jp-save{font-size:12px;color:var(--ink-faint);}
+.jp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+.jp-col{display:flex;flex-direction:column;gap:16px;min-width:0;}
+.jp-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;}
+.jp-card-wide{grid-column:1/-1;}
+.jp-card-title{font-family:'DM Serif Display',serif;font-style:italic;font-size:17px;color:var(--ink);margin-bottom:10px;}
+.jp-pills{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin-bottom:10px;}
+.jp-pills .bc-clock{margin-top:0;}
+.jp-kv{display:grid;grid-template-columns:120px 1fr;gap:10px;padding:6px 0;font-size:13px;border-top:1px solid var(--line);}
+.jp-kv>span{color:var(--ink-soft);font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;padding-top:2px;}
+.jp-textblock{white-space:pre-wrap;font-size:13px;line-height:1.5;}
+.jp-consultant{padding:6px 0;border-top:1px solid var(--line);font-size:13px;}
+.jp-consultant small{display:block;color:var(--ink-soft);font-size:11.5px;}
+.jp-fields-2{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;}
+.jp-row{display:grid;grid-template-columns:170px 1fr;gap:12px;align-items:start;padding:3px 0;}
+.jp-row>label{font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;padding-top:10px;}
+.jp-val{font-size:13px;padding-top:8px;white-space:pre-wrap;min-height:20px;}
+.jp-row .f-input,.jp-row .f-select,.jp-row .f-textarea{padding:7px 9px;font-size:13px;}
+.jp-row .f-textarea{min-height:34px;resize:none;overflow:hidden;}
+@media print{
+  .no-print{display:none !important;}
+  .jp-card{box-shadow:none;break-inside:avoid;}
+  .jp-row .f-input,.jp-row .f-select,.jp-row .f-textarea{border:none;background:none;padding-left:0;}
+}
 
 .consultant-role-tag{font-weight:600;color:var(--blue);font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;}
 .consultant-remove-btn{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:13px;}
@@ -711,6 +745,24 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
     <div class="empty-state" id="jobsEmpty" style="display:none;">
       <h3>No jobs yet</h3>
       <p>Add your first job to get the board started.</p>
+    </div>
+  </div>
+
+  <div class="view" id="view-job">
+    <div class="jp-wrap">
+      <div class="jp-top">
+        <div>
+          <div class="jp-title" id="jpTitle"></div>
+          <div class="jp-sub" id="jpSub"></div>
+        </div>
+        <div class="jp-actions no-print">
+          <span class="jp-save" id="jpSave"></span>
+          <button class="btn-ghost" id="jpEditBtn" onclick="openJobModal(JOB_PAGE_ID)">Edit job</button>
+          <button class="btn-ghost" onclick="window.print()">Print</button>
+        </div>
+      </div>
+      <div id="jpHub"></div>
+      <div id="jpSite"></div>
     </div>
   </div>
 
@@ -1786,6 +1838,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const LOCKED_REGION = urlParams.get('region') || '';
 const LOCKED_WHO = urlParams.get('who') || '';
 const LOCKED_TAB = urlParams.get('tab') || '';
+const JOB_PAGE_ID = urlParams.get('job') || '';
+if(JOB_PAGE_ID) document.body.classList.add('job-page-mode');
 const VIEW_ALL_READONLY = urlParams.get('view') === 'readonly';
 const READ_ONLY = !!LOCKED_REGION || !!LOCKED_WHO || VIEW_ALL_READONLY;
 const SUPABASE_KEY = 'sb_publishable_SydrZ17z4xJGOVT7B7yZAA_UrG6qJSV';
@@ -2424,7 +2478,237 @@ function stateCategory(s){
 }
 function statePillClass(s){ return 'pill-state-' + stateCategory(s); }
 
-/* ---------- Building consent clock (NZ Building Act s48: 20 working days, paused by RFIs) ---------- */
+function jobPageUrl(id){
+  const u = new URL(window.location.href);
+  u.search = '';
+  u.hash = '';
+  ['who','region','view'].forEach(k=>{ if(urlParams.get(k)) u.searchParams.set(k, urlParams.get(k)); });
+  u.searchParams.set('job', id);
+  return u.toString();
+}
+function jobNameLinkClick(ev, id){
+  if(ev.shiftKey){
+    ev.preventDefault();
+    ev.stopPropagation();
+    window.open(jobPageUrl(id), '_blank');
+    return false;
+  }
+  if(ev.ctrlKey || ev.metaKey){
+    ev.stopPropagation();
+    return true;
+  }
+  ev.preventDefault();
+  return false;
+}
+
+const SITE_SECTIONS = [
+  {title:'Site', fields:[
+    {k:'templateDate', l:'Date', t:'date'},
+    {k:'zoning', l:'Zoning'},
+    {k:'zoningOverlay', l:'Zoning overlay'}
+  ]},
+  {title:'Legal description of site', fields:[
+    {k:'certificateOfTitle', l:'Certificate of title (C.T.)'},
+    {k:'siteArea', l:'Site area'},
+    {k:'easements', l:'Easements', t:'area'},
+    {k:'covenants', l:'Covenants', t:'area'},
+    {k:'consentNotices', l:'Consent notices', t:'area'},
+    {k:'designGuidelines', l:'Design guidelines', t:'area'},
+    {k:'specialConditions', l:'Special conditions', t:'area'},
+    {k:'tenure', l:'Freehold / leasehold'},
+    {k:'swSewer', l:'SW, sewer connections', t:'area'}
+  ]},
+  {title:'Climate and zones', fields:[
+    {k:'climateZone', l:'Climate zone'},
+    {k:'earthquakeZone', l:'Earthquake zone'},
+    {k:'exposureZone', l:'Exposure zone'},
+    {k:'leeZone', l:'Lee zone'},
+    {k:'rainfallRange', l:'Rainfall range'},
+    {k:'windRegion', l:'Wind region'},
+    {k:'windZone', l:'Wind zone'}
+  ]},
+  {title:'Planning compliance', fields:[
+    {k:'dutyPlannerContacted', l:'Duty planner contacted', t:'yesno'},
+    {k:'dutyPlannerName', l:'Name'},
+    {k:'dutyPlannerDate', l:'Date', t:'date'},
+    {k:'dutyPlannerNotes', l:'Correspondence', t:'area'}
+  ]},
+  {title:'Site / design parameters', wide:true, fields:[
+    {k:'buildingDefinition', l:'Building definition', t:'area'},
+    {k:'yardDefinition', l:'Yard definition', t:'area'},
+    {k:'setbackFront', l:'Front setback'},
+    {k:'setbackSide', l:'Side setback'},
+    {k:'setbackRear', l:'Rear setback'},
+    {k:'setbackGarage', l:'Garage setback'},
+    {k:'maxHeight', l:'Max height'},
+    {k:'hirb', l:'HIRB'},
+    {k:'siteCoverage', l:'Site coverage'},
+    {k:'coverageIncludes', l:'Coverage includes', t:'area'},
+    {k:'privacyCircle', l:'Privacy / open area circle'},
+    {k:'landscapedArea', l:'Landscaped area'},
+    {k:'outlookSpace', l:'Outlook space'},
+    {k:'permeableSurfaces', l:'Permeable surfaces'},
+    {k:'outdoorLiving', l:'Outdoor living space'},
+    {k:'fences', l:'Fences'},
+    {k:'vehicleAccess', l:'Vehicle access and parking', t:'area'},
+    {k:'serviceAreas', l:'Service areas'},
+    {k:'earthworks', l:'Earthworks'},
+    {k:'hazards', l:'Hazards', t:'area'}
+  ]}
+];
+let siteInfo = {};
+let siteDirty = new Set();
+let siteSaveTimer = null;
+let siteFlushing = false;
+let jobPageReady = false;
+let jobPageInitializing = false;
+
+function setJpSave(msg){
+  const el = document.getElementById('jpSave');
+  if(el) el.textContent = msg;
+}
+function siteFieldHtml(f){
+  const v = siteInfo[f.k] || '';
+  if(READ_ONLY) return `<div class="jp-row"><label>${esc(f.l)}</label><div class="jp-val">${v ? esc(v) : '\u2014'}</div></div>`;
+  let ctl;
+  if(f.t==='area') ctl = `<textarea class="f-textarea" rows="1" data-k="${f.k}" oninput="onSiteInput(this)" onchange="flushSiteInfo()">${esc(v)}</textarea>`;
+  else if(f.t==='yesno') ctl = `<select class="f-select" data-k="${f.k}" onchange="onSiteInput(this); flushSiteInfo()"><option value=""></option><option${v==='Yes'?' selected':''}>Yes</option><option${v==='No'?' selected':''}>No</option></select>`;
+  else ctl = `<input class="f-input" ${f.t==='date'?'type="date"':'type="text"'} data-k="${f.k}" value="${esc(v)}" oninput="onSiteInput(this)" onchange="flushSiteInfo()">`;
+  return `<div class="jp-row"><label>${esc(f.l)}</label>${ctl}</div>`;
+}
+function renderJobPageSite(){
+  const j = jobs.find(x=>x.id===JOB_PAGE_ID);
+  const staticRows = {
+    'Site': [
+      ['Site address', j.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address)}" target="_blank" rel="noopener">${esc(j.address)}</a>` : '\u2014'],
+      ['Territorial authority', j.council ? esc(j.council) : '\u2014']
+    ],
+    'Legal description of site': [
+      ['Lot & DP', j.lotDp ? esc(j.lotDp) : '\u2014']
+    ]
+  };
+  const staticHtml = t => (staticRows[t] || []).map(r=>`<div class="jp-row"><label>${r[0]}</label><div class="jp-val">${r[1]}</div></div>`).join('');
+  const cardHtml = sec => `
+    <div class="jp-card">
+      <div class="jp-card-title">${esc(sec.title)}</div>
+      ${staticHtml(sec.title)}
+      <div class="${sec.wide ? 'jp-fields-2' : ''}">${sec.fields.map(siteFieldHtml).join('')}</div>
+    </div>`;
+  const byTitle = t => SITE_SECTIONS.find(x=>x.title===t);
+  document.getElementById('jpSite').innerHTML =
+    `<div class="jp-grid"><div class="jp-col">${cardHtml(byTitle('Site'))}${cardHtml(byTitle('Climate and zones'))}</div>` +
+    `<div class="jp-col">${cardHtml(byTitle('Legal description of site'))}${cardHtml(byTitle('Planning compliance'))}</div></div>` +
+    `<div style="margin-top:16px;">${cardHtml(byTitle('Site / design parameters'))}</div>`;
+  document.querySelectorAll('#jpSite textarea').forEach(autoGrow);
+}
+function onSiteInput(el){
+  const k = el.dataset.k;
+  siteInfo[k] = el.value;
+  siteDirty.add(k);
+  if(el.tagName==='TEXTAREA') autoGrow(el);
+  setJpSave('Unsaved changes\u2026');
+  clearTimeout(siteSaveTimer);
+  siteSaveTimer = setTimeout(flushSiteInfo, 900);
+}
+async function flushSiteInfo(){
+  clearTimeout(siteSaveTimer);
+  if(siteFlushing || !siteDirty.size) return;
+  siteFlushing = true;
+  const keys = [...siteDirty];
+  siteDirty.clear();
+  setJpSave('Saving\u2026');
+  try{
+    const rows = await sbFetch('job_site_info?job_id=eq.' + encodeURIComponent(JOB_PAGE_ID) + '&select=data');
+    const remote = (rows && rows[0] && rows[0].data) || {};
+    keys.forEach(k=>{ remote[k] = siteInfo[k] || ''; });
+    await sbFetch('job_site_info?on_conflict=job_id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{ job_id: JOB_PAGE_ID, data: remote, updated_at: new Date().toISOString() }] });
+    setJpSave('Saved');
+  }catch(e){
+    keys.forEach(k=>siteDirty.add(k));
+    setJpSave('Save failed \u2014 retrying');
+    siteSaveTimer = setTimeout(flushSiteInfo, 5000);
+  }
+  siteFlushing = false;
+  if(siteDirty.size && !siteSaveTimer) siteSaveTimer = setTimeout(flushSiteInfo, 900);
+}
+function jobPageHubHtml(j){
+  const whoRows = STAGE_WHO_META.map(st=>{
+    const names = (j.stageWho && j.stageWho[st.key]) || [];
+    return names.length ? `<div class="jp-kv"><span>${esc(st.label)}</span><div>${esc(names.join(', '))}</div></div>` : '';
+  }).join('');
+  const consultants = (j.consultants || []).map(c=>`
+    <div class="jp-consultant"><strong>${esc(c.role)}</strong> \u00B7 ${esc(c.name)}<small>${esc(c.company)}${c.phone ? ' \u00B7 ' + esc(c.phone) : ''}${c.email ? ' \u00B7 ' + esc(c.email) : ''}</small></div>`).join('');
+  const kv = (label, val) => val ? `<div class="jp-kv"><span>${label}</span><div>${esc(val)}</div></div>` : '';
+  const notes = sanitizeRich(j.notes || '');
+  const planning = sanitizeRich(j.planning || '');
+  const bc = bcDetailHtml(j);
+  return `<div class="jp-grid"><div class="jp-col">
+    <div class="jp-card">
+      <div class="jp-card-title">Status</div>
+      <div class="jp-pills">
+        ${stageCellHtml(j)}
+        ${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}
+        ${bcBadgeHtml(j)}
+        <span class="pill ${taskPillClass(j.taskStatus)}">${esc(j.taskStatus||'In Progress')}</span>
+      </div>
+      ${kv('Stage start', fmtDate(j.stageStartDate))}
+      ${kv('Earliest est.', fmtDate(j.earliestEstimatedCompletion))}
+      ${kv('Latest est.', fmtDate(j.latestEstimatedCompletion))}
+      ${kv('Updates sent', fmtDate(j.updatesSent))}
+      ${kv('Engineer', fmtDate(j.engineer) || j.engineer)}
+    </div>
+    ${bc ? `<div class="jp-card"><div class="jp-card-title">Building consent</div>${bc}</div>` : ''}
+    </div><div class="jp-col">
+    <div class="jp-card">
+      <div class="jp-card-title">Team</div>
+      ${whoRows || '<div class="jp-textblock" style="color:var(--ink-faint);">No one assigned yet.</div>'}
+      ${consultants ? `<div style="margin-top:10px;">${consultants}</div>` : ''}
+    </div>
+    ${(notes || planning) ? `<div class="jp-card"><div class="jp-card-title">Notes</div>
+      ${notes ? `<div class="jp-kv"><span>Task notes</span><div class="jp-textblock">${notes}</div></div>` : ''}
+      ${planning ? `<div class="jp-kv"><span>Planning</span><div class="jp-textblock">${planning}</div></div>` : ''}
+    </div>` : ''}
+  </div></div>`;
+}
+function renderJobPageHub(){
+  const j = jobs.find(x=>x.id===JOB_PAGE_ID);
+  if(!j) return;
+  document.getElementById('jpTitle').textContent = j.jobName || 'Untitled';
+  document.getElementById('jpSub').textContent = [j.jobNumber ? '#' + j.jobNumber : '', j.region || ''].filter(Boolean).join(' \u00B7 ');
+  document.title = (j.jobName || 'Job') + ' \u2013 Design Hub';
+  document.getElementById('jpHub').innerHTML = jobPageHubHtml(j);
+  document.getElementById('jpEditBtn').style.display = READ_ONLY ? 'none' : '';
+}
+async function initJobPage(){
+  if(jobPageInitializing) return;
+  const j = jobs.find(x=>x.id===JOB_PAGE_ID);
+  if(!j || (LOCKED_REGION && j.region !== LOCKED_REGION)){
+    document.getElementById('jpTitle').textContent = 'Job not available';
+    document.getElementById('jpSub').textContent = 'This job could not be found, or is not part of this link. Check your connection and refresh.';
+    return;
+  }
+  jobPageInitializing = true;
+  try{
+    const rows = await sbFetch('job_site_info?job_id=eq.' + encodeURIComponent(JOB_PAGE_ID) + '&select=data');
+    siteInfo = (rows && rows[0] && rows[0].data) || {};
+  }catch(e){
+    siteInfo = {};
+    setJpSave('Could not load site details');
+  }
+  jobPageReady = true;
+  jobPageInitializing = false;
+  renderJobPageHub();
+  renderJobPageSite();
+}
+function jobPageSync(){
+  if(!JOB_PAGE_ID) return;
+  if(!jobPageReady) initJobPage();
+  else renderJobPageHub();
+}
+window.addEventListener('beforeunload', e=>{
+  if(JOB_PAGE_ID && siteDirty.size){ flushSiteInfo(); e.preventDefault(); e.returnValue = ''; }
+});
+
 const BC_STATUTORY_DAYS = 20;
 function bcStateKind(s){
   const t = (s||'').trim().toLowerCase();
@@ -2437,7 +2721,7 @@ function bcIsWorkingDay(iso){
   const dow = d.getDay();
   if(dow===0 || dow===6) return false;
   const m = d.getMonth()+1, day = d.getDate();
-  if((m===12 && day>=20) || (m===1 && day<=10)) return false;   // statutory 20 Dec - 10 Jan break
+  if((m===12 && day>=20) || (m===1 && day<=10)) return false;
   return !getNZHolidays(d.getFullYear()).includes(iso);
 }
 function bcClock(j, todayISO){
@@ -2601,6 +2885,7 @@ function setJobView(v){
 }
 
 function renderJobs(){
+  jobPageSync();
   const filtered = getFiltered();
   document.getElementById('jobsEmpty').style.display = jobs.length===0 ? 'block' : 'none';
   document.getElementById('boardWrap').style.display = (jobView==='board' && jobs.length>0) ? 'flex' : 'none';
@@ -3163,7 +3448,7 @@ function renderTable(list){
     <tr onclick="openJobModal('${j.id}')">
       ${isColHidden('region') ? '' : `<td>${esc(j.region||'')}</td>`}
       ${isColHidden('jobNumber') ? '<td class="col-collapsed"></td>' : `<td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>`}
-      ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td class="td-jobname"><strong>${esc(j.jobName||'Untitled')}</strong>${LOCKED_REGION && j.address && !addressExpandedIds.has(j.id) ? `<span class="address-pin-indicator" title="${esc(j.address)}" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')">📍</span>` : ''}</td>`}
+      ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td class="td-jobname"><a class="jobname-link" href="${esc(jobPageUrl(j.id))}" onclick="return jobNameLinkClick(event,'${j.id}')" title="Shift-click to open the full job page in a new tab"><strong>${esc(j.jobName||'Untitled')}</strong></a>${LOCKED_REGION && j.address && !addressExpandedIds.has(j.id) ? `<span class="address-pin-indicator" title="${esc(j.address)}" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')">📍</span>` : ''}</td>`}
       ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td style="text-align:center;">${stageCellHtml(j)}</td>`}
       ${isColHidden('who') ? '' : `<td style="white-space:nowrap;">${esc((j.stageWho && j.stageWho[j.stage] || []).join(', '))}</td>`}
       ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td${bcStateKind(j.status) ? ' class="td-bc"' : ''}>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}${bcBadgeHtml(j)}</td>`}
@@ -4708,7 +4993,8 @@ populateRegionFilters();
 initRealtime();
 loadAll(true).then(()=>{
   setStickyOffsets();
-  if(LOCKED_TAB) switchTab(LOCKED_TAB);
+  if(JOB_PAGE_ID) jobPageSync();
+  else if(LOCKED_TAB) switchTab(LOCKED_TAB);
   else if(!READ_ONLY) renderDashboard();
   if(LOCKED_CONTACT_REGION){
     document.getElementById('regionAddressValue').textContent = regionAddresses[LOCKED_CONTACT_REGION] || '';

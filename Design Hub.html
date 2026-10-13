@@ -256,9 +256,14 @@ select.select, .toolbar select{
 .bc-detail .bc-clock{display:inline-block;width:auto;margin:0 0 3px 0;}
 .jobname-link{color:inherit;text-decoration:none;}
 .jobname-link:hover strong{text-decoration:underline dotted;text-underline-offset:3px;}
-body.job-page-mode .tabs, body.job-page-mode #colVisWrap{display:none !important;}
-body.job-page-mode .view{display:none !important;}
-body.job-page-mode #view-job{display:block !important;}
+#mainTabsLeft .tab{white-space:nowrap;}
+body.has-job-tab #mainTabsLeft .tab{margin-right:12px;font-size:21px;}
+body.has-job-tab .tabs{flex-wrap:wrap;}
+body.has-job-tab .settings-wrap{margin-left:auto;}
+#jobTab{display:inline-flex;align-items:center;gap:8px;}
+#jobTabLabel{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.job-tab-x{font-family:'Open Sans',sans-serif;font-style:normal;font-size:11px;color:var(--ink-faint);padding:2px 5px;border-radius:4px;}
+.job-tab-x:hover{background:var(--panel-soft);color:var(--ink);}
 .jp-wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding:6px 0 40px;}
 .jp-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
 .jp-title{font-family:'DM Serif Display',serif;font-style:italic;font-size:32px;line-height:1.1;color:var(--ink);}
@@ -665,6 +670,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <button class="tab" data-tab="jobs" onclick="switchTab('jobs')">Job Board</button>
       <button class="tab" data-tab="workload" onclick="switchTab('workload')">Staff Workload</button>
       <button class="tab" data-tab="kpi" onclick="switchTab('kpi')">KPI Tracker</button>
+      <button class="tab" data-tab="job" id="jobTab" style="display:none;" onclick="switchTab('job')"><span id="jobTabLabel"></span><span class="job-tab-x" title="Close" onclick="event.stopPropagation(); closeJobTab()">&#10005;</span></button>
     </div>
     <div class="settings-wrap">
       <div class="region-address-value" id="regionAddressValue" contenteditable="true" style="display:none;" onblur="saveRegionAddress(this)"></div>
@@ -757,7 +763,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         </div>
         <div class="jp-actions no-print">
           <span class="jp-save" id="jpSave"></span>
-          <button class="btn-ghost" id="jpEditBtn" onclick="openJobModal(JOB_PAGE_ID)">Edit job</button>
+          <button class="btn-ghost" id="jpEditBtn" onclick="openJobModal(jobTabId)">Edit job</button>
           <button class="btn-ghost" onclick="window.print()">Print</button>
         </div>
       </div>
@@ -1838,8 +1844,6 @@ const urlParams = new URLSearchParams(window.location.search);
 const LOCKED_REGION = urlParams.get('region') || '';
 const LOCKED_WHO = urlParams.get('who') || '';
 const LOCKED_TAB = urlParams.get('tab') || '';
-const JOB_PAGE_ID = urlParams.get('job') || '';
-if(JOB_PAGE_ID) document.body.classList.add('job-page-mode');
 const VIEW_ALL_READONLY = urlParams.get('view') === 'readonly';
 const READ_ONLY = !!LOCKED_REGION || !!LOCKED_WHO || VIEW_ALL_READONLY;
 const SUPABASE_KEY = 'sb_publishable_SydrZ17z4xJGOVT7B7yZAA_UrG6qJSV';
@@ -2209,6 +2213,7 @@ function switchTab(name){
   document.getElementById('view-workload').classList.toggle('active', name==='workload');
   document.getElementById('view-addresses').classList.toggle('active', name==='addresses');
   document.getElementById('view-kpi').classList.toggle('active', name==='kpi');
+  document.getElementById('view-job').classList.toggle('active', name==='job');
   if(name==='dashboard') renderDashboard();
   if(name==='jobs' && !columnsAutoFitted && jobs.length){
     measureAndLockStaticColumnWidths();
@@ -2478,27 +2483,51 @@ function stateCategory(s){
 }
 function statePillClass(s){ return 'pill-state-' + stateCategory(s); }
 
-function jobPageUrl(id){
-  const u = new URL(window.location.href);
-  u.search = '';
-  u.hash = '';
-  ['who','region','view'].forEach(k=>{ if(urlParams.get(k)) u.searchParams.set(k, urlParams.get(k)); });
-  u.searchParams.set('job', id);
-  return u.toString();
-}
-function jobNameLinkClick(ev, id){
-  if(ev.shiftKey){
+let jobTabId = '';
+function jobNameClick(ev, id){
+  if(ev.shiftKey || ev.ctrlKey || ev.metaKey){
+    ev.stopPropagation();
     ev.preventDefault();
-    ev.stopPropagation();
-    window.open(jobPageUrl(id), '_blank');
-    return false;
+    openJobTab(id);
   }
-  if(ev.ctrlKey || ev.metaKey){
-    ev.stopPropagation();
-    return true;
+}
+async function settleSiteSave(){
+  clearTimeout(siteSaveTimer);
+  siteSaveTimer = null;
+  let waited = 0;
+  while(siteFlushing && waited < 3000){ await new Promise(r=>setTimeout(r, 50)); waited += 50; }
+  await flushSiteInfo();
+}
+async function openJobTab(id){
+  const j = jobs.find(x=>x.id===id);
+  if(!j) return;
+  if(LOCKED_REGION && j.region !== LOCKED_REGION) return;
+  if(jobTabId){
+    await settleSiteSave();
+    if(siteDirty.size){ showToast('Still saving site details \u2014 check your connection'); return; }
   }
-  ev.preventDefault();
-  return false;
+  jobTabId = id;
+  jobPageReady = false;
+  jobPageInitializing = false;
+  siteInfo = {};
+  siteDirty = new Set();
+  siteDirtyJobId = '';
+  setJpSave('');
+  document.getElementById('jobTabLabel').textContent = (j.jobName || 'Job').length > 20 ? (j.jobName || 'Job').slice(0,19) + '\u2026' : (j.jobName || 'Job');
+  document.getElementById('jobTab').style.display = '';
+  document.body.classList.add('has-job-tab');
+  switchTab('job');
+  window.scrollTo(0, 0);
+  initJobPage();
+}
+async function closeJobTab(){
+  await settleSiteSave();
+  if(siteDirty.size){ showToast('Still saving site details \u2014 check your connection'); return; }
+  jobTabId = '';
+  jobPageReady = false;
+  document.getElementById('jobTab').style.display = 'none';
+  document.body.classList.remove('has-job-tab');
+  switchTab('jobs');
 }
 
 const SITE_SECTIONS = [
@@ -2560,6 +2589,7 @@ let siteInfo = {};
 let siteDirty = new Set();
 let siteSaveTimer = null;
 let siteFlushing = false;
+let siteDirtyJobId = '';
 let jobPageReady = false;
 let jobPageInitializing = false;
 
@@ -2577,7 +2607,7 @@ function siteFieldHtml(f){
   return `<div class="jp-row"><label>${esc(f.l)}</label>${ctl}</div>`;
 }
 function renderJobPageSite(){
-  const j = jobs.find(x=>x.id===JOB_PAGE_ID);
+  const j = jobs.find(x=>x.id===jobTabId);
   const staticRows = {
     'Site': [
       ['Site address', j.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.address)}" target="_blank" rel="noopener">${esc(j.address)}</a>` : '\u2014'],
@@ -2604,6 +2634,7 @@ function renderJobPageSite(){
 function onSiteInput(el){
   const k = el.dataset.k;
   siteInfo[k] = el.value;
+  siteDirtyJobId = jobTabId;
   siteDirty.add(k);
   if(el.tagName==='TEXTAREA') autoGrow(el);
   setJpSave('Unsaved changes\u2026');
@@ -2612,16 +2643,18 @@ function onSiteInput(el){
 }
 async function flushSiteInfo(){
   clearTimeout(siteSaveTimer);
-  if(siteFlushing || !siteDirty.size) return;
+  siteSaveTimer = null;
+  const saveId = siteDirtyJobId || jobTabId;
+  if(siteFlushing || !siteDirty.size || !saveId) return;
   siteFlushing = true;
   const keys = [...siteDirty];
   siteDirty.clear();
   setJpSave('Saving\u2026');
   try{
-    const rows = await sbFetch('job_site_info?job_id=eq.' + encodeURIComponent(JOB_PAGE_ID) + '&select=data');
+    const rows = await sbFetch('job_site_info?job_id=eq.' + encodeURIComponent(saveId) + '&select=data');
     const remote = (rows && rows[0] && rows[0].data) || {};
     keys.forEach(k=>{ remote[k] = siteInfo[k] || ''; });
-    await sbFetch('job_site_info?on_conflict=job_id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{ job_id: JOB_PAGE_ID, data: remote, updated_at: new Date().toISOString() }] });
+    await sbFetch('job_site_info?on_conflict=job_id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates'}, body:[{ job_id: saveId, data: remote, updated_at: new Date().toISOString() }] });
     setJpSave('Saved');
   }catch(e){
     keys.forEach(k=>siteDirty.add(k));
@@ -2671,17 +2704,17 @@ function jobPageHubHtml(j){
   </div></div>`;
 }
 function renderJobPageHub(){
-  const j = jobs.find(x=>x.id===JOB_PAGE_ID);
+  const j = jobs.find(x=>x.id===jobTabId);
   if(!j) return;
   document.getElementById('jpTitle').textContent = j.jobName || 'Untitled';
   document.getElementById('jpSub').textContent = [j.jobNumber ? '#' + j.jobNumber : '', j.region || ''].filter(Boolean).join(' \u00B7 ');
-  document.title = (j.jobName || 'Job') + ' \u2013 Design Hub';
+  document.getElementById('jobTabLabel').textContent = (j.jobName || 'Job').length > 20 ? (j.jobName || 'Job').slice(0,19) + '\u2026' : (j.jobName || 'Job');
   document.getElementById('jpHub').innerHTML = jobPageHubHtml(j);
   document.getElementById('jpEditBtn').style.display = READ_ONLY ? 'none' : '';
 }
 async function initJobPage(){
   if(jobPageInitializing) return;
-  const j = jobs.find(x=>x.id===JOB_PAGE_ID);
+  const j = jobs.find(x=>x.id===jobTabId);
   if(!j || (LOCKED_REGION && j.region !== LOCKED_REGION)){
     document.getElementById('jpTitle').textContent = 'Job not available';
     document.getElementById('jpSub').textContent = 'This job could not be found, or is not part of this link. Check your connection and refresh.';
@@ -2689,7 +2722,7 @@ async function initJobPage(){
   }
   jobPageInitializing = true;
   try{
-    const rows = await sbFetch('job_site_info?job_id=eq.' + encodeURIComponent(JOB_PAGE_ID) + '&select=data');
+    const rows = await sbFetch('job_site_info?job_id=eq.' + encodeURIComponent(jobTabId) + '&select=data');
     siteInfo = (rows && rows[0] && rows[0].data) || {};
   }catch(e){
     siteInfo = {};
@@ -2701,12 +2734,12 @@ async function initJobPage(){
   renderJobPageSite();
 }
 function jobPageSync(){
-  if(!JOB_PAGE_ID) return;
+  if(!jobTabId) return;
   if(!jobPageReady) initJobPage();
   else renderJobPageHub();
 }
 window.addEventListener('beforeunload', e=>{
-  if(JOB_PAGE_ID && siteDirty.size){ flushSiteInfo(); e.preventDefault(); e.returnValue = ''; }
+  if(jobTabId && siteDirty.size){ flushSiteInfo(); e.preventDefault(); e.returnValue = ''; }
 });
 
 const BC_STATUTORY_DAYS = 20;
@@ -3448,7 +3481,7 @@ function renderTable(list){
     <tr onclick="openJobModal('${j.id}')">
       ${isColHidden('region') ? '' : `<td>${esc(j.region||'')}</td>`}
       ${isColHidden('jobNumber') ? '<td class="col-collapsed"></td>' : `<td>${(()=>{ const d = staleDaysAgo(j); return d ? `<span class="stale-dot" title="No updates in ${d} days"></span>` : ''; })()}${esc(j.jobNumber||'')}</td>`}
-      ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td class="td-jobname"><a class="jobname-link" href="${esc(jobPageUrl(j.id))}" onclick="return jobNameLinkClick(event,'${j.id}')" title="Shift-click to open the full job page in a new tab"><strong>${esc(j.jobName||'Untitled')}</strong></a>${LOCKED_REGION && j.address && !addressExpandedIds.has(j.id) ? `<span class="address-pin-indicator" title="${esc(j.address)}" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')">📍</span>` : ''}</td>`}
+      ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td class="td-jobname"><span class="jobname-link" onclick="jobNameClick(event,'${j.id}')" title="Shift-click to open the full job page"><strong>${esc(j.jobName||'Untitled')}</strong></span>${LOCKED_REGION && j.address && !addressExpandedIds.has(j.id) ? `<span class="address-pin-indicator" title="${esc(j.address)}" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')">📍</span>` : ''}</td>`}
       ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td style="text-align:center;">${stageCellHtml(j)}</td>`}
       ${isColHidden('who') ? '' : `<td style="white-space:nowrap;">${esc((j.stageWho && j.stageWho[j.stage] || []).join(', '))}</td>`}
       ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td${bcStateKind(j.status) ? ' class="td-bc"' : ''}>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}${bcBadgeHtml(j)}</td>`}
@@ -4993,8 +5026,7 @@ populateRegionFilters();
 initRealtime();
 loadAll(true).then(()=>{
   setStickyOffsets();
-  if(JOB_PAGE_ID) jobPageSync();
-  else if(LOCKED_TAB) switchTab(LOCKED_TAB);
+  if(LOCKED_TAB) switchTab(LOCKED_TAB);
   else if(!READ_ONLY) renderDashboard();
   if(LOCKED_CONTACT_REGION){
     document.getElementById('regionAddressValue').textContent = regionAddresses[LOCKED_CONTACT_REGION] || '';

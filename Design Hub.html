@@ -238,6 +238,22 @@ select.select, .toolbar select{
 .pill-state-onSite{background:#B1D2A8;color:#1F4A12;}
 .pill-state-withServices{background:#EBB5C8;color:#7A1F42;}
 .pill-state-default{background:#A1D6CC;color:#0B4A3E;}
+.bc-clock{display:block;width:142px;box-sizing:border-box;margin-top:4px;padding:1px 6px;border-radius:999px;font-size:10.5px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em;}
+.bc-ok{background:#EFEEE6;color:#5A5842;}
+.bc-warn{background:#FBE7B5;color:#7A5200;}
+.bc-late{background:#F4C4BE;color:#8A1F14;}
+.bc-paused{background:#DCE6F2;color:#254A78;}
+.bc-unset{background:none;color:var(--ink-faint);font-weight:500;border:1px dashed var(--line);}
+.bc-section{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:12px;margin-top:2px;}
+.bc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.bc-head .bc-clock{margin-top:0;width:auto;padding:2px 10px;}
+.bc-grid{display:grid;grid-template-columns:78px 1fr 1fr 26px;gap:10px;align-items:center;}
+.bc-rfi-label{font-size:12px;font-weight:600;color:var(--ink-soft);}
+.bc-col-label{font-size:10.5px;font-weight:600;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.02em;}
+.td-bc{padding-top:7px !important;padding-bottom:7px !important;}
+.bc-note{font-size:11px;color:var(--ink-faint);line-height:1.4;}
+.bc-detail{font-size:12px;line-height:1.5;color:var(--ink-soft);}
+.bc-detail .bc-clock{display:inline-block;width:auto;margin:0 0 3px 0;}
 
 .consultant-role-tag{font-weight:600;color:var(--blue);font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;}
 .consultant-remove-btn{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:13px;}
@@ -815,7 +831,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
           <div><label class="f-label">Job number</label><input class="f-input" id="f-jobNumber" placeholder="e.g. 27002"></div>
           <div><label class="f-label">Region</label><input class="f-input" id="f-region" list="regionList"></div>
           <div><label class="f-label">State</label>
-            <select class="f-select" id="f-status"></select>
+            <select class="f-select" id="f-status" onchange="onModalStatusChange()"></select>
           </div>
           <div><label class="f-label">Task status</label>
             <select class="f-select" id="f-taskStatus">
@@ -834,6 +850,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
           </div>
         </div>
       </div>
+      <div class="full bc-section" id="bcSection"></div>
       <div class="full" style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:12px;margin-top:2px;">
         <span style="font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;">Estimated completion</span>
         <button type="button" class="btn-ghost" id="recalcBtn" style="padding:5px 10px;font-size:11.5px;" onclick="autoCalcDates(true)">↻ Recalculate from guide</button>
@@ -1821,7 +1838,9 @@ function jobToRow(j){
     planning: j.planning || '',
     updates_sent: j.updatesSent || null,
     engineer_date: j.engineer || null,
-    archived: !!j.archived
+    archived: !!j.archived,
+    bc_lodged_date: j.bcLodged || null,
+    bc_rfis: Array.isArray(j.bcRfis) ? j.bcRfis : []
   };
 }
 function rowToJob(r){
@@ -1846,6 +1865,8 @@ function rowToJob(r){
     engineer: r.engineer_date || '',
     updatedAt: r.updated_at || null,
     archived: !!r.archived,
+    bcLodged: r.bc_lodged_date || '',
+    bcRfis: Array.isArray(r.bc_rfis) ? r.bc_rfis : [],
     consultants: [],
     stageWho: { SP:[], PD:[], WD:[], 'On Site':[] }
   };
@@ -2226,7 +2247,7 @@ function renderAddresses(){
       <td>${j.lotDp ? esc(j.lotDp) : (j.address ? `<span class="council-resolve-link" onclick="resolveLotDpForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
       <td>${j.council ? esc(j.council) : (j.address ? `<span class="council-resolve-link" onclick="resolveCouncilForJob('${j.id}','${esc(j.address).replace(/'/g,"\\'")}').then(renderAddresses)">resolve</span>` : '')}</td>
       <td>${j.council && COUNCIL_INFO[j.council] ? `<a href="${COUNCIL_INFO[j.council].website}" target="_blank" rel="noopener">Website</a>` : ''}</td>
-      <td>${j.council && COUNCIL_INFO[j.council] ? `<a href="${COUNCIL_INFO[j.council].consent}" target="_blank" rel="noopener">Apply</a>` : ''}</td>
+      <td>${bcDetailHtml(j)}${j.council && COUNCIL_INFO[j.council] ? `<div><a href="${COUNCIL_INFO[j.council].consent}" target="_blank" rel="noopener">Apply</a></div>` : ''}</td>
     </tr>`).join('') || '<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--ink-faint);">No jobs to show yet.</td></tr>';
 }
 let stageHistory = [];
@@ -2402,6 +2423,87 @@ function stateCategory(s){
   return 'default';
 }
 function statePillClass(s){ return 'pill-state-' + stateCategory(s); }
+
+/* ---------- Building consent clock (NZ Building Act s48: 20 working days, paused by RFIs) ---------- */
+const BC_STATUTORY_DAYS = 20;
+function bcStateKind(s){
+  const t = (s||'').trim().toLowerCase();
+  if(t==='consenting' || t==='vetting') return 'active';
+  if(/^rfi w\//.test(t)) return 'rfi';
+  return '';
+}
+function bcIsWorkingDay(iso){
+  const d = new Date(iso+'T00:00:00');
+  const dow = d.getDay();
+  if(dow===0 || dow===6) return false;
+  const m = d.getMonth()+1, day = d.getDate();
+  if((m===12 && day>=20) || (m===1 && day<=10)) return false;   // statutory 20 Dec - 10 Jan break
+  return !getNZHolidays(d.getFullYear()).includes(iso);
+}
+function bcClock(j, todayISO){
+  const lodged = j && j.bcLodged;
+  if(!lodged) return null;
+  const today = todayISO || isoDate(new Date());
+  const rfis = (j.bcRfis||[]).filter(r=>r && r.out);
+  const paused = rfis.some(r=>!r.back);
+  const isPausedOn = iso => rfis.some(r => iso > r.out && (!r.back || iso <= r.back));
+  let used = 0;
+  let d = lodged;
+  let guard = 0;
+  while(d < today && guard++ < 800){
+    d = addDaysISO(d, 1);
+    if(d > today) break;
+    if(bcIsWorkingDay(d) && !isPausedOn(d)) used++;
+  }
+  let due = '';
+  if(!paused){
+    let u = used, dd = today < lodged ? lodged : today, g = 0;
+    while(u < BC_STATUTORY_DAYS && g++ < 800){
+      dd = addDaysISO(dd, 1);
+      if(bcIsWorkingDay(dd)) u++;
+    }
+    due = dd;
+  }
+  return { used, paused, due, lodged, rfis };
+}
+function bcBadgeInfo(j){
+  if(!bcStateKind(j.status)) return null;
+  const c = bcClock(j);
+  if(!c) return { cls:'bc-unset', text:'BC date?', title:'Open the job and set the BC lodged date to start the consent clock' };
+  const base = 'Lodged ' + fmtDate(c.lodged) + ' \u00B7 ' + c.used + ' of ' + BC_STATUTORY_DAYS + ' working days used';
+  if(c.paused) return { cls:'bc-paused', text:'Paused \u00B7 ' + c.used + '/' + BC_STATUTORY_DAYS, title: base + ' \u00B7 clock stopped while RFI outstanding' };
+  const over = c.used > BC_STATUTORY_DAYS;
+  const cls = c.used >= BC_STATUTORY_DAYS-1 ? 'bc-late' : (c.used >= 15 ? 'bc-warn' : 'bc-ok');
+  return { cls, text: 'BC day ' + c.used + '/' + BC_STATUTORY_DAYS + (over ? ' \u2013 over' : ''), title: base + (c.due ? ' \u00B7 due about ' + fmtDate(c.due) : '') + ' \u00B7 estimate only, council portal is the source of truth' };
+}
+function bcBadgeHtml(j){
+  const b = bcBadgeInfo(j);
+  return b ? `<span class="bc-clock ${b.cls}" title="${esc(b.title)}">${esc(b.text)}</span>` : '';
+}
+function bcApplyTransition(bc, prevStatus, newStatus, todayISO){
+  const today = todayISO || isoDate(new Date());
+  const pk = bcStateKind(prevStatus), nk = bcStateKind(newStatus);
+  if(pk === nk && pk !== '') return;
+  if(nk==='active'){
+    if(pk==='rfi'){
+      const open = bc.rfis.find(r=>!r.back);
+      if(open) open.back = today;
+    } else if(!bc.lodged){
+      bc.lodged = today;
+    }
+  } else if(nk==='rfi' && pk!=='rfi'){
+    if(!bc.rfis.some(r=>!r.back)) bc.rfis.push({ out: today, back: '' });
+  }
+}
+function bcDetailHtml(j){
+  const c = bcClock(j);
+  if(!c) return '';
+  const b = bcBadgeInfo({status:'Consenting', bcLodged:j.bcLodged, bcRfis:j.bcRfis});
+  const lines = [`<span class="bc-clock ${b.cls}">${esc(b.text)}</span>`, `Lodged ${esc(fmtDate(c.lodged))}`];
+  c.rfis.forEach((r,i)=>{ lines.push(`RFI ${i+1}: sent ${esc(fmtDate(r.out))} \u2192 ${r.back ? 'returned ' + esc(fmtDate(r.back)) : '<strong>outstanding</strong>'}`); });
+  if(c.due) lines.push(`Due about ${esc(fmtDate(c.due))}`);
+  return `<div class="bc-detail">${lines.join('<br>')}</div>`;
+}
 function fmtDate(d){
   if(!d) return '';
   const dt = new Date(d+'T00:00:00');
@@ -2598,6 +2700,7 @@ function cardHtml(j){
     </div>
     <div class="card-title">${esc(j.jobName || 'Untitled job')}</div>
     <div class="card-meta"><span class="card-region">${esc(j.region||'—')}</span>${j.status ? ` · <span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</div>
+    ${bcBadgeHtml(j) ? `<div style="margin-top:6px;">${bcBadgeHtml(j)}</div>` : ''}
   </div>`;
 }
 
@@ -3063,7 +3166,7 @@ function renderTable(list){
       ${isColHidden('jobName') ? '<td class="col-collapsed"></td>' : `<td class="td-jobname"><strong>${esc(j.jobName||'Untitled')}</strong>${LOCKED_REGION && j.address && !addressExpandedIds.has(j.id) ? `<span class="address-pin-indicator" title="${esc(j.address)}" onclick="event.stopPropagation(); toggleAddressRow('${j.id}')">📍</span>` : ''}</td>`}
       ${isColHidden('stage') ? '<td class="col-collapsed"></td>' : `<td style="text-align:center;">${stageCellHtml(j)}</td>`}
       ${isColHidden('who') ? '' : `<td style="white-space:nowrap;">${esc((j.stageWho && j.stageWho[j.stage] || []).join(', '))}</td>`}
-      ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}</td>`}
+      ${isColHidden('status') ? '<td class="col-collapsed"></td>' : `<td${bcStateKind(j.status) ? ' class="td-bc"' : ''}>${j.status ? `<span class="pill ${statePillClass(j.status)}">${esc(j.status)}</span>` : ''}${bcBadgeHtml(j)}</td>`}
       ${richTextCell(j,'notes')}
       ${richTextCell(j,'planning')}
       ${dateCell(j,'earliestEstimatedCompletion')}
@@ -3132,6 +3235,52 @@ function suggestNextJobNumber(){
   });
   return max ? String(max+1) : '';
 }
+let modalBc = { lodged:'', rfis:[] };
+let modalBcBase = { lodged:'', rfis:[] };
+let modalBcOrigStatus = '';
+function bcClone(b){ return { lodged: b.lodged || '', rfis: (b.rfis||[]).map(r=>({out:r.out||'', back:r.back||''})) }; }
+function onModalStatusChange(){
+  const next = document.getElementById('f-status').value;
+  modalBc = bcClone(modalBcBase);
+  bcApplyTransition(modalBc, modalBcOrigStatus, next);
+  renderModalBc();
+}
+function bcSetLodged(v){ modalBc.lodged = v || ''; renderModalBc(); }
+function bcSetRfi(i, key, v){ if(modalBc.rfis[i]) modalBc.rfis[i][key] = v || ''; renderModalBc(); }
+function bcAddRfi(){ modalBc.rfis.push({ out: isoDate(new Date()), back:'' }); renderModalBc(); }
+function bcRemoveRfi(i){ modalBc.rfis.splice(i,1); renderModalBc(); }
+function renderModalBc(){
+  const el = document.getElementById('bcSection');
+  if(!el) return;
+  const status = document.getElementById('f-status').value;
+  const fake = { status: bcStateKind(status) ? status : 'Consenting', bcLodged: modalBc.lodged, bcRfis: modalBc.rfis };
+  const b = modalBc.lodged ? bcBadgeInfo(fake) : null;
+  const ro = READ_ONLY ? ' disabled' : '';
+  el.innerHTML = `
+    <div class="bc-head">
+      <span style="font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;">Building consent clock</span>
+      ${b ? `<span class="bc-clock ${b.cls}" title="${esc(b.title)}">${esc(b.text)}</span>` : '<span class="bc-note">Starts when state changes to Consenting or Vetting</span>'}
+    </div>
+    <div class="bc-grid">
+      <div></div><div class="bc-col-label">Lodged / sent</div><div class="bc-col-label">Returned</div><div></div>
+    </div>
+    <div class="bc-grid">
+      <div class="bc-rfi-label">BC lodged</div>
+      <input class="f-input" type="date" value="${esc(modalBc.lodged)}" onchange="bcSetLodged(this.value)"${ro}>
+      <div></div><div></div>
+    </div>
+    ${modalBc.rfis.map((r,i)=>`
+    <div class="bc-grid">
+      <div class="bc-rfi-label">RFI ${i+1}</div>
+      <input class="f-input" type="date" value="${esc(r.out)}" onchange="bcSetRfi(${i},'out',this.value)"${ro}>
+      <input class="f-input" type="date" value="${esc(r.back)}" onchange="bcSetRfi(${i},'back',this.value)"${ro}>
+      <button type="button" class="consultant-remove-btn" title="Remove RFI" onclick="bcRemoveRfi(${i})"${ro}>\u2715</button>
+    </div>`).join('')}
+    <div style="display:flex;align-items:center;gap:12px;">
+      ${READ_ONLY ? '' : '<button type="button" class="btn-ghost" style="padding:4px 10px;font-size:11.5px;" onclick="bcAddRfi()">+ Add RFI</button>'}
+      <span class="bc-note">Dates fill in automatically when the state moves to or from an RFI state. Working days exclude weekends, public holidays and 20 Dec\u201310 Jan. Estimate only.</span>
+    </div>`;
+}
 function openJobModal(id){
   if(READ_ONLY) return;
   currentEditId = id || null;
@@ -3143,8 +3292,12 @@ function openJobModal(id){
   document.getElementById('modalSaveBtn').style.display = READ_ONLY ? 'none' : 'inline-block';
   document.getElementById('modalCancelBtn').textContent = READ_ONLY ? 'Close' : 'Cancel';
   document.getElementById('recalcBtn').style.display = READ_ONLY ? 'none' : 'inline-block';
-  document.querySelectorAll('#jobOverlay input, #jobOverlay select, #jobOverlay textarea').forEach(el=>{ el.disabled = READ_ONLY; });
   populateStateOptions(j?.stage || 'SP', j?.status || '', true);
+  modalBcBase = bcClone({ lodged: j?.bcLodged, rfis: j?.bcRfis });
+  modalBc = bcClone(modalBcBase);
+  modalBcOrigStatus = j?.status || '';
+  renderModalBc();
+  document.querySelectorAll('#jobOverlay input, #jobOverlay select, #jobOverlay textarea').forEach(el=>{ el.disabled = READ_ONLY; });
   modalCurrentStage = j?.stage || 'SP';
   modalStageWho = { SP:[], PD:[], WD:[], 'On Site':[] };
   if(j?.stageWho){
@@ -3661,6 +3814,8 @@ async function saveJob(){
     engineer: document.getElementById('f-engineer').value.trim(),
     notes: plainToRichHtml(document.getElementById('f-notes').value.trim()),
     planning: plainToRichHtml(document.getElementById('f-planning').value.trim()),
+    bcLodged: modalBc.lodged || '',
+    bcRfis: modalBc.rfis.filter(r=>r.out).map(r=>({out:r.out, back:r.back||''})),
   };
   if(!data.jobName){ showToast('Give the job a client / job name first'); return; }
   const prevTaskStatus = currentEditId ? (jobs.find(x=>x.id===currentEditId)?.taskStatus || 'In Progress') : null;

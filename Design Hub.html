@@ -2562,22 +2562,30 @@ const SITE_SECTIONS = [
     {k:'dutyPlannerDate', l:'Date', t:'date'},
     {k:'dutyPlannerNotes', l:'Correspondence', t:'area'}
   ]},
-  {title:'Site / design parameters', wide:true, fields:[
+  {title:'Definitions', fields:[
     {k:'buildingDefinition', l:'Building definition', t:'area'},
-    {k:'yardDefinition', l:'Yard definition', t:'area'},
-    {k:'setbackFront', l:'Front setback'},
-    {k:'setbackSide', l:'Side setback'},
-    {k:'setbackRear', l:'Rear setback'},
-    {k:'setbackGarage', l:'Garage setback'},
+    {k:'yardDefinition', l:'Yard definition', t:'area'}
+  ]},
+  {title:'Yard setbacks', fields:[
+    {k:'setbackFront', l:'Front'},
+    {k:'setbackSide', l:'Side'},
+    {k:'setbackRear', l:'Rear'},
+    {k:'setbackGarage', l:'Garage'}
+  ]},
+  {title:'Height and coverage', fields:[
     {k:'maxHeight', l:'Max height'},
     {k:'hirb', l:'HIRB'},
     {k:'siteCoverage', l:'Site coverage'},
-    {k:'coverageIncludes', l:'Coverage includes', t:'area'},
+    {k:'coverageIncludes', l:'Coverage includes', t:'area'}
+  ]},
+  {title:'Open space and landscaping', fields:[
     {k:'privacyCircle', l:'Privacy / open area circle'},
     {k:'landscapedArea', l:'Landscaped area'},
     {k:'outlookSpace', l:'Outlook space'},
     {k:'permeableSurfaces', l:'Permeable surfaces'},
-    {k:'outdoorLiving', l:'Outdoor living space'},
+    {k:'outdoorLiving', l:'Outdoor living space'}
+  ]},
+  {title:'Access, services and hazards', fields:[
     {k:'fences', l:'Fences'},
     {k:'vehicleAccess', l:'Vehicle access and parking', t:'area'},
     {k:'serviceAreas', l:'Service areas'},
@@ -2622,13 +2630,13 @@ function renderJobPageSite(){
     <div class="jp-card">
       <div class="jp-card-title">${esc(sec.title)}</div>
       ${staticHtml(sec.title)}
-      <div class="${sec.wide ? 'jp-fields-2' : ''}">${sec.fields.map(siteFieldHtml).join('')}</div>
+      <div>${sec.fields.map(siteFieldHtml).join('')}</div>
     </div>`;
   const byTitle = t => SITE_SECTIONS.find(x=>x.title===t);
+  const col = titles => `<div class="jp-col">${titles.map(t=>cardHtml(byTitle(t))).join('')}</div>`;
   document.getElementById('jpSite').innerHTML =
-    `<div class="jp-grid"><div class="jp-col">${cardHtml(byTitle('Site'))}${cardHtml(byTitle('Climate and zones'))}</div>` +
-    `<div class="jp-col">${cardHtml(byTitle('Legal description of site'))}${cardHtml(byTitle('Planning compliance'))}</div></div>` +
-    `<div style="margin-top:16px;">${cardHtml(byTitle('Site / design parameters'))}</div>`;
+    `<div class="jp-grid">${col(['Site','Climate and zones'])}${col(['Legal description of site','Planning compliance'])}</div>` +
+    `<div class="jp-grid" style="margin-top:16px;">${col(['Definitions','Yard setbacks','Height and coverage'])}${col(['Open space and landscaping','Access, services and hazards'])}</div>`;
   document.querySelectorAll('#jpSite textarea').forEach(autoGrow);
 }
 function onSiteInput(el){

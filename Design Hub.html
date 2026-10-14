@@ -2561,8 +2561,7 @@ const SITE_SECTIONS = [
     {k:'consentNotices', l:'Consent notices', t:'area'},
     {k:'designGuidelines', l:'Design guidelines', t:'area'},
     {k:'specialConditions', l:'Special conditions', t:'area'},
-    {k:'tenure', l:'Freehold / leasehold'},
-    {k:'swSewer', l:'SW, sewer connections', t:'area'}
+    {k:'tenure', l:'Freehold / leasehold'}
   ]},
   {title:'Climate and zones', fields:[
     {k:'climateZone', l:'Climate zone'},
@@ -2571,19 +2570,39 @@ const SITE_SECTIONS = [
     {k:'leeZone', l:'Lee zone'},
     {k:'rainfallRange', l:'Rainfall range'},
     {k:'windRegion', l:'Wind region'},
-    {k:'windZone', l:'Wind zone'}
+    {k:'windZone', l:'Wind zone'},
+    {k:'snowZone', l:'Snow load zone'},
+    {k:'corrosionZone', l:'Corrosion zone (sea spray)'}
   ]},
   {title:'Planning compliance', fields:[
     {k:'dutyPlannerContacted', l:'Duty planner contacted', t:'yesno'},
     {k:'dutyPlannerName', l:'Name'},
     {k:'dutyPlannerDate', l:'Date', t:'date'},
     {k:'dutyPlannerNotes', l:'Correspondence', t:'area'}
+  ]},
+  {title:'Infrastructure and services', fields:[
+    {k:'swSewer', l:'SW, sewer connections', t:'area'},
+    {k:'stormwaterDisposal', l:'Stormwater disposal', t:'area'},
+    {k:'waterSupply', l:'Water supply'},
+    {k:'firefightingWater', l:'Firefighting water supply'},
+    {k:'powerTelecoms', l:'Power and telecoms'},
+    {k:'vehicleCrossing', l:'Vehicle crossing / permit'}
   ]}
 ];
 const PLAN_SECTIONS = [
   {title:'Zoning', fields:[
     {k:'zoning', l:'Zoning'},
     {k:'zoningOverlay', l:'Zoning overlay'}
+  ]},
+  {title:'Hazards and overlays', fields:[
+    {k:'floodPonding', l:'Flood / ponding', t:'area'},
+    {k:'minFloorLevel', l:'Minimum floor level'},
+    {k:'liquefaction', l:'Liquefaction / TC zone'},
+    {k:'slopeInstability', l:'Slope instability'},
+    {k:'coastalHazard', l:'Coastal hazard'},
+    {k:'faultSeismic', l:'Fault / seismic overlay'},
+    {k:'bushfire', l:'Bushfire'},
+    {k:'otherOverlays', l:'Other overlays (heritage, character, landscape, cultural, noise)', t:'area'}
   ]},
   {title:'Definitions', fields:[
     {k:'buildingDefinition', l:'Building definition', t:'area'},
@@ -2613,7 +2632,7 @@ const PLAN_SECTIONS = [
     {k:'vehicleAccess', l:'Vehicle access and parking', t:'area'},
     {k:'serviceAreas', l:'Service areas'},
     {k:'earthworks', l:'Earthworks'},
-    {k:'hazards', l:'Hazards', t:'area'}
+    {k:'hazards', l:'Other hazards', t:'area'}
   ]}
 ];
 const PLAN_SETS = [
@@ -2803,10 +2822,10 @@ function renderJobPageSite(){
   const baseCol = titles => `<div class="jp-col">${titles.map(t=>cardHtml(SITE_SECTIONS.find(x=>x.title===t))).join('')}</div>`;
   const planCol = (titles, set) => `<div class="jp-col">${titles.map(t=>cardHtml(PLAN_SECTIONS.find(x=>x.title===t), set)).join('')}</div>`;
   document.getElementById('jpSite').innerHTML =
-    `<div class="jp-grid">${baseCol(['Site','Climate and zones'])}${baseCol(['Legal description of site','Planning compliance'])}</div>` +
+    `<div class="jp-grid">${baseCol(['Site','Climate and zones','Planning compliance'])}${baseCol(['Legal description of site','Infrastructure and services'])}</div>` +
     PLAN_SETS.map(set=>`
       <div class="jp-plan-title">${esc(set.name)}</div>
-      <div class="jp-grid">${planCol(['Zoning','Definitions','Yard setbacks','Height and coverage'], set)}${planCol(['Open space and landscaping','Access, services and hazards'], set)}</div>`).join('');
+      <div class="jp-grid">${planCol(['Zoning','Hazards and overlays','Definitions','Yard setbacks'], set)}${planCol(['Height and coverage','Open space and landscaping','Access, services and hazards'], set)}</div>`).join('');
   document.querySelectorAll('#jpSite textarea').forEach(autoGrow);
 }
 function onSiteInput(el){

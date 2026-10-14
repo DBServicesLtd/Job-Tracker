@@ -274,6 +274,7 @@ body.has-job-tab .settings-wrap{margin-left:auto;}
 .jp-col{display:flex;flex-direction:column;gap:16px;min-width:0;}
 .jp-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;}
 .jp-card-wide{grid-column:1/-1;}
+.jp-plan-title{font-family:'DM Serif Display',serif;font-style:italic;font-size:24px;color:var(--ink);margin:18px 0 0;padding-bottom:6px;border-bottom:2px solid var(--blue-deep);}
 .jp-card-title{font-family:'DM Serif Display',serif;font-style:italic;font-size:17px;color:var(--ink);margin-bottom:10px;}
 .jp-pills{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin-bottom:10px;}
 .jp-pills .bc-clock{margin-top:0;}
@@ -2550,9 +2551,7 @@ async function closeJobTab(){
 
 const SITE_SECTIONS = [
   {title:'Site', fields:[
-    {k:'templateDate', l:'Date', t:'date'},
-    {k:'zoning', l:'Zoning'},
-    {k:'zoningOverlay', l:'Zoning overlay'}
+    {k:'templateDate', l:'Date', t:'date'}
   ]},
   {title:'Legal description of site', fields:[
     {k:'certificateOfTitle', l:'Certificate of title (C.T.)'},
@@ -2579,6 +2578,12 @@ const SITE_SECTIONS = [
     {k:'dutyPlannerName', l:'Name'},
     {k:'dutyPlannerDate', l:'Date', t:'date'},
     {k:'dutyPlannerNotes', l:'Correspondence', t:'area'}
+  ]}
+];
+const PLAN_SECTIONS = [
+  {title:'Zoning', fields:[
+    {k:'zoning', l:'Zoning'},
+    {k:'zoningOverlay', l:'Zoning overlay'}
   ]},
   {title:'Definitions', fields:[
     {k:'buildingDefinition', l:'Building definition', t:'area'},
@@ -2610,6 +2615,10 @@ const SITE_SECTIONS = [
     {k:'earthworks', l:'Earthworks'},
     {k:'hazards', l:'Hazards', t:'area'}
   ]}
+];
+const PLAN_SETS = [
+  {name:'Proposed District Plan', prefix:'pdp_', keySuffix:'-proposed'},
+  {name:'Operative District Plan', prefix:'', keySuffix:''}
 ];
 let siteInfo = {};
 let siteImages = [];
@@ -2780,18 +2789,24 @@ function renderJobPageSite(){
     ]
   };
   const staticHtml = t => (staticRows[t] || []).map(r=>`<div class="jp-row"><label>${r[0]}</label><div class="jp-val">${r[1]}</div></div>`).join('');
-  const cardHtml = sec => `
-    <div class="jp-card" data-section="${sectionKey(sec.title)}">
+  const cardHtml = (sec, set) => {
+    const key = sectionKey(sec.title) + (set ? set.keySuffix : '');
+    const fields = set ? sec.fields.map(f=>Object.assign({}, f, { k: set.prefix + f.k })) : sec.fields;
+    return `
+    <div class="jp-card" data-section="${key}">
       <div class="jp-card-title">${esc(sec.title)}</div>
       ${staticHtml(sec.title)}
-      <div>${sec.fields.map(siteFieldHtml).join('')}</div>
-      <div data-imgs="${sectionKey(sec.title)}">${siteImagesHtml(sectionKey(sec.title))}</div>
+      <div>${fields.map(siteFieldHtml).join('')}</div>
+      <div data-imgs="${key}">${siteImagesHtml(key)}</div>
     </div>`;
-  const byTitle = t => SITE_SECTIONS.find(x=>x.title===t);
-  const col = titles => `<div class="jp-col">${titles.map(t=>cardHtml(byTitle(t))).join('')}</div>`;
+  };
+  const baseCol = titles => `<div class="jp-col">${titles.map(t=>cardHtml(SITE_SECTIONS.find(x=>x.title===t))).join('')}</div>`;
+  const planCol = (titles, set) => `<div class="jp-col">${titles.map(t=>cardHtml(PLAN_SECTIONS.find(x=>x.title===t), set)).join('')}</div>`;
   document.getElementById('jpSite').innerHTML =
-    `<div class="jp-grid">${col(['Site','Climate and zones'])}${col(['Legal description of site','Planning compliance'])}</div>` +
-    `<div class="jp-grid" style="margin-top:16px;">${col(['Definitions','Yard setbacks','Height and coverage'])}${col(['Open space and landscaping','Access, services and hazards'])}</div>`;
+    `<div class="jp-grid">${baseCol(['Site','Climate and zones'])}${baseCol(['Legal description of site','Planning compliance'])}</div>` +
+    PLAN_SETS.map(set=>`
+      <div class="jp-plan-title">${esc(set.name)}</div>
+      <div class="jp-grid">${planCol(['Zoning','Definitions','Yard setbacks','Height and coverage'], set)}${planCol(['Open space and landscaping','Access, services and hazards'], set)}</div>`).join('');
   document.querySelectorAll('#jpSite textarea').forEach(autoGrow);
 }
 function onSiteInput(el){

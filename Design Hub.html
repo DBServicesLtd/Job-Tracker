@@ -313,25 +313,36 @@ body.has-job-tab .settings-wrap{margin-left:auto;}
 .jp-subtab span{margin-left:6px;font-size:11.5px;font-weight:600;background:var(--line);color:var(--ink-soft);border-radius:10px;padding:1px 7px;}
 .ck-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
 .ck-bar select{font-size:13px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:5px;background:var(--panel);font-weight:600;color:var(--ink-soft);}
-.ck-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+.ck-card{margin-bottom:16px;}
 .ck-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
 .ck-title-in{flex:1;min-width:0;font-family:'DM Serif Display',serif;font-style:italic;font-size:17px;color:var(--ink);border:1px solid transparent;background:none;border-radius:4px;padding:2px 4px;}
 .ck-title-in:hover,.ck-title-in:focus{border-color:var(--line-strong);background:#fff;}
 .ck-title{flex:1;font-family:'DM Serif Display',serif;font-style:italic;font-size:17px;color:var(--ink);}
 .ck-count{font-size:12px;font-weight:600;color:var(--ink-soft);white-space:nowrap;}
-.ck-prog{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:10px;}
+.ck-prog{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:12px;}
 .ck-prog>div{height:100%;background:var(--blue-deep);}
 .ck-prog.full>div{background:#2e8b57;}
-.ck-item{display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--line);font-size:13px;}
-.ck-item input[type=checkbox]{width:16px;height:16px;flex:none;}
-.ck-text-in{flex:1;min-width:0;font-size:13px;border:1px solid transparent;background:none;border-radius:4px;padding:4px 6px;color:var(--ink);}
-.ck-text-in:hover,.ck-text-in:focus{border-color:var(--line-strong);background:#fff;}
-.ck-text{flex:1;padding:4px 6px;}
-.ck-item.done .ck-text-in,.ck-item.done .ck-text{color:var(--ink-faint);text-decoration:line-through;}
-.ck-at{font-size:11px;color:var(--ink-faint);white-space:nowrap;}
+.ck-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;margin-top:10px;}
+.ck-table .ck-colm{width:84px;}
+.ck-table .ck-coln{width:30%;}
+.ck-table .ck-colx{width:30px;}
+.ck-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--ink-soft);text-align:center;padding:7px 4px;background:rgba(1,0,58,.05);border-bottom:1px solid var(--line-strong);}
+.ck-table th.ck-sh-title{text-align:left;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--ink);cursor:pointer;padding-left:8px;user-select:none;}
+.ck-chev{display:inline-block;width:16px;color:var(--ink-faint);}
+.ck-sec-n{margin-left:8px;font-size:11px;font-weight:600;color:var(--ink-faint);}
+.ck-table td{border-top:1px solid var(--line);padding:4px 6px;vertical-align:top;}
+.ck-table td.ck-text{padding:6px 8px;line-height:1.35;}
+.ck-table td.ck-c{text-align:center;vertical-align:middle;}
+.ck-table td input[type=checkbox]{width:16px;height:16px;}
+.ck-table tr.done td.ck-text{color:var(--ink-faint);}
+.ck-table.ck-collapsed tbody{display:none;}
+.ck-desc td{font-size:12px;font-weight:600;color:#9b2c2c;background:rgba(155,44,44,.06);padding:5px 8px;}
+.ck-note{display:block;width:100%;box-sizing:border-box;border:1px solid transparent;border-bottom:1px dotted var(--line-strong);background:none;resize:none;overflow:hidden;font-style:italic;font-size:12.5px;line-height:1.35;font-family:inherit;color:var(--ink-soft);padding:3px 5px;border-radius:4px;}
+.ck-note:hover,.ck-note:focus{border-color:var(--line-strong);background:#fff;}
+.ck-note-ro{font-style:italic;font-size:12.5px;color:var(--ink-soft);padding:3px 5px;display:block;}
 .ck-x{border:none;background:none;color:var(--ink-faint);cursor:pointer;font-size:12px;padding:2px 4px;}
 .ck-x:hover{color:#c0392b;}
-.ck-add-in{width:100%;margin-top:8px;font-size:13px;padding:7px 9px;border:1px dashed var(--line-strong);border-radius:5px;background:none;}
+.ck-add-in{width:100%;box-sizing:border-box;font-size:13px;padding:6px 9px;border:1px dashed var(--line-strong);border-radius:5px;background:none;}
 .ck-empty{font-size:13px;color:var(--ink-faint);padding:6px 0;}
 .ck-trow{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:13px;flex-wrap:wrap;}
 .ck-trow b{flex:1;min-width:140px;}
@@ -339,12 +350,15 @@ body.has-job-tab .settings-wrap{margin-left:auto;}
 .ck-tgroup{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);margin:14px 0 4px;}
 .ck-edit{border:1px solid var(--line-strong);border-radius:var(--radius);padding:12px;margin:10px 0;background:var(--bg,#fafafa);display:flex;flex-direction:column;gap:8px;}
 .ck-edit label{font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;}
+.ck-edit-text{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.45;}
 .ck-link{border:none;background:none;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer;padding:2px 4px;}
 .ck-link:hover{text-decoration:underline;}
-@media(max-width:900px){.ck-grid{grid-template-columns:1fr;}}
 @media print{
   .jp-img-x,.jp-img-bar{display:none !important;}
-  .ck-x,.ck-add-in,.ck-bar,.ck-mgr{display:none !important;}
+  .ck-x,.ck-addrow,.ck-bar,.ck-mgr{display:none !important;}
+  .ck-table.ck-collapsed tbody{display:table-row-group !important;}
+  .ck-note{border:none;background:none;}
+  .ck-table tr{break-inside:avoid;}
   .jp-note .f-textarea{border:none;background:none;padding-left:0;}
   .jp-img img{height:auto;max-height:260px;object-fit:contain;}
   .no-print{display:none !important;}
@@ -3037,6 +3051,7 @@ let ckDirty = new Set();
 let ckTimer = null;
 let ckEditor = null;
 let ckMgrOpen = false;
+let ckCollapsed = new Set();
 const CK_KINDS = { working_drawings:'Working drawings', pricing_docs:'Pricing docs', other:'Other' };
 function ckItemId(){ return crypto.randomUUID().slice(0,8); }
 function jobTabRemember(active){
@@ -3055,11 +3070,25 @@ function applyJpSubTab(){
   document.getElementById('jpCkCount').textContent = jobChecklists.length ? String(jobChecklists.length) : '';
   if(!ov) renderChecklists();
 }
+function ckNorm(c){
+  c.columns = Array.isArray(c.columns) && c.columns.length ? c.columns : ['Done'];
+  let items = Array.isArray(c.items) ? c.items : [];
+  if(items.length && !Array.isArray(items[0].items)){
+    items = [{ id:ckItemId(), title:'', items:items.map(i=>({ id:i.id || ckItemId(), text:i.text, note:i.note || '', marks: i.done ? { [c.columns[0]]: i.at || '1' } : {} })) }];
+  }
+  items.forEach(s=>{
+    if(!s.id) s.id = ckItemId();
+    if(!Array.isArray(s.items)) s.items = [];
+    s.items.forEach(i=>{ if(!i.id) i.id = ckItemId(); });
+  });
+  c.items = items;
+  return c;
+}
 async function loadChecklists(){
   ckLoadFailed = false;
-  try{ ckTemplates = await sbFetch('checklist_templates?select=*&order=name.asc') || []; }
+  try{ ckTemplates = (await sbFetch('checklist_templates?select=*&order=name.asc') || []).map(ckNorm); }
   catch(e){ ckTemplates = []; ckLoadFailed = true; }
-  try{ jobChecklists = await sbFetch('job_checklists?job_id=eq.' + encodeURIComponent(jobTabId) + '&select=*&order=created_at.asc') || []; }
+  try{ jobChecklists = (await sbFetch('job_checklists?job_id=eq.' + encodeURIComponent(jobTabId) + '&select=*&order=created_at.asc') || []).map(ckNorm); }
   catch(e){ jobChecklists = []; ckLoadFailed = true; }
 }
 function ckMark(id){
@@ -3076,7 +3105,7 @@ async function ckFlushAll(){
     if(!c) continue;
     try{
       setJpSave('Saving…');
-      await sbFetch('job_checklists?id=eq.' + id, { method:'PATCH', body:{ name:c.name, items:c.items, updated_at:new Date().toISOString() } });
+      await sbFetch('job_checklists?id=eq.' + id, { method:'PATCH', body:{ name:c.name, columns:c.columns, items:c.items, updated_at:new Date().toISOString() } });
       setJpSave('Saved');
     }catch(e){
       ckDirty.add(id);
@@ -3091,31 +3120,61 @@ function ckApplicableTemplates(){
   const region = j ? (j.region || '') : '';
   return ckTemplates.filter(t=>!t.region || t.region === region);
 }
-function ckCardHtml(c){
-  const items = c.items || [];
-  const done = items.filter(i=>i.done).length;
-  const pct = items.length ? Math.round(done / items.length * 100) : 0;
+function ckSecCols(c, s){
+  return (s.columns && s.columns.length) ? s.columns : c.columns;
+}
+function ckSecStats(c, s){
+  const cols = ckSecCols(c, s);
+  let done = 0, total = 0;
+  s.items.forEach(i=>{
+    total += cols.length;
+    cols.forEach(n=>{ if(i.marks && i.marks[n]) done++; });
+  });
+  return { done, total };
+}
+function ckStats(c){
+  let done = 0, total = 0;
+  c.items.forEach(s=>{ const st = ckSecStats(c, s); done += st.done; total += st.total; });
+  return { done, total };
+}
+function ckGrow(el){
+  if(el.scrollHeight > 0){ el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+}
+function ckSectionHtml(c, s){
+  const cols = ckSecCols(c, s);
+  const st = ckSecStats(c, s);
   const ro = READ_ONLY;
-  const rows = items.map(i=>{
-    const at = i.done && i.at ? i.at.split('-').reverse().slice(0,2).join('/') : '';
-    return `<div class="ck-item${i.done ? ' done' : ''}">
-      <input type="checkbox" ${i.done ? 'checked' : ''} ${ro ? 'disabled' : ''} onchange="ckToggle('${c.id}','${i.id}',this.checked)">
-      ${ro ? `<span class="ck-text">${esc(i.text)}</span>` : `<input class="ck-text-in" value="${esc(i.text)}" oninput="ckItemText('${c.id}','${i.id}',this.value)">`}
-      ${at ? `<span class="ck-at">${esc(at)}</span>` : ''}
-      ${ro ? '' : `<button class="ck-x no-print" title="Remove item" onclick="ckDelItem('${c.id}','${i.id}')">&#10005;</button>`}
-    </div>`;
+  const collapsed = ckCollapsed.has(s.id);
+  const span = cols.length + (ro ? 2 : 3);
+  const head = `<tr class="ck-sh"><th class="ck-sh-title" onclick="ckToggleSec('${s.id}')"><span class="ck-chev">${collapsed ? '&#9656;' : '&#9662;'}</span>${esc(s.title || 'Items')}<span class="ck-sec-n">${st.done}/${st.total}</span></th>${cols.map(n=>`<th>${esc(n)}</th>`).join('')}<th>Notes</th>${ro ? '' : '<th></th>'}</tr>`;
+  const desc = s.desc ? `<tr class="ck-desc"><td colspan="${span}">${esc(s.desc)}</td></tr>` : '';
+  const rows = s.items.map(i=>{
+    const marks = i.marks || {};
+    const all = cols.length && cols.every(n=>marks[n]);
+    const ids = `'${c.id}','${s.id}','${i.id}'`;
+    return `<tr class="ck-row${all ? ' done' : ''}"><td class="ck-text">${esc(i.text)}</td>${cols.map((n,k)=>`<td class="ck-c"><input type="checkbox" title="${esc(marks[n] || '')}" ${marks[n] ? 'checked' : ''} ${ro ? 'disabled' : ''} onchange="ckToggle(${ids},${k},this.checked)"></td>`).join('')}<td>${ro ? `<span class="ck-note-ro">${esc(i.note || '')}</span>` : `<textarea class="ck-note" rows="1" oninput="ckNote(${ids},this.value);ckGrow(this)">${esc(i.note || '')}</textarea>`}</td>${ro ? '' : `<td class="ck-c"><button class="ck-x no-print" title="Remove item" onclick="ckDelItem(${ids})">&#10005;</button></td>`}</tr>`;
   }).join('');
-  return `<div class="jp-card" data-ck="${c.id}">
+  const add = ro ? '' : `<tr class="ck-addrow no-print"><td colspan="${span}"><input class="ck-add-in" id="ckNew-${s.id}" placeholder="Add item… (press Enter)" onkeydown="if(event.key==='Enter'){ckAddItem('${c.id}','${s.id}',this.value);}"></td></tr>`;
+  const colgroup = `<colgroup><col>${cols.map(()=>'<col class="ck-colm">').join('')}<col class="ck-coln">${ro ? '' : '<col class="ck-colx">'}</colgroup>`;
+  return `<table class="ck-table${collapsed ? ' ck-collapsed' : ''}">${colgroup}<thead>${head}</thead><tbody>${desc}${rows}${add}</tbody></table>`;
+}
+function ckCardHtml(c){
+  const st = ckStats(c);
+  const pct = st.total ? Math.round(st.done / st.total * 100) : 0;
+  const ro = READ_ONLY;
+  const allCollapsed = c.items.length && c.items.every(s=>ckCollapsed.has(s.id));
+  return `<div class="jp-card ck-card" data-ck="${c.id}">
     <div class="ck-head">
       ${ro ? `<div class="ck-title">${esc(c.name)}</div>` : `<input class="ck-title-in" value="${esc(c.name)}" oninput="ckRename('${c.id}',this.value)">`}
-      <span class="ck-count">${done}/${items.length}</span>
+      <span class="ck-count">${pct}% · ${st.done}/${st.total}</span>
+      <button class="ck-link no-print" onclick="ckToggleAll('${c.id}')">${allCollapsed ? 'Expand all' : 'Collapse all'}</button>
       ${ro ? '' : `<button class="ck-x no-print" title="Delete checklist" onclick="ckDelete('${c.id}')">&#10005;</button>`}
     </div>
-    <div class="ck-prog${items.length && done === items.length ? ' full' : ''}"><div style="width:${pct}%"></div></div>
-    ${rows || '<div class="ck-empty">No items yet.</div>'}
-    ${ro ? '' : `<input class="ck-add-in" id="ckNew-${c.id}" placeholder="Add item… (press Enter)" onkeydown="if(event.key==='Enter'){ckAddItem('${c.id}',this.value);}">`}
+    <div class="ck-prog${st.total && st.done === st.total ? ' full' : ''}"><div style="width:${pct}%"></div></div>
+    ${c.items.map(s=>ckSectionHtml(c, s)).join('') || '<div class="ck-empty">No items yet.</div>'}
   </div>`;
 }
+function ckTplCount(t){ return t.items.reduce((n,s)=>n + s.items.length, 0); }
 function ckTemplateGroups(){
   const wd = ckTemplates.filter(t=>t.kind === 'working_drawings').sort((a,b)=>REGION_ORDER.indexOf(a.region) - REGION_ORDER.indexOf(b.region));
   return [
@@ -3123,6 +3182,58 @@ function ckTemplateGroups(){
     ['Pricing docs (all regions)', ckTemplates.filter(t=>t.kind === 'pricing_docs')],
     ['Other', ckTemplates.filter(t=>t.kind !== 'working_drawings' && t.kind !== 'pricing_docs')]
   ];
+}
+function ckSerialise(t){
+  const out = ['columns: ' + t.columns.join(', ')];
+  t.items.forEach(s=>{
+    out.push('');
+    out.push('## ' + (s.title || 'Items') + (s.columns && s.columns.length ? ' :: ' + s.columns.join(', ') : ''));
+    if(s.desc) out.push('> ' + s.desc);
+    s.items.forEach(i=>out.push(i.text + (i.note ? ' | ' + i.note : '')));
+  });
+  return out.join('\n');
+}
+function ckSplitCols(v){
+  const seen = new Set();
+  return (v || '').split(',').map(x=>x.trim()).filter(x=>x && !seen.has(x) && seen.add(x)).slice(0, 6);
+}
+function ckParse(text){
+  let columns = ['Done'];
+  const sections = [];
+  let cur = null;
+  const ensure = () => { if(!cur){ cur = { id:ckItemId(), title:'Items', items:[] }; sections.push(cur); } return cur; };
+  (text || '').split('\n').forEach(raw=>{
+    const line = raw.trim();
+    if(!line) return;
+    let m;
+    if(!sections.length && !cur && (m = line.match(/^columns:\s*(.*)$/i))){
+      const cs = ckSplitCols(m[1]);
+      if(cs.length) columns = cs;
+      return;
+    }
+    if((m = line.match(/^##\s*(.*)$/))){
+      const parts = m[1].split(' :: ');
+      const cs = ckSplitCols(parts[1]);
+      cur = { id:ckItemId(), title:parts[0].trim() || 'Items', items:[] };
+      if(cs.length) cur.columns = cs;
+      sections.push(cur);
+      return;
+    }
+    if((m = line.match(/^>\s*(.*)$/))){
+      const s = ensure();
+      s.desc = s.desc ? s.desc + ' ' + m[1] : m[1];
+      return;
+    }
+    const body = line.replace(/^[-*•]\s+/, '');
+    const k = body.indexOf(' | ');
+    const text1 = (k >= 0 ? body.slice(0, k) : body).trim();
+    const note = k >= 0 ? body.slice(k + 3).trim() : '';
+    if(!text1) return;
+    const it = { id:ckItemId(), text:text1 };
+    if(note) it.note = note;
+    ensure().items.push(it);
+  });
+  return { columns, sections };
 }
 function ckTemplatesHtml(){
   if(!ckMgrOpen){
@@ -3133,7 +3244,7 @@ function ckTemplatesHtml(){
     return `<div class="ck-tgroup">${g[0]}</div>` + g[1].map(t=>`<div class="ck-trow">
       <b>${esc(t.name)}</b>
       <span class="ck-tag">${t.region ? esc(t.region) : 'All regions'}</span>
-      <span class="ck-count">${(t.items||[]).length} items</span>
+      <span class="ck-count">${ckTplCount(t)} items</span>
       <button class="ck-link" onclick="ckEditTemplate('${t.id}')">Edit</button>
       <button class="ck-link" onclick="ckEditTemplate('${t.id}',true)">Duplicate</button>
       <button class="ck-link" onclick="ckDeleteTemplate('${t.id}')">Delete</button>
@@ -3154,9 +3265,9 @@ function ckTemplatesHtml(){
         <option value="">Choose region…</option>
         ${REGION_ORDER.map(r=>`<option ${e.region === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}
       </select>` : ''}
-      <label>Items (one per line)</label>
-      <textarea class="f-textarea" rows="10" oninput="ckEditor.text=this.value">${esc(e.text)}</textarea>
-      <div class="f-hint">Changing a template does not change checklists already added to jobs.</div>
+      <label>Contents</label>
+      <textarea class="f-textarea ck-edit-text" rows="22" spellcheck="false" oninput="ckEditor.text=this.value">${esc(e.text)}</textarea>
+      <div class="f-hint">First line <b>columns: Designer, Internal Review, Partner</b> sets the tick columns. <b>## Heading</b> starts a section (add <b>:: Done</b> to give that section its own columns), <b>&gt; text</b> adds a note under the heading, and every other line is an item. Put a standing note on an item after <b>|</b>, e.g. <b>Fireplace model | MODEL:</b>. Changing a template does not change checklists already added to jobs.</div>
       <div style="display:flex;gap:8px;"><button class="btn-primary" onclick="ckSaveTemplate()">Save template</button><button class="btn-ghost" onclick="ckCancelEdit()">Cancel</button></div>
     </div>`;
   }
@@ -3183,9 +3294,10 @@ function renderChecklists(){
     </div>`;
   }
   const list = jobChecklists.length
-    ? `<div class="ck-grid"><div class="jp-col">${jobChecklists.filter((c,i)=>i%2===0).map(ckCardHtml).join('')}</div><div class="jp-col">${jobChecklists.filter((c,i)=>i%2===1).map(ckCardHtml).join('')}</div></div>`
+    ? jobChecklists.map(ckCardHtml).join('')
     : `<div class="ck-empty">${ckLoadFailed ? 'Could not load checklists — check your connection and refresh.' : 'No checklists on this job yet.'}</div>`;
   el.innerHTML = bar + list + (READ_ONLY ? '' : `<div style="margin-top:16px;">${ckTemplatesHtml()}</div>`);
+  el.querySelectorAll('.ck-note').forEach(ckGrow);
   document.getElementById('jpCkCount').textContent = jobChecklists.length ? String(jobChecklists.length) : '';
 }
 async function ckAdd(v){
@@ -3196,7 +3308,15 @@ async function ckAdd(v){
     job_id: jobTabId,
     template_id: t ? t.id : null,
     name: t ? t.name : 'New checklist',
-    items: (t ? (t.items||[]) : []).map(i=>({ id:ckItemId(), text:i.text, done:false }))
+    columns: t ? t.columns.slice() : ['Done'],
+    items: t
+      ? t.items.map(s=>{
+          const o = { id:ckItemId(), title:s.title, items:s.items.map(i=>({ id:ckItemId(), text:i.text, note:i.note || '', marks:{} })) };
+          if(s.desc) o.desc = s.desc;
+          if(s.columns && s.columns.length) o.columns = s.columns.slice();
+          return o;
+        })
+      : [{ id:ckItemId(), title:'', items:[] }]
   };
   try{
     await sbFetch('job_checklists', { method:'POST', body:[row] });
@@ -3206,18 +3326,24 @@ async function ckAdd(v){
   }
 }
 function ckFind(cid){ return jobChecklists.find(x=>x.id === cid); }
-function ckToggle(cid, iid, on){
-  const c = ckFind(cid); if(!c || READ_ONLY) return;
-  const it = c.items.find(x=>x.id === iid); if(!it) return;
-  it.done = !!on;
-  it.at = on ? isoDate(new Date()) : '';
+function ckItem(cid, sid, iid){
+  const c = ckFind(cid); if(!c) return null;
+  const s = c.items.find(x=>x.id === sid); if(!s) return null;
+  const i = s.items.find(x=>x.id === iid);
+  return i ? { c, s, i } : null;
+}
+function ckToggle(cid, sid, iid, k, on){
+  const r = ckItem(cid, sid, iid); if(!r || READ_ONLY) return;
+  const name = ckSecCols(r.c, r.s)[k];
+  if(!r.i.marks) r.i.marks = {};
+  if(on) r.i.marks[name] = isoDate(new Date());
+  else delete r.i.marks[name];
   ckMark(cid);
   renderChecklists();
 }
-function ckItemText(cid, iid, v){
-  const c = ckFind(cid); if(!c || READ_ONLY) return;
-  const it = c.items.find(x=>x.id === iid); if(!it) return;
-  it.text = v;
+function ckNote(cid, sid, iid, v){
+  const r = ckItem(cid, sid, iid); if(!r || READ_ONLY) return;
+  r.i.note = v;
   ckMark(cid);
 }
 function ckRename(cid, v){
@@ -3225,19 +3351,30 @@ function ckRename(cid, v){
   c.name = v;
   ckMark(cid);
 }
-function ckAddItem(cid, v){
-  const c = ckFind(cid); const text = (v||'').trim();
+function ckAddItem(cid, sid, v){
+  const c = ckFind(cid); const text = (v || '').trim();
   if(!c || READ_ONLY || !text) return;
-  c.items.push({ id:ckItemId(), text, done:false });
+  const s = c.items.find(x=>x.id === sid); if(!s) return;
+  s.items.push({ id:ckItemId(), text, note:'', marks:{} });
   ckMark(cid);
   renderChecklists();
-  const inp = document.getElementById('ckNew-' + cid);
+  const inp = document.getElementById('ckNew-' + sid);
   if(inp) inp.focus();
 }
-function ckDelItem(cid, iid){
-  const c = ckFind(cid); if(!c || READ_ONLY) return;
-  c.items = c.items.filter(x=>x.id !== iid);
+function ckDelItem(cid, sid, iid){
+  const r = ckItem(cid, sid, iid); if(!r || READ_ONLY) return;
+  r.s.items = r.s.items.filter(x=>x.id !== iid);
   ckMark(cid);
+  renderChecklists();
+}
+function ckToggleSec(sid){
+  if(ckCollapsed.has(sid)) ckCollapsed.delete(sid); else ckCollapsed.add(sid);
+  renderChecklists();
+}
+function ckToggleAll(cid){
+  const c = ckFind(cid); if(!c) return;
+  const all = c.items.every(s=>ckCollapsed.has(s.id));
+  c.items.forEach(s=>{ if(all) ckCollapsed.delete(s.id); else ckCollapsed.add(s.id); });
   renderChecklists();
 }
 async function ckDelete(cid){
@@ -3253,28 +3390,28 @@ async function ckDelete(cid){
   }
 }
 function ckToggleMgr(){ ckMgrOpen = !ckMgrOpen; ckEditor = null; renderChecklists(); }
-function ckNewTemplate(){ ckEditor = { id:'', name:'', kind:'working_drawings', region:'', text:'' }; renderChecklists(); }
+function ckNewTemplate(){ ckEditor = { id:'', name:'', kind:'working_drawings', region:'', text:'columns: Designer, Internal Review, Partner, Checked\n\n## First section\nFirst item' }; renderChecklists(); }
 function ckCancelEdit(){ ckEditor = null; renderChecklists(); }
 function ckEditTemplate(id, dup){
   const t = ckTemplates.find(x=>x.id === id); if(!t) return;
-  ckEditor = { id: dup ? '' : t.id, name:t.name, kind:t.kind, region: dup ? '' : (t.region || ''), text:(t.items||[]).map(i=>i.text).join('\n') };
+  ckEditor = { id: dup ? '' : t.id, name:t.name, kind:t.kind, region: dup ? '' : (t.region || ''), text:ckSerialise(t) };
   renderChecklists();
 }
 async function ckSaveTemplate(){
   const e = ckEditor; if(!e || READ_ONLY) return;
-  const name = (e.name||'').trim();
+  const name = (e.name || '').trim();
   if(!name){ showToast('Give the template a name'); return; }
   if(e.kind === 'working_drawings' && !e.region){ showToast('Choose a region for a Working drawings template'); return; }
-  const items = e.text.split('\n').map(l=>l.trim().replace(/^[-*•]\s*/, '')).filter(Boolean).map(text=>({ id:ckItemId(), text }));
-  const row = { name, kind:e.kind, region: e.kind === 'working_drawings' ? e.region : null, items, updated_at:new Date().toISOString() };
+  const parsed = ckParse(e.text);
+  const row = { name, kind:e.kind, region: e.kind === 'working_drawings' ? e.region : null, columns:parsed.columns, items:parsed.sections, updated_at:new Date().toISOString() };
   try{
     if(e.id){
       const res = await sbFetch('checklist_templates?id=eq.' + e.id, { method:'PATCH', headers:{'Prefer':'return=representation'}, body:row });
       const i = ckTemplates.findIndex(x=>x.id === e.id);
-      if(i >= 0 && res && res[0]) ckTemplates[i] = res[0];
+      if(i >= 0 && res && res[0]) ckTemplates[i] = ckNorm(res[0]);
     }else{
       const res = await sbFetch('checklist_templates', { method:'POST', headers:{'Prefer':'return=representation'}, body:[row] });
-      if(res && res[0]) ckTemplates.push(res[0]);
+      if(res && res[0]) ckTemplates.push(ckNorm(res[0]));
     }
     ckEditor = null;
     renderChecklists();

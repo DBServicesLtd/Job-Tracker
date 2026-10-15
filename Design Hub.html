@@ -339,6 +339,9 @@ body.has-job-tab .settings-wrap{margin-left:auto;}
 .ck-desc td{font-size:11.5px;font-weight:600;color:#9b2c2c;background:rgba(155,44,44,.06);padding:3px 6px;}
 .ck-note{display:block;width:100%;box-sizing:border-box;border:1px solid transparent;border-bottom:1px dotted var(--line-strong);background:none;resize:none;overflow:hidden;font-style:italic;font-size:12px;line-height:1.25;font-family:inherit;color:var(--ink-soft);padding:2px 4px;border-radius:4px;}
 .ck-note:hover,.ck-note:focus{border-color:var(--line-strong);background:#fff;}
+.ck-table th.ck-cp{color:#1d7a6b;background:rgba(29,122,107,.12);}
+.ck-table td.ck-cp{background:rgba(29,122,107,.06);}
+.ck-pnote,.ck-note-ro.ck-pnote-ro{color:#1d7a6b;font-style:normal;border-left:2px solid #1d7a6b;margin-top:1px;}
 .ck-note-ro{font-style:italic;font-size:12.5px;color:var(--ink-soft);padding:3px 5px;display:block;}
 .ck-x{border:none;background:none;color:var(--ink-faint);cursor:pointer;font-size:12px;padding:2px 4px;}
 .ck-x:hover{color:#c0392b;}
@@ -2614,7 +2617,8 @@ async function openJobTab(id){
     await settleSiteSave();
     if(siteDirty.size){ showToast('Still saving site details \u2014 check your connection'); return; }
     await ckFlushAll();
-    if(ckDirty.size){ showToast('Still saving checklists \u2014 check your connection'); return; }
+    await ckFlushPartner();
+    if(ckDirty.size || ckPDirty.size){ showToast('Still saving checklists \u2014 check your connection'); return; }
   }
   jobTabId = id;
   jobPageReady = false;
@@ -2626,6 +2630,7 @@ async function openJobTab(id){
   siteDirtyJobId = '';
   jobChecklists = [];
   ckDirty = new Set();
+  ckPDirty = new Map();
   ckEditor = null;
   jpSubTab = 'overview';
   applyJpSubTab();
@@ -2641,7 +2646,8 @@ async function closeJobTab(){
   await settleSiteSave();
   if(siteDirty.size){ showToast('Still saving site details \u2014 check your connection'); return; }
   await ckFlushAll();
-  if(ckDirty.size){ showToast('Still saving checklists \u2014 check your connection'); return; }
+  await ckFlushPartner();
+  if(ckDirty.size || ckPDirty.size){ showToast('Still saving checklists \u2014 check your connection'); return; }
   jobTabId = '';
   jobTabRemember(false);
   jobPageReady = false;
@@ -3068,7 +3074,7 @@ function jobPageSync(){
   else renderJobPageHub();
 }
 window.addEventListener('beforeunload', e=>{
-  if(jobTabId && (siteDirty.size || ckDirty.size)){ flushSiteInfo(); ckFlushAll(); e.preventDefault(); e.returnValue = ''; }
+  if(jobTabId && (siteDirty.size || ckDirty.size || ckPDirty.size)){ flushSiteInfo(); ckFlushAll(); ckFlushPartner(); e.preventDefault(); e.returnValue = ''; }
 });
 
 let jpSubTab = 'overview';
@@ -3081,6 +3087,19 @@ let ckEditor = null;
 let ckCollapsed = new Set();
 let ckAddOpen = new Set();
 const CK_KINDS = { working_drawings:'Working drawings', pricing_docs:'Pricing docs', other:'Other' };
+let ckPDirty = new Map();
+let ckPTimer = null;
+function ckCanEdit(){ return !LOCKED_REGION && !VIEW_ALL_READONLY; }
+function ckIsPartner(){ return !!LOCKED_REGION && !VIEW_ALL_READONLY; }
+function ckIsPartnerCol(n){ return /^partner$/i.test((n || '').trim()); }
+function ckCanTick(n){ return ckIsPartner() ? ckIsPartnerCol(n) : (ckCanEdit() && !ckIsPartnerCol(n)); }
+function ckTick(c, i, n){
+  if(ckIsPartnerCol(n)){
+    const p = c.partner && c.partner[i.id];
+    if(p && Object.prototype.hasOwnProperty.call(p, 'tick')) return p.tick || '';
+  }
+  return (i.marks && i.marks[n]) || '';
+}
 function ckItemId(){ return crypto.randomUUID().slice(0,8); }
 function jobTabRemember(active){
   try{
@@ -3099,6 +3118,7 @@ function applyJpSubTab(){
   if(!ov) renderChecklists();
 }
 function ckNorm(c){
+  if(!c.partner || typeof c.partner !== 'object') c.partner = {};
   c.columns = Array.isArray(c.columns) && c.columns.length ? c.columns : ['Done'];
   let items = Array.isArray(c.items) ? c.items : [];
   if(items.length && !Array.isArray(items[0].items)){
@@ -3158,7 +3178,7 @@ function ckSecStats(c, s){
   if(s.na) return { done, total };
   s.items.forEach(i=>{
     total += cols.length;
-    cols.forEach(n=>{ if(i.marks && i.marks[n]) done++; });
+    cols.forEach(n=>{ if(ckTick(c, i, n)) done++; });
   });
   return { done, total };
 }
@@ -3173,16 +3193,27 @@ function ckGrow(el){
 function ckSectionHtml(c, s){
   const cols = ckSecCols(c, s);
   const st = ckSecStats(c, s);
-  const ro = READ_ONLY;
+  const ro = !ckCanEdit();
   const collapsed = ckCollapsed.has(s.id);
   const span = cols.length + (ro ? 2 : 3);
-  const head = `<tr class="ck-sh"><th class="ck-sh-title" onclick="ckToggleSec('${s.id}')"><span class="ck-chev">${collapsed ? '&#9656;' : '&#9662;'}</span>${esc(s.title || 'Items')}<span class="ck-sec-n">${s.na ? 'N/A' : st.done + '/' + st.total}</span>${ro || s.na ? '' : `<a class="ck-addlnk no-print" onclick="event.stopPropagation();ckOpenAdd('${s.id}')">+ item</a>`}${ro ? '' : `<label class="ck-nalnk no-print" title="Leave this section out of the percentage" onclick="event.stopPropagation()"><input type="checkbox" ${s.na ? 'checked' : ''} onchange="ckSetNa('${c.id}','${s.id}',this.checked)"> N/A</label>`}</th>${cols.map(n=>`<th>${esc(n)}</th>`).join('')}<th>Notes</th>${ro ? '' : '<th></th>'}</tr>`;
+  const head = `<tr class="ck-sh"><th class="ck-sh-title" onclick="ckToggleSec('${s.id}')"><span class="ck-chev">${collapsed ? '&#9656;' : '&#9662;'}</span>${esc(s.title || 'Items')}<span class="ck-sec-n">${s.na ? 'N/A' : st.done + '/' + st.total}</span>${ro || s.na ? '' : `<a class="ck-addlnk no-print" onclick="event.stopPropagation();ckOpenAdd('${s.id}')">+ item</a>`}${ro ? '' : `<label class="ck-nalnk no-print" title="Leave this section out of the percentage" onclick="event.stopPropagation()"><input type="checkbox" ${s.na ? 'checked' : ''} onchange="ckSetNa('${c.id}','${s.id}',this.checked)"> N/A</label>`}</th>${cols.map(n=>`<th class="${ckIsPartnerCol(n) ? 'ck-cp' : ''}">${esc(n)}</th>`).join('')}<th>Notes</th>${ro ? '' : '<th></th>'}</tr>`;
   const desc = s.desc ? `<tr class="ck-desc"><td colspan="${span}">${esc(s.desc)}</td></tr>` : '';
   const rows = s.items.map(i=>{
-    const marks = i.marks || {};
-    const all = cols.length && cols.every(n=>marks[n]);
+    const all = cols.length && cols.every(n=>ckTick(c, i, n));
     const ids = `'${c.id}','${s.id}','${i.id}'`;
-    return `<tr class="ck-row${all ? ' done' : ''}"><td class="ck-text">${esc(i.text)}</td>${cols.map((n,k)=>`<td class="ck-c"><input type="checkbox" title="${esc(marks[n] || '')}" ${marks[n] ? 'checked' : ''} ${ro ? 'disabled' : ''} onchange="ckToggle(${ids},${k},this.checked)"></td>`).join('')}<td>${ro ? `<span class="ck-note-ro">${esc(i.note || '')}</span>` : `<textarea class="ck-note" rows="1" oninput="ckNote(${ids},this.value);ckGrow(this)">${esc(i.note || '')}</textarea>`}</td>${ro ? '' : `<td class="ck-c"><button class="ck-x no-print" title="Remove item" onclick="ckDelItem(${ids})">&#10005;</button></td>`}</tr>`;
+    const pn = (c.partner[i.id] && c.partner[i.id].note) || '';
+    const ptxt = ckIsPartner()
+      ? `<textarea class="ck-note ck-pnote" rows="1" placeholder="Partner note…" oninput="ckPNote('${c.id}','${i.id}',this.value);ckGrow(this)">${esc(pn)}</textarea>`
+      : (pn ? `<span class="ck-note-ro ck-pnote-ro" title="Partner note">${esc(pn)}</span>` : '');
+    const itxt = ro
+      ? (i.note ? `<span class="ck-note-ro">${esc(i.note)}</span>` : '')
+      : `<textarea class="ck-note" rows="1" oninput="ckNote(${ids},this.value);ckGrow(this)">${esc(i.note || '')}</textarea>`;
+    const cells = cols.map((n,k)=>{
+      const t = ckTick(c, i, n);
+      const hint = t || (ckIsPartnerCol(n) && !ckIsPartner() ? 'Ticked by the partner from their region link' : '');
+      return `<td class="ck-c${ckIsPartnerCol(n) ? ' ck-cp' : ''}"><input type="checkbox" title="${esc(hint)}" ${t ? 'checked' : ''} ${ckCanTick(n) ? '' : 'disabled'} onchange="ckToggle(${ids},${k},this.checked)"></td>`;
+    }).join('');
+    return `<tr class="ck-row${all ? ' done' : ''}"><td class="ck-text">${esc(i.text)}</td>${cells}<td>${itxt}${ptxt}</td>${ro ? '' : `<td class="ck-c"><button class="ck-x no-print" title="Remove item" onclick="ckDelItem(${ids})">&#10005;</button></td>`}</tr>`;
   }).join('');
   const add = ro || !ckAddOpen.has(s.id) ? '' : `<tr class="ck-addrow no-print"><td colspan="${span}"><input class="ck-add-in" id="ckNew-${s.id}" placeholder="New item — Enter to add, Esc to close" onkeydown="if(event.key==='Enter'){ckAddItem('${c.id}','${s.id}',this.value);}else if(event.key==='Escape'){ckCloseAdd('${s.id}');}"></td></tr>`;
   const colgroup = `<colgroup><col>${cols.map(()=>'<col class="ck-colm">').join('')}<col class="ck-coln">${ro ? '' : '<col class="ck-colx">'}</colgroup>`;
@@ -3191,7 +3222,7 @@ function ckSectionHtml(c, s){
 function ckCardHtml(c){
   const st = ckStats(c);
   const pct = st.total ? Math.round(st.done / st.total * 100) : 0;
-  const ro = READ_ONLY;
+  const ro = !ckCanEdit();
   const allCollapsed = c.items.length && c.items.every(s=>ckCollapsed.has(s.id));
   return `<div class="jp-card ck-card" data-ck="${c.id}">
     <div class="ck-head">
@@ -3327,7 +3358,7 @@ function renderChecklists(){
   const applicable = ckApplicableTemplates();
   const hasWd = applicable.some(t=>t.kind === 'working_drawings');
   let bar = '';
-  if(!READ_ONLY){
+  if(ckCanEdit()){
     bar = `<div class="ck-bar no-print">
       <select onchange="ckAdd(this.value);this.value=''">
         <option value="">+ Add checklist…</option>
@@ -3335,7 +3366,7 @@ function renderChecklists(){
         <option value="__blank">Blank checklist</option>
       </select>
       ${hasWd || !j || !j.region ? '' : `<span class="f-hint" style="margin:0;">No Working drawings template for ${esc(j.region)} yet.</span>`}
-      <button class="ck-link" style="margin-left:auto;" onclick="openCkTemplates()">Edit templates</button>
+      ${READ_ONLY ? '' : '<button class="ck-link" style="margin-left:auto;" onclick="openCkTemplates()">Edit templates</button>'}
     </div>`;
   }
   const list = jobChecklists.length
@@ -3346,7 +3377,7 @@ function renderChecklists(){
   document.getElementById('jpCkCount').textContent = jobChecklists.length ? String(jobChecklists.length) : '';
 }
 async function ckAdd(v){
-  if(!v || READ_ONLY) return;
+  if(!v || !ckCanEdit()) return;
   const t = v === '__blank' ? null : ckTemplates.find(x=>x.id === v);
   const row = {
     id: crypto.randomUUID(),
@@ -3365,7 +3396,7 @@ async function ckAdd(v){
   };
   try{
     await sbFetch('job_checklists', { method:'POST', body:[row] });
-    if(row.job_id === jobTabId){ jobChecklists.push(row); renderChecklists(); }
+    if(row.job_id === jobTabId){ jobChecklists.push(ckNorm(row)); renderChecklists(); }
   }catch(e){
     showToast('Could not add checklist');
   }
@@ -3378,27 +3409,69 @@ function ckItem(cid, sid, iid){
   return i ? { c, s, i } : null;
 }
 function ckToggle(cid, sid, iid, k, on){
-  const r = ckItem(cid, sid, iid); if(!r || READ_ONLY) return;
+  const r = ckItem(cid, sid, iid); if(!r) return;
   const name = ckSecCols(r.c, r.s)[k];
-  if(!r.i.marks) r.i.marks = {};
-  if(on) r.i.marks[name] = isoDate(new Date());
-  else delete r.i.marks[name];
-  ckMark(cid);
+  if(!ckCanTick(name)) return;
+  if(ckIsPartnerCol(name)){
+    r.c.partner[iid] = Object.assign({}, r.c.partner[iid], { tick: on ? isoDate(new Date()) : '' });
+    ckPMark(cid, iid);
+  }else{
+    if(!r.i.marks) r.i.marks = {};
+    if(on) r.i.marks[name] = isoDate(new Date());
+    else delete r.i.marks[name];
+    ckMark(cid);
+  }
   renderChecklists();
 }
+function ckPMark(cid, iid){
+  if(!ckPDirty.has(cid)) ckPDirty.set(cid, new Set());
+  ckPDirty.get(cid).add(iid);
+  setJpSave('Unsaved changes…');
+  clearTimeout(ckPTimer);
+  ckPTimer = setTimeout(ckFlushPartner, 700);
+}
+async function ckFlushPartner(){
+  clearTimeout(ckPTimer);
+  for(const [cid, ids] of Array.from(ckPDirty.entries())){
+    const c = ckFind(cid);
+    ckPDirty.delete(cid);
+    if(!c) continue;
+    try{
+      setJpSave('Saving…');
+      const rows = await sbFetch('job_checklists?id=eq.' + cid + '&select=partner');
+      const merged = Object.assign({}, (rows && rows[0] && rows[0].partner) || {});
+      ids.forEach(id=>{ merged[id] = c.partner[id]; });
+      await sbFetch('job_checklists?id=eq.' + cid, { method:'PATCH', body:{ partner:merged } });
+      setJpSave('Saved');
+    }catch(e){
+      const cur = ckPDirty.get(cid) || new Set();
+      ids.forEach(id=>cur.add(id));
+      ckPDirty.set(cid, cur);
+      setJpSave('Could not save checklist');
+      ckPTimer = setTimeout(ckFlushPartner, 4000);
+      return;
+    }
+  }
+}
+function ckPNote(cid, iid, v){
+  if(!ckIsPartner()) return;
+  const c = ckFind(cid); if(!c) return;
+  c.partner[iid] = Object.assign({}, c.partner[iid], { note:v });
+  ckPMark(cid, iid);
+}
 function ckNote(cid, sid, iid, v){
-  const r = ckItem(cid, sid, iid); if(!r || READ_ONLY) return;
+  const r = ckItem(cid, sid, iid); if(!r || !ckCanEdit()) return;
   r.i.note = v;
   ckMark(cid);
 }
 function ckRename(cid, v){
-  const c = ckFind(cid); if(!c || READ_ONLY) return;
+  const c = ckFind(cid); if(!c || !ckCanEdit()) return;
   c.name = v;
   ckMark(cid);
 }
 function ckAddItem(cid, sid, v){
   const c = ckFind(cid); const text = (v || '').trim();
-  if(!c || READ_ONLY || !text) return;
+  if(!c || !ckCanEdit() || !text) return;
   const s = c.items.find(x=>x.id === sid); if(!s) return;
   s.items.push({ id:ckItemId(), text, note:'', marks:{} });
   ckMark(cid);
@@ -3407,13 +3480,13 @@ function ckAddItem(cid, sid, v){
   if(inp) inp.focus();
 }
 function ckDelItem(cid, sid, iid){
-  const r = ckItem(cid, sid, iid); if(!r || READ_ONLY) return;
+  const r = ckItem(cid, sid, iid); if(!r || !ckCanEdit()) return;
   r.s.items = r.s.items.filter(x=>x.id !== iid);
   ckMark(cid);
   renderChecklists();
 }
 function ckSetNa(cid, sid, on){
-  const c = ckFind(cid); if(!c || READ_ONLY) return;
+  const c = ckFind(cid); if(!c || !ckCanEdit()) return;
   const s = c.items.find(x=>x.id === sid); if(!s) return;
   if(on){ s.na = true; ckCollapsed.add(sid); ckAddOpen.delete(sid); }
   else{ delete s.na; ckCollapsed.delete(sid); }
@@ -3442,7 +3515,7 @@ function ckToggleAll(cid){
   renderChecklists();
 }
 async function ckDelete(cid){
-  const c = ckFind(cid); if(!c || READ_ONLY) return;
+  const c = ckFind(cid); if(!c || !ckCanEdit()) return;
   if(!confirm('Delete the checklist "' + c.name + '" from this job?')) return;
   try{
     await sbFetch('job_checklists?id=eq.' + cid, { method:'DELETE' });

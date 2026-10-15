@@ -350,6 +350,7 @@ body.has-job-tab .settings-wrap{margin-left:auto;}
 .ck-addlnk:hover{text-decoration:underline;}
 .ck-add-in{width:100%;box-sizing:border-box;font-size:12.5px;padding:4px 8px;border:1px dashed var(--line-strong);border-radius:5px;background:none;}
 .ck-empty{font-size:13px;color:var(--ink-faint);padding:6px 0;}
+.ck-mgr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px;}
 .ck-trow{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:13px;flex-wrap:wrap;}
 .ck-trow b{flex:1;min-width:140px;}
 .ck-tag{font-size:11px;font-weight:600;background:var(--line);color:var(--ink-soft);border-radius:10px;padding:2px 8px;}
@@ -769,6 +770,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <button onclick="closeSettingsMenu(); copyAsTable()">📋 Copy as table</button>
         <button onclick="closeSettingsMenu(); window.print()">🖶 Print view</button>
         <button onclick="closeSettingsMenu(); openStaffModal()">👤 Manage team</button>
+        <button onclick="closeSettingsMenu(); openCkTemplates()">☑ Checklist templates</button>
       </div>
     </div>
   </div>
@@ -1089,6 +1091,24 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <span></span>
       <div class="foot-right">
         <button class="btn-ghost" onclick="closeMyWorkLinksModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ckTplOverlay">
+  <div class="modal" style="max-width:900px;">
+    <div class="modal-head">
+      <h2>Checklist templates</h2>
+      <button class="modal-close" onclick="closeCkTemplates()">✕</button>
+    </div>
+    <div class="modal-body" style="grid-template-columns:1fr;">
+      <div id="ckTplBody"></div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div class="foot-right">
+        <button class="btn-ghost" onclick="closeCkTemplates()">Close</button>
       </div>
     </div>
   </div>
@@ -3058,7 +3078,6 @@ let ckLoadFailed = false;
 let ckDirty = new Set();
 let ckTimer = null;
 let ckEditor = null;
-let ckMgrOpen = false;
 let ckCollapsed = new Set();
 let ckAddOpen = new Set();
 const CK_KINDS = { working_drawings:'Working drawings', pricing_docs:'Pricing docs', other:'Other' };
@@ -3246,10 +3265,7 @@ function ckParse(text){
   });
   return { columns, sections };
 }
-function ckTemplatesHtml(){
-  if(!ckMgrOpen){
-    return `<div class="jp-card ck-mgr no-print"><div class="ck-head"><div class="ck-title">Checklist templates</div><span class="ck-count">${ckTemplates.length}</span><button class="btn-ghost" onclick="ckToggleMgr()">Manage</button></div></div>`;
-  }
+function ckTemplatesBody(){
   const groups = ckTemplateGroups().map(g=>{
     if(!g[1].length) return `<div class="ck-tgroup">${g[0]}</div><div class="ck-empty">None yet.</div>`;
     return `<div class="ck-tgroup">${g[0]}</div>` + g[1].map(t=>`<div class="ck-trow">
@@ -3268,7 +3284,7 @@ function ckTemplatesHtml(){
       <label>Name</label>
       <input class="f-input" value="${esc(e.name)}" oninput="ckEditor.name=this.value">
       <label>Type</label>
-      <select class="f-select" onchange="ckEditor.kind=this.value;if(this.value!=='working_drawings')ckEditor.region='';renderChecklists()">
+      <select class="f-select" onchange="ckEditor.kind=this.value;if(this.value!=='working_drawings')ckEditor.region='';ckRefresh()">
         ${Object.keys(CK_KINDS).map(k=>`<option value="${k}" ${e.kind === k ? 'selected' : ''}>${CK_KINDS[k]}${k === 'working_drawings' ? ' — one per region' : ' — all regions'}</option>`).join('')}
       </select>
       ${e.kind === 'working_drawings' ? `<label>Region</label>
@@ -3278,14 +3294,31 @@ function ckTemplatesHtml(){
       </select>` : ''}
       <label>Contents</label>
       <textarea class="f-textarea ck-edit-text" rows="22" spellcheck="false" oninput="ckEditor.text=this.value">${esc(e.text)}</textarea>
-      <div class="f-hint">First line <b>columns: Designer, Internal Review, Partner</b> sets the tick columns. <b>## Heading</b> starts a section (add <b>:: Done</b> to give that section its own columns), <b>&gt; text</b> adds a note under the heading, and every other line is an item. Put a standing note on an item after <b>|</b>, e.g. <b>Fireplace model | MODEL:</b>. Changing a template does not change checklists already added to jobs.</div>
+      <div class="f-hint">First line <b>columns: Designer, Internal Review, Partner</b> sets the tick columns. <b>## Heading</b> starts a section (add <b>:: Done</b> to give that section its own columns), <b>&gt; text</b> adds a note under the heading, and every other line is an item. Put a standing note on an item after <b>|</b>, e.g. <b>Fireplace model | MODEL:</b>.</div>
       <div style="display:flex;gap:8px;"><button class="btn-primary" onclick="ckSaveTemplate()">Save template</button><button class="btn-ghost" onclick="ckCancelEdit()">Cancel</button></div>
     </div>`;
   }
-  return `<div class="jp-card ck-mgr no-print">
-    <div class="ck-head"><div class="ck-title">Checklist templates</div><button class="btn-ghost" onclick="ckNewTemplate()">+ New template</button><button class="btn-ghost" onclick="ckToggleMgr()">Close</button></div>
-    ${editor}${groups}
-  </div>`;
+  return `<div class="ck-mgr-top"><span class="f-hint" style="margin:0;">A template is copied onto a job when you add a checklist. Changes here apply to checklists added from now on; checklists already on jobs are not changed.</span><button class="btn-ghost" onclick="ckNewTemplate()">+ New template</button></div>${editor}${ckLoadFailed ? '<div class="ck-empty">Could not load templates — check your connection and reopen.</div>' : groups}`;
+}
+function ckRefresh(){
+  const body = document.getElementById('ckTplBody');
+  if(body && document.getElementById('ckTplOverlay').classList.contains('open')) body.innerHTML = ckTemplatesBody();
+  if(jobTabId && jpSubTab === 'checklists') renderChecklists();
+}
+async function openCkTemplates(){
+  if(READ_ONLY) return;
+  ckEditor = null;
+  document.getElementById('ckTplOverlay').classList.add('open');
+  document.getElementById('ckTplBody').innerHTML = '<div class="ck-empty">Loading…</div>';
+  ckLoadFailed = false;
+  try{ ckTemplates = (await sbFetch('checklist_templates?select=*&order=name.asc') || []).map(ckNorm); }
+  catch(e){ ckLoadFailed = true; }
+  ckRefresh();
+}
+function closeCkTemplates(){
+  ckEditor = null;
+  document.getElementById('ckTplOverlay').classList.remove('open');
+  if(jobTabId && jpSubTab === 'checklists') renderChecklists();
 }
 function renderChecklists(){
   const el = document.getElementById('jpChecklists');
@@ -3302,12 +3335,13 @@ function renderChecklists(){
         <option value="__blank">Blank checklist</option>
       </select>
       ${hasWd || !j || !j.region ? '' : `<span class="f-hint" style="margin:0;">No Working drawings template for ${esc(j.region)} yet.</span>`}
+      <button class="ck-link" style="margin-left:auto;" onclick="openCkTemplates()">Edit templates</button>
     </div>`;
   }
   const list = jobChecklists.length
     ? jobChecklists.map(ckCardHtml).join('')
     : `<div class="ck-empty">${ckLoadFailed ? 'Could not load checklists — check your connection and refresh.' : 'No checklists on this job yet.'}</div>`;
-  el.innerHTML = bar + list + (READ_ONLY ? '' : `<div style="margin-top:16px;">${ckTemplatesHtml()}</div>`);
+  el.innerHTML = bar + list;
   el.querySelectorAll('.ck-note').forEach(ckGrow);
   document.getElementById('jpCkCount').textContent = jobChecklists.length ? String(jobChecklists.length) : '';
 }
@@ -3419,13 +3453,12 @@ async function ckDelete(cid){
     showToast('Could not delete checklist');
   }
 }
-function ckToggleMgr(){ ckMgrOpen = !ckMgrOpen; ckEditor = null; renderChecklists(); }
-function ckNewTemplate(){ ckEditor = { id:'', name:'', kind:'working_drawings', region:'', text:'columns: Designer, Internal Review, Partner, Checked\n\n## First section\nFirst item' }; renderChecklists(); }
-function ckCancelEdit(){ ckEditor = null; renderChecklists(); }
+function ckNewTemplate(){ ckEditor = { id:'', name:'', kind:'working_drawings', region:'', text:'columns: Designer, Internal Review, Partner\n\n## First section\nFirst item' }; ckRefresh(); }
+function ckCancelEdit(){ ckEditor = null; ckRefresh(); }
 function ckEditTemplate(id, dup){
   const t = ckTemplates.find(x=>x.id === id); if(!t) return;
   ckEditor = { id: dup ? '' : t.id, name:t.name, kind:t.kind, region: dup ? '' : (t.region || ''), text:ckSerialise(t) };
-  renderChecklists();
+  ckRefresh();
 }
 async function ckSaveTemplate(){
   const e = ckEditor; if(!e || READ_ONLY) return;
@@ -3444,7 +3477,7 @@ async function ckSaveTemplate(){
       if(res && res[0]) ckTemplates.push(ckNorm(res[0]));
     }
     ckEditor = null;
-    renderChecklists();
+    ckRefresh();
     showToast('Template saved');
   }catch(err){
     showToast('Could not save template');
@@ -3456,7 +3489,7 @@ async function ckDeleteTemplate(id){
   try{
     await sbFetch('checklist_templates?id=eq.' + id, { method:'DELETE' });
     ckTemplates = ckTemplates.filter(x=>x.id !== id);
-    renderChecklists();
+    ckRefresh();
   }catch(e){
     showToast('Could not delete template');
   }

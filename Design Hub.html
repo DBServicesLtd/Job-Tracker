@@ -319,30 +319,32 @@ body.has-job-tab .settings-wrap{margin-left:auto;}
 .ck-title-in:hover,.ck-title-in:focus{border-color:var(--line-strong);background:#fff;}
 .ck-title{flex:1;font-family:'DM Serif Display',serif;font-style:italic;font-size:17px;color:var(--ink);}
 .ck-count{font-size:12px;font-weight:600;color:var(--ink-soft);white-space:nowrap;}
-.ck-prog{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:12px;}
+.ck-prog{height:4px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:6px;}
 .ck-prog>div{height:100%;background:var(--blue-deep);}
 .ck-prog.full>div{background:#2e8b57;}
-.ck-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;margin-top:10px;}
-.ck-table .ck-colm{width:84px;}
-.ck-table .ck-coln{width:30%;}
-.ck-table .ck-colx{width:30px;}
-.ck-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--ink-soft);text-align:center;padding:7px 4px;background:rgba(1,0,58,.05);border-bottom:1px solid var(--line-strong);}
-.ck-table th.ck-sh-title{text-align:left;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--ink);cursor:pointer;padding-left:8px;user-select:none;}
+.ck-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12.5px;margin-top:6px;}
+.ck-table .ck-colm{width:66px;}
+.ck-table .ck-coln{width:26%;}
+.ck-table .ck-colx{width:24px;}
+.ck-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--ink-soft);text-align:center;padding:4px 2px;line-height:1.15;background:rgba(1,0,58,.05);border-bottom:1px solid var(--line-strong);}
+.ck-table th.ck-sh-title{text-align:left;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);cursor:pointer;padding-left:6px;user-select:none;}
 .ck-chev{display:inline-block;width:16px;color:var(--ink-faint);}
 .ck-sec-n{margin-left:8px;font-size:11px;font-weight:600;color:var(--ink-faint);}
-.ck-table td{border-top:1px solid var(--line);padding:4px 6px;vertical-align:top;}
-.ck-table td.ck-text{padding:6px 8px;line-height:1.35;}
+.ck-table td{border-top:1px solid var(--line);padding:1px 4px;vertical-align:top;}
+.ck-table td.ck-text{padding:3px 6px;line-height:1.25;}
 .ck-table td.ck-c{text-align:center;vertical-align:middle;}
-.ck-table td input[type=checkbox]{width:16px;height:16px;}
+.ck-table td input[type=checkbox]{width:14px;height:14px;margin:2px 0 0;}
 .ck-table tr.done td.ck-text{color:var(--ink-faint);}
 .ck-table.ck-collapsed tbody{display:none;}
-.ck-desc td{font-size:12px;font-weight:600;color:#9b2c2c;background:rgba(155,44,44,.06);padding:5px 8px;}
-.ck-note{display:block;width:100%;box-sizing:border-box;border:1px solid transparent;border-bottom:1px dotted var(--line-strong);background:none;resize:none;overflow:hidden;font-style:italic;font-size:12.5px;line-height:1.35;font-family:inherit;color:var(--ink-soft);padding:3px 5px;border-radius:4px;}
+.ck-desc td{font-size:11.5px;font-weight:600;color:#9b2c2c;background:rgba(155,44,44,.06);padding:3px 6px;}
+.ck-note{display:block;width:100%;box-sizing:border-box;border:1px solid transparent;border-bottom:1px dotted var(--line-strong);background:none;resize:none;overflow:hidden;font-style:italic;font-size:12px;line-height:1.25;font-family:inherit;color:var(--ink-soft);padding:2px 4px;border-radius:4px;}
 .ck-note:hover,.ck-note:focus{border-color:var(--line-strong);background:#fff;}
 .ck-note-ro{font-style:italic;font-size:12.5px;color:var(--ink-soft);padding:3px 5px;display:block;}
 .ck-x{border:none;background:none;color:var(--ink-faint);cursor:pointer;font-size:12px;padding:2px 4px;}
 .ck-x:hover{color:#c0392b;}
-.ck-add-in{width:100%;box-sizing:border-box;font-size:13px;padding:6px 9px;border:1px dashed var(--line-strong);border-radius:5px;background:none;}
+.ck-addlnk{margin-left:10px;font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;}
+.ck-addlnk:hover{text-decoration:underline;}
+.ck-add-in{width:100%;box-sizing:border-box;font-size:12.5px;padding:4px 8px;border:1px dashed var(--line-strong);border-radius:5px;background:none;}
 .ck-empty{font-size:13px;color:var(--ink-faint);padding:6px 0;}
 .ck-trow{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:13px;flex-wrap:wrap;}
 .ck-trow b{flex:1;min-width:140px;}
@@ -3052,6 +3054,7 @@ let ckTimer = null;
 let ckEditor = null;
 let ckMgrOpen = false;
 let ckCollapsed = new Set();
+let ckAddOpen = new Set();
 const CK_KINDS = { working_drawings:'Working drawings', pricing_docs:'Pricing docs', other:'Other' };
 function ckItemId(){ return crypto.randomUUID().slice(0,8); }
 function jobTabRemember(active){
@@ -3090,6 +3093,7 @@ async function loadChecklists(){
   catch(e){ ckTemplates = []; ckLoadFailed = true; }
   try{ jobChecklists = (await sbFetch('job_checklists?job_id=eq.' + encodeURIComponent(jobTabId) + '&select=*&order=created_at.asc') || []).map(ckNorm); }
   catch(e){ jobChecklists = []; ckLoadFailed = true; }
+  jobChecklists.forEach(c=>c.items.forEach(sec=>{ const st = ckSecStats(c, sec); if(st.total && st.done === st.total) ckCollapsed.add(sec.id); }));
 }
 function ckMark(id){
   ckDirty.add(id);
@@ -3146,7 +3150,7 @@ function ckSectionHtml(c, s){
   const ro = READ_ONLY;
   const collapsed = ckCollapsed.has(s.id);
   const span = cols.length + (ro ? 2 : 3);
-  const head = `<tr class="ck-sh"><th class="ck-sh-title" onclick="ckToggleSec('${s.id}')"><span class="ck-chev">${collapsed ? '&#9656;' : '&#9662;'}</span>${esc(s.title || 'Items')}<span class="ck-sec-n">${st.done}/${st.total}</span></th>${cols.map(n=>`<th>${esc(n)}</th>`).join('')}<th>Notes</th>${ro ? '' : '<th></th>'}</tr>`;
+  const head = `<tr class="ck-sh"><th class="ck-sh-title" onclick="ckToggleSec('${s.id}')"><span class="ck-chev">${collapsed ? '&#9656;' : '&#9662;'}</span>${esc(s.title || 'Items')}<span class="ck-sec-n">${st.done}/${st.total}</span>${ro ? '' : `<a class="ck-addlnk no-print" onclick="event.stopPropagation();ckOpenAdd('${s.id}')">+ item</a>`}</th>${cols.map(n=>`<th>${esc(n)}</th>`).join('')}<th>Notes</th>${ro ? '' : '<th></th>'}</tr>`;
   const desc = s.desc ? `<tr class="ck-desc"><td colspan="${span}">${esc(s.desc)}</td></tr>` : '';
   const rows = s.items.map(i=>{
     const marks = i.marks || {};
@@ -3154,7 +3158,7 @@ function ckSectionHtml(c, s){
     const ids = `'${c.id}','${s.id}','${i.id}'`;
     return `<tr class="ck-row${all ? ' done' : ''}"><td class="ck-text">${esc(i.text)}</td>${cols.map((n,k)=>`<td class="ck-c"><input type="checkbox" title="${esc(marks[n] || '')}" ${marks[n] ? 'checked' : ''} ${ro ? 'disabled' : ''} onchange="ckToggle(${ids},${k},this.checked)"></td>`).join('')}<td>${ro ? `<span class="ck-note-ro">${esc(i.note || '')}</span>` : `<textarea class="ck-note" rows="1" oninput="ckNote(${ids},this.value);ckGrow(this)">${esc(i.note || '')}</textarea>`}</td>${ro ? '' : `<td class="ck-c"><button class="ck-x no-print" title="Remove item" onclick="ckDelItem(${ids})">&#10005;</button></td>`}</tr>`;
   }).join('');
-  const add = ro ? '' : `<tr class="ck-addrow no-print"><td colspan="${span}"><input class="ck-add-in" id="ckNew-${s.id}" placeholder="Add item… (press Enter)" onkeydown="if(event.key==='Enter'){ckAddItem('${c.id}','${s.id}',this.value);}"></td></tr>`;
+  const add = ro || !ckAddOpen.has(s.id) ? '' : `<tr class="ck-addrow no-print"><td colspan="${span}"><input class="ck-add-in" id="ckNew-${s.id}" placeholder="New item — Enter to add, Esc to close" onkeydown="if(event.key==='Enter'){ckAddItem('${c.id}','${s.id}',this.value);}else if(event.key==='Escape'){ckCloseAdd('${s.id}');}"></td></tr>`;
   const colgroup = `<colgroup><col>${cols.map(()=>'<col class="ck-colm">').join('')}<col class="ck-coln">${ro ? '' : '<col class="ck-colx">'}</colgroup>`;
   return `<table class="ck-table${collapsed ? ' ck-collapsed' : ''}">${colgroup}<thead>${head}</thead><tbody>${desc}${rows}${add}</tbody></table>`;
 }
@@ -3365,6 +3369,17 @@ function ckDelItem(cid, sid, iid){
   const r = ckItem(cid, sid, iid); if(!r || READ_ONLY) return;
   r.s.items = r.s.items.filter(x=>x.id !== iid);
   ckMark(cid);
+  renderChecklists();
+}
+function ckOpenAdd(sid){
+  ckAddOpen.add(sid);
+  ckCollapsed.delete(sid);
+  renderChecklists();
+  const inp = document.getElementById('ckNew-' + sid);
+  if(inp) inp.focus();
+}
+function ckCloseAdd(sid){
+  ckAddOpen.delete(sid);
   renderChecklists();
 }
 function ckToggleSec(sid){

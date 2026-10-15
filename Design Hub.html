@@ -2279,6 +2279,7 @@ function switchTab(name){
   document.getElementById('view-addresses').classList.toggle('active', name==='addresses');
   document.getElementById('view-kpi').classList.toggle('active', name==='kpi');
   document.getElementById('view-job').classList.toggle('active', name==='job');
+  jobTabRemember(name==='job');
   if(name==='dashboard') renderDashboard();
   if(name==='jobs' && !columnsAutoFitted && jobs.length){
     measureAndLockStaticColumnWidths();
@@ -2600,6 +2601,7 @@ async function closeJobTab(){
   await ckFlushAll();
   if(ckDirty.size){ showToast('Still saving checklists \u2014 check your connection'); return; }
   jobTabId = '';
+  jobTabRemember(false);
   jobPageReady = false;
   document.getElementById('jobTab').style.display = 'none';
   document.body.classList.remove('has-job-tab');
@@ -3037,7 +3039,13 @@ let ckEditor = null;
 let ckMgrOpen = false;
 const CK_KINDS = { working_drawings:'Working drawings', pricing_docs:'Pricing docs', other:'Other' };
 function ckItemId(){ return crypto.randomUUID().slice(0,8); }
-function setJpSubTab(t){ jpSubTab = t; applyJpSubTab(); }
+function jobTabRemember(active){
+  try{
+    if(jobTabId) sessionStorage.setItem('dhJobTab', JSON.stringify({ id:jobTabId, sub:jpSubTab, active:!!active }));
+    else sessionStorage.removeItem('dhJobTab');
+  }catch(e){}
+}
+function setJpSubTab(t){ jpSubTab = t; applyJpSubTab(); jobTabRemember(true); }
 function applyJpSubTab(){
   const ov = jpSubTab === 'overview';
   document.getElementById('jpHub').style.display = ov ? '' : 'none';
@@ -5573,6 +5581,17 @@ loadAll(true).then(()=>{
   setStickyOffsets();
   if(LOCKED_TAB) switchTab(LOCKED_TAB);
   else if(!READ_ONLY) renderDashboard();
+  if(!LOCKED_TAB){
+    let saved = null;
+    try{ saved = JSON.parse(sessionStorage.getItem('dhJobTab') || 'null'); }catch(e){}
+    if(saved && saved.id && jobs.some(x=>x.id === saved.id)){
+      openJobTab(saved.id).then(()=>{
+        if(!jobTabId) return;
+        if(saved.sub === 'checklists') setJpSubTab('checklists');
+        if(!saved.active) switchTab(READ_ONLY ? 'jobs' : 'dashboard');
+      });
+    }
+  }
   if(LOCKED_CONTACT_REGION){
     document.getElementById('regionAddressValue').textContent = regionAddresses[LOCKED_CONTACT_REGION] || '';
   }

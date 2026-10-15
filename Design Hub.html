@@ -301,9 +301,13 @@ body.has-job-tab .settings-wrap{margin-left:auto;}
 .jp-img-bar{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:11.5px;color:var(--ink-faint);}
 .jp-img-add{cursor:pointer;color:var(--blue);font-weight:600;font-size:12px;border:1px dashed var(--line-strong);border-radius:var(--radius);padding:4px 10px;}
 .jp-img-add:hover{border-color:var(--blue);}
+.jp-note{margin-top:10px;}
+.jp-note>label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;margin-bottom:5px;}
+.jp-note .f-textarea{width:100%;min-height:64px;resize:none;overflow:hidden;font-size:13px;padding:8px 10px;}
 .jp-card.drag-over{outline:2px dashed var(--blue);outline-offset:-4px;}
 @media print{
   .jp-img-x,.jp-img-bar{display:none !important;}
+  .jp-note .f-textarea{border:none;background:none;padding-left:0;}
   .jp-img img{height:auto;max-height:260px;object-fit:contain;}
   .no-print{display:none !important;}
   .jp-card{box-shadow:none;break-inside:avoid;}
@@ -2529,6 +2533,7 @@ async function openJobTab(id){
   jobPageInitializing = false;
   siteInfo = {};
   siteImages = [];
+  siteNoteOpen = new Set();
   siteDirty = new Set();
   siteDirtyJobId = '';
   setJpSave('');
@@ -2642,6 +2647,7 @@ const PLAN_SETS = [
 let siteInfo = {};
 let siteImages = [];
 let hoverSectionKey = '';
+let siteNoteOpen = new Set();
 let siteDirty = new Set();
 let siteSaveTimer = null;
 let siteFlushing = false;
@@ -2659,8 +2665,29 @@ function siteImagesHtml(key){
       ${READ_ONLY ? '' : `<button type="button" class="jp-img-x no-print" title="Remove image" onclick="deleteSiteImage('${i.id}')">&#10005;</button>`}
       ${READ_ONLY ? (i.caption ? `<div class="jp-img-cap" style="border:none;">${esc(i.caption)}</div>` : '') : `<input class="jp-img-cap" type="text" placeholder="Caption" value="${esc(i.caption || '')}" onchange="saveImageCaption('${i.id}', this.value)">`}
     </div>`).join('');
-  const bar = READ_ONLY ? '' : `<div class="jp-img-bar no-print"><label class="jp-img-add">+ Add image<input type="file" accept="image/*" multiple hidden onchange="onSiteImagePick(this, '${key}')"></label><span>or drop / hover and paste (Ctrl+V)</span></div>`;
+  const noteShown = !!siteInfo['note__' + key] || siteNoteOpen.has(key);
+  const bar = READ_ONLY ? '' : `<div class="jp-img-bar no-print"><label class="jp-img-add">+ Add image<input type="file" accept="image/*" multiple hidden onchange="onSiteImagePick(this, '${key}')"></label>${noteShown ? '' : `<button type="button" class="jp-img-add" style="background:none;font-family:inherit;" onclick="openSiteNote('${key}')">+ Add comments</button>`}<span>or drop / hover and paste (Ctrl+V)</span></div>`;
   return (list.length ? `<div class="jp-imgs">${thumbs}</div>` : '') + bar;
+}
+function siteNoteHtml(key){
+  const v = siteInfo['note__' + key] || '';
+  if(READ_ONLY) return v ? `<div class="jp-note"><label>Additional comments</label><div class="jp-val" style="padding-top:0;">${esc(v)}</div></div>` : '';
+  if(!v && !siteNoteOpen.has(key)) return '';
+  return `<div class="jp-note"><label>Additional comments</label><textarea class="f-textarea" rows="2" data-k="note__${key}" placeholder="Anything else worth recording for this section\u2026" oninput="onSiteInput(this)" onchange="flushSiteInfo()">${esc(v)}</textarea></div>`;
+}
+function refreshSiteNote(key){
+  const el = document.querySelector('[data-note="' + key + '"]');
+  if(el){
+    el.innerHTML = siteNoteHtml(key);
+    el.querySelectorAll('textarea').forEach(autoGrow);
+  }
+}
+function openSiteNote(key){
+  siteNoteOpen.add(key);
+  refreshSiteNote(key);
+  refreshSiteImages(key);
+  const ta = document.querySelector('[data-note="' + key + '"] textarea');
+  if(ta) ta.focus();
 }
 function refreshSiteImages(key){
   const el = document.querySelector('[data-imgs="' + key + '"]');
@@ -2816,6 +2843,7 @@ function renderJobPageSite(){
       <div class="jp-card-title">${esc(sec.title)}</div>
       ${staticHtml(sec.title)}
       <div>${fields.map(siteFieldHtml).join('')}</div>
+      <div data-note="${key}">${siteNoteHtml(key)}</div>
       <div data-imgs="${key}">${siteImagesHtml(key)}</div>
     </div>`;
   };

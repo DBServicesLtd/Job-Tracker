@@ -342,6 +342,10 @@ body.has-job-tab .settings-wrap{margin-left:auto;}
 .ck-note-ro{font-style:italic;font-size:12.5px;color:var(--ink-soft);padding:3px 5px;display:block;}
 .ck-x{border:none;background:none;color:var(--ink-faint);cursor:pointer;font-size:12px;padding:2px 4px;}
 .ck-x:hover{color:#c0392b;}
+.ck-nalnk{margin-left:12px;font-size:11px;font-weight:600;color:var(--ink-soft);cursor:pointer;white-space:nowrap;}
+.ck-nalnk input{width:12px;height:12px;vertical-align:-1px;margin:0 2px 0 0;}
+.ck-table.ck-na th:not(.ck-sh-title){opacity:.4;}
+.ck-table.ck-na th.ck-sh-title{color:var(--ink-faint);}
 .ck-addlnk{margin-left:10px;font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;}
 .ck-addlnk:hover{text-decoration:underline;}
 .ck-add-in{width:100%;box-sizing:border-box;font-size:12.5px;padding:4px 8px;border:1px dashed var(--line-strong);border-radius:5px;background:none;}
@@ -361,6 +365,8 @@ body.has-job-tab .settings-wrap{margin-left:auto;}
   .ck-table.ck-collapsed tbody{display:table-row-group !important;}
   .ck-note{border:none;background:none;}
   .ck-table tr{break-inside:avoid;}
+  .ck-table.ck-na tbody{display:none !important;}
+  .ck-nalnk{display:none !important;}
   .jp-note .f-textarea{border:none;background:none;padding-left:0;}
   .jp-img img{height:auto;max-height:260px;object-fit:contain;}
   .no-print{display:none !important;}
@@ -3093,7 +3099,7 @@ async function loadChecklists(){
   catch(e){ ckTemplates = []; ckLoadFailed = true; }
   try{ jobChecklists = (await sbFetch('job_checklists?job_id=eq.' + encodeURIComponent(jobTabId) + '&select=*&order=created_at.asc') || []).map(ckNorm); }
   catch(e){ jobChecklists = []; ckLoadFailed = true; }
-  jobChecklists.forEach(c=>c.items.forEach(sec=>{ const st = ckSecStats(c, sec); if(st.total && st.done === st.total) ckCollapsed.add(sec.id); }));
+  jobChecklists.forEach(c=>c.items.forEach(sec=>{ const st = ckSecStats(c, sec); if(sec.na || (st.total && st.done === st.total)) ckCollapsed.add(sec.id); }));
 }
 function ckMark(id){
   ckDirty.add(id);
@@ -3130,6 +3136,7 @@ function ckSecCols(c, s){
 function ckSecStats(c, s){
   const cols = ckSecCols(c, s);
   let done = 0, total = 0;
+  if(s.na) return { done, total };
   s.items.forEach(i=>{
     total += cols.length;
     cols.forEach(n=>{ if(i.marks && i.marks[n]) done++; });
@@ -3150,7 +3157,7 @@ function ckSectionHtml(c, s){
   const ro = READ_ONLY;
   const collapsed = ckCollapsed.has(s.id);
   const span = cols.length + (ro ? 2 : 3);
-  const head = `<tr class="ck-sh"><th class="ck-sh-title" onclick="ckToggleSec('${s.id}')"><span class="ck-chev">${collapsed ? '&#9656;' : '&#9662;'}</span>${esc(s.title || 'Items')}<span class="ck-sec-n">${st.done}/${st.total}</span>${ro ? '' : `<a class="ck-addlnk no-print" onclick="event.stopPropagation();ckOpenAdd('${s.id}')">+ item</a>`}</th>${cols.map(n=>`<th>${esc(n)}</th>`).join('')}<th>Notes</th>${ro ? '' : '<th></th>'}</tr>`;
+  const head = `<tr class="ck-sh"><th class="ck-sh-title" onclick="ckToggleSec('${s.id}')"><span class="ck-chev">${collapsed ? '&#9656;' : '&#9662;'}</span>${esc(s.title || 'Items')}<span class="ck-sec-n">${s.na ? 'N/A' : st.done + '/' + st.total}</span>${ro || s.na ? '' : `<a class="ck-addlnk no-print" onclick="event.stopPropagation();ckOpenAdd('${s.id}')">+ item</a>`}${ro ? '' : `<label class="ck-nalnk no-print" title="Leave this section out of the percentage" onclick="event.stopPropagation()"><input type="checkbox" ${s.na ? 'checked' : ''} onchange="ckSetNa('${c.id}','${s.id}',this.checked)"> N/A</label>`}</th>${cols.map(n=>`<th>${esc(n)}</th>`).join('')}<th>Notes</th>${ro ? '' : '<th></th>'}</tr>`;
   const desc = s.desc ? `<tr class="ck-desc"><td colspan="${span}">${esc(s.desc)}</td></tr>` : '';
   const rows = s.items.map(i=>{
     const marks = i.marks || {};
@@ -3160,7 +3167,7 @@ function ckSectionHtml(c, s){
   }).join('');
   const add = ro || !ckAddOpen.has(s.id) ? '' : `<tr class="ck-addrow no-print"><td colspan="${span}"><input class="ck-add-in" id="ckNew-${s.id}" placeholder="New item — Enter to add, Esc to close" onkeydown="if(event.key==='Enter'){ckAddItem('${c.id}','${s.id}',this.value);}else if(event.key==='Escape'){ckCloseAdd('${s.id}');}"></td></tr>`;
   const colgroup = `<colgroup><col>${cols.map(()=>'<col class="ck-colm">').join('')}<col class="ck-coln">${ro ? '' : '<col class="ck-colx">'}</colgroup>`;
-  return `<table class="ck-table${collapsed ? ' ck-collapsed' : ''}">${colgroup}<thead>${head}</thead><tbody>${desc}${rows}${add}</tbody></table>`;
+  return `<table class="ck-table${collapsed ? ' ck-collapsed' : ''}${s.na ? ' ck-na' : ''}">${colgroup}<thead>${head}</thead><tbody>${desc}${rows}${add}</tbody></table>`;
 }
 function ckCardHtml(c){
   const st = ckStats(c);
@@ -3368,6 +3375,14 @@ function ckAddItem(cid, sid, v){
 function ckDelItem(cid, sid, iid){
   const r = ckItem(cid, sid, iid); if(!r || READ_ONLY) return;
   r.s.items = r.s.items.filter(x=>x.id !== iid);
+  ckMark(cid);
+  renderChecklists();
+}
+function ckSetNa(cid, sid, on){
+  const c = ckFind(cid); if(!c || READ_ONLY) return;
+  const s = c.items.find(x=>x.id === sid); if(!s) return;
+  if(on){ s.na = true; ckCollapsed.add(sid); ckAddOpen.delete(sid); }
+  else{ delete s.na; ckCollapsed.delete(sid); }
   ckMark(cid);
   renderChecklists();
 }

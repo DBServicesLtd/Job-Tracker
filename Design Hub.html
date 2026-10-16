@@ -50,6 +50,7 @@ input,select,textarea{font-family:inherit;font-size:14px;}
 a{color:var(--blue);}
 
 .app{width:100%;min-width:1400px;padding:24px 28px 60px;}
+body.job-view .app{min-width:0;}
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
   gap:16px;margin-bottom:22px;flex-wrap:wrap;
@@ -2329,6 +2330,7 @@ function switchTab(name){
   document.getElementById('view-kpi').classList.toggle('active', name==='kpi');
   document.getElementById('view-job').classList.toggle('active', name==='job');
   jobTabRemember(name==='job');
+  document.body.classList.toggle('job-view', name==='job');
   if(name==='dashboard') renderDashboard();
   if(name==='jobs' && !columnsAutoFitted && jobs.length){
     measureAndLockStaticColumnWidths();

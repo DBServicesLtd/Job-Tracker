@@ -375,6 +375,10 @@ body.has-job-tab .settings-wrap{margin-left:auto;}
   .jp-img img{height:auto;max-height:260px;object-fit:contain;}
   .no-print{display:none !important;}
   .jp-card{box-shadow:none;break-inside:avoid;}
+  .jp-card.ck-card{break-inside:auto;}
+  .jp-wrap{max-width:none !important;padding-left:0 !important;padding-right:0 !important;margin:0 !important;}
+  .ck-table thead{break-after:avoid;}
+  .ck-table{font-size:11px;}
   .jp-row .f-input,.jp-row .f-select,.jp-row .f-textarea{border:none;background:none;padding-left:0;}
 }
 
@@ -3164,6 +3168,17 @@ async function ckFlushAll(){
     }
   }
 }
+window.addEventListener('beforeprint', ()=>{
+  if(!jobTabId || jpSubTab !== 'checklists' || !document.getElementById('view-job').classList.contains('active')) return;
+  const st = document.createElement('style');
+  st.id = 'ckPrintPage';
+  st.textContent = '@page{size:A4 landscape;margin:8mm;}';
+  document.head.appendChild(st);
+});
+window.addEventListener('afterprint', ()=>{
+  const st = document.getElementById('ckPrintPage');
+  if(st) st.remove();
+});
 function ckApplicableTemplates(){
   const j = jobs.find(x=>x.id === jobTabId);
   const region = j ? (j.region || '') : '';

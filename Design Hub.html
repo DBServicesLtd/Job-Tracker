@@ -51,7 +51,6 @@ a{color:var(--blue);}
 
 .app{width:100%;min-width:1400px;padding:24px 28px 60px;}
 body.job-view .app,body.dash-view .app{min-width:0;}
-body.dash-view .tabs,body.dash-view .tabs-left{flex-wrap:wrap;}
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
   gap:16px;margin-bottom:22px;flex-wrap:wrap;
@@ -145,8 +144,9 @@ body.dash-view .tabs,body.dash-view .tabs-left{flex-wrap:wrap;}
 .region-address-value:hover{border-bottom-color:var(--line-strong);}
 .region-address-value:empty::before{content:'Add address…';color:var(--ink-faint);}
 .region-address-value:focus{outline:none;border-bottom:1px solid var(--blue);}
-.tabs-left{display:flex;gap:4px;}
-.settings-wrap{position:relative;padding-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.tabs-left{display:flex;gap:4px;flex-wrap:nowrap;min-width:0;overflow-x:auto;scrollbar-width:none;}
+.tabs-left::-webkit-scrollbar{display:none;}
+.settings-wrap{position:relative;padding-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:nowrap;flex:none;}
 .stats-wrap{position:relative;}
 .colvis-wrap{position:relative;display:inline-block;}
 .colvis-wrap .settings-menu{right:auto;left:0;max-height:280px;overflow-y:auto;}
@@ -177,11 +177,25 @@ body.dash-view .tabs,body.dash-view .tabs-left{flex-wrap:wrap;}
 .view.active{display:block;}
 
 .toolbar{
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
+  display:flex;align-items:center;gap:10px;flex-wrap:nowrap;margin-bottom:16px;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   padding:10px 12px;box-shadow:var(--shadow);
 }
-.toolbar .grow{flex:1 1 180px;max-width:280px;}
+.toolbar .grow{flex:1 1 120px;min-width:90px;max-width:280px;}
+.toolbar > *{flex-shrink:0;}
+.toolbar > .grow{flex-shrink:1;}
+.toolbar > #newJobBtn{flex:1 1 110px;min-width:110px;flex-shrink:1;}
+@media (max-width:700px){.toolbar{flex-wrap:wrap;}}
+@media (max-width:1300px){body #mainTabsLeft .tab,body.has-job-tab #mainTabsLeft .tab{font-size:19px;margin-right:14px;}}
+@media (max-width:1100px){
+  body #mainTabsLeft .tab,body.has-job-tab #mainTabsLeft .tab{font-size:17px;margin-right:9px;padding:14px 6px;}
+  .settings-btn{padding:6px 9px;font-size:13px;}
+  .settings-wrap{gap:5px;}
+}
+@media (max-width:900px){
+  body #mainTabsLeft .tab,body.has-job-tab #mainTabsLeft .tab{font-size:15px;margin-right:4px;padding:12px 5px;}
+  .settings-btn{padding:6px 7px;font-size:12px;}
+}
 .field{position:relative;}
 .search-input{
   width:100%;padding:7px 10px 7px 30px;border:1px solid var(--line);border-radius:5px;
@@ -301,7 +315,6 @@ select.select, .toolbar select{
 .jobname-link:hover strong{text-decoration:underline dotted;text-underline-offset:3px;}
 #mainTabsLeft .tab{white-space:nowrap;}
 body.has-job-tab #mainTabsLeft .tab{margin-right:12px;font-size:21px;}
-body.has-job-tab .tabs{flex-wrap:wrap;}
 body.has-job-tab .settings-wrap{margin-left:auto;}
 #jobTab{display:inline-flex;align-items:center;gap:8px;}
 #jobTabLabel{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -826,6 +839,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <button onclick="closeSettingsMenu(); copyAsTable()">📋 Copy as table</button>
         <button onclick="closeSettingsMenu(); window.print()">🖶 Print view</button>
         <button onclick="closeSettingsMenu(); openStaffModal()">👤 Manage team</button>
+        <button onclick="closeSettingsMenu(); openGuideModal()">⏱ Turnaround guide</button>
         <button onclick="closeSettingsMenu(); openCkTemplates()">☑ Checklist templates</button>
       </div>
     </div>
@@ -871,7 +885,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <button class="active" data-v="table" onclick="setJobView('table')">Table</button>
       </div>
       <button class="btn-ghost" id="turnaroundGuideBtn" onclick="openGuideModal()">⏱ Turnaround guide</button>
-      <button class="btn-primary" id="newJobBtn" onclick="openJobModal()" style="flex:1 1 200px;justify-content:center;">+ New job</button>
+      <button class="btn-primary" id="newJobBtn" onclick="openJobModal()" style="justify-content:center;">+ New job</button>
     </div>
     <p class="hint">Tip: filter to one region, then use Copy as table (in ⚙ Settings) to paste a snapshot straight into an email, or Print view for a PDF.</p>
 
@@ -6082,6 +6096,7 @@ if(LOCKED_TAB){
   if(!LOCKED_REGION) document.getElementById('contactsBtn').style.display = 'none';
 }
 applyReadOnlyMode();
+if(!READ_ONLY) document.getElementById('turnaroundGuideBtn').style.display = 'none';
 if(!READ_ONLY){
   document.getElementById('brandTitle').textContent = 'The Design Hub';
 }

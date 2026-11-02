@@ -69,6 +69,21 @@ body.job-view .app{min-width:0;}
 .brand p{margin:2px 0 0;color:var(--ink-soft);font-size:12.5px;}
 
 .sync{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-faint);}
+.sync-col{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.presence{display:none;position:relative;}
+.presence-btn{background:none;border:none;padding:2px 0;font-size:11.5px;color:var(--ink-faint);display:flex;align-items:center;gap:6px;cursor:pointer;}
+.presence-btn:hover{color:var(--ink);}
+.presence-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none;}
+.presence-pop{display:none;position:absolute;top:100%;right:0;margin-top:6px;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow-lift);padding:10px 12px;min-width:240px;z-index:45;font-size:12.5px;color:var(--ink);}
+.presence-pop.open{display:block;}
+.presence-h{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);margin:8px 0 4px;}
+.presence-h:first-child{margin-top:0;}
+.presence-row{display:flex;justify-content:space-between;gap:16px;padding:2px 0;}
+.presence-row span:last-child{color:var(--ink-faint);}
+.presence-me{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);color:var(--ink-faint);font-size:12px;}
+.presence-me button{background:none;border:none;padding:0;color:var(--blue);font-size:12px;text-decoration:underline;cursor:pointer;}
+.pres-pick-btn{display:block;width:100%;text-align:left;padding:9px 12px;margin-bottom:6px;border:1px solid var(--line);border-radius:5px;background:var(--paper);color:var(--ink);font-size:13.5px;cursor:pointer;}
+.pres-pick-btn:hover{border-color:var(--blue);background:var(--blue-soft);}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none;}
 .sync-dot.busy{background:var(--amber);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -735,11 +750,17 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
         <h1 id="brandTitle">Weekly Job Tracking</h1>
       </div>
     </div>
+    <div class="sync-col">
     <div class="sync">
       <span id="syncDot" class="sync-dot"></span>
       <span id="syncText">synced</span>
       <button class="btn-refresh" id="undoBtn" onclick="performUndo()" disabled title="Undo your last edit">↩ Undo</button>
       <button class="btn-refresh" onclick="manualRefresh()">↻ Refresh</button>
+    </div>
+    <div class="presence" id="presence">
+      <button class="presence-btn" onclick="presTogglePop()"><span class="presence-dot"></span><span id="presText">1 online</span></button>
+      <div class="presence-pop" id="presPop"></div>
+    </div>
     </div>
   </div>
 
@@ -1100,6 +1121,18 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <div class="foot-right">
         <button class="btn-ghost" onclick="closeMyWorkLinksModal()">Close</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="presPickOverlay">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-head">
+      <h2>Who are you?</h2>
+      <button class="modal-close" onclick="presSkip()">✕</button>
+    </div>
+    <div class="modal-body" style="grid-template-columns:1fr;">
+      <div class="full" id="presPickBody"></div>
     </div>
   </div>
 </div>
@@ -2189,16 +2222,132 @@ function isEditingNow(){
 }
 let realtimeChannel = null;
 let realtimeConnected = false;
+const PRES_KEY = 'p' + Math.random().toString(36).slice(2, 10);
+let presSeen = [];
+function presMyName(){
+  if(LOCKED_WHO) return LOCKED_WHO;
+  if(LOCKED_REGION) return LOCKED_REGION + ' region';
+  if(VIEW_ALL_READONLY) return '';
+  try{ return localStorage.getItem('dhWho') || ''; }catch(e){ return ''; }
+}
+function presTrack(){
+  if(!realtimeChannel || !realtimeConnected) return;
+  try{ realtimeChannel.track({ name: presMyName(), at: Date.now() }); }catch(e){}
+}
+async function presBeat(){
+  const name = presMyName();
+  if(!name || document.hidden) return;
+  try{
+    await sbFetch('staff_seen?on_conflict=name', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}, body:{ name: name, seen_at: new Date().toISOString() } });
+  }catch(e){}
+}
+async function presLoadSeen(){
+  try{ presSeen = await sbFetch('staff_seen?select=*') || []; }catch(e){}
+}
+function presAgo(iso){
+  const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if(m < 2) return 'just now';
+  if(m < 60) return m + ' min ago';
+  const h = Math.round(m / 60);
+  if(h < 24) return h + ' h ago';
+  const d = Math.round(h / 24);
+  return d === 1 ? 'yesterday' : d + ' days ago';
+}
+function presOnlineNames(){
+  const out = [];
+  let unnamed = 0;
+  if(!realtimeChannel) return { names: out, unnamed: 0, total: 0 };
+  const st = realtimeChannel.presenceState();
+  Object.keys(st).forEach(k => {
+    const nm = (st[k][0] && st[k][0].name) || '';
+    if(nm){ if(!out.includes(nm)) out.push(nm); } else unnamed++;
+  });
+  return { names: out.sort((a,b)=>a.localeCompare(b)), unnamed: unnamed, total: Object.keys(st).length };
+}
+function presRender(){
+  const wrap = document.getElementById('presence');
+  if(!wrap || READ_ONLY) return;
+  wrap.style.display = 'block';
+  const on = presOnlineNames();
+  const total = Math.max(on.total, 1);
+  document.getElementById('presText').textContent = total + ' online';
+  if(document.getElementById('presPop').classList.contains('open')) presRenderPop();
+}
+function presRenderPop(){
+  const on = presOnlineNames();
+  const me = presMyName();
+  let h = '<div class="presence-h">Online now</div>';
+  on.names.forEach(n => { h += '<div class="presence-row"><span>' + esc(n) + (n === me ? ' (you)' : '') + '</span><span>online</span></div>'; });
+  if(on.unnamed) h += '<div class="presence-row"><span>' + on.unnamed + ' unnamed</span><span>online</span></div>';
+  if(!on.names.length && !on.unnamed) h += '<div class="presence-row"><span>Just you</span><span></span></div>';
+  const seen = {};
+  presSeen.forEach(r => { seen[r.name] = r.seen_at; });
+  const names = staff.map(s => s.name).filter(Boolean);
+  Object.keys(seen).forEach(n => { if(!names.includes(n)) names.push(n); });
+  const others = names.filter(n => !on.names.includes(n))
+    .sort((a,b) => (seen[b] ? new Date(seen[b]).getTime() : 0) - (seen[a] ? new Date(seen[a]).getTime() : 0) || a.localeCompare(b));
+  if(others.length){
+    h += '<div class="presence-h">Last seen</div>';
+    others.forEach(n => { h += '<div class="presence-row"><span>' + esc(n) + '</span><span>' + (seen[n] ? presAgo(seen[n]) : 'not yet') + '</span></div>'; });
+  }
+  h += '<div class="presence-me">You: ' + (me ? esc(me) : 'not set') + ' · <button onclick="presOpenPick()">' + (me ? 'Change' : 'Set name') + '</button></div>';
+  document.getElementById('presPop').innerHTML = h;
+}
+async function presTogglePop(){
+  const pop = document.getElementById('presPop');
+  if(pop.classList.contains('open')){ pop.classList.remove('open'); return; }
+  presRenderPop();
+  pop.classList.add('open');
+  await presLoadSeen();
+  if(pop.classList.contains('open')) presRenderPop();
+}
+function presOpenPick(){
+  const names = staff.map(s => s.name).filter(Boolean).sort((a,b) => a.localeCompare(b));
+  document.getElementById('presPickBody').innerHTML = names.map(n => '<button class="pres-pick-btn" data-n="' + esc(n) + '" onclick="presChoose(this.dataset.n)">' + esc(n) + '</button>').join('');
+  document.getElementById('presPop').classList.remove('open');
+  document.getElementById('presPickOverlay').classList.add('open');
+}
+function presChoose(name){
+  try{ localStorage.setItem('dhWho', name); }catch(e){}
+  document.getElementById('presPickOverlay').classList.remove('open');
+  presTrack();
+  presBeat().then(presLoadSeen);
+  presRender();
+}
+function presSkip(){
+  try{ sessionStorage.setItem('dhWhoSkip', '1'); }catch(e){}
+  document.getElementById('presPickOverlay').classList.remove('open');
+}
+function presMaybePrompt(){
+  if(READ_ONLY || presMyName()) return;
+  let skipped = false;
+  try{ skipped = sessionStorage.getItem('dhWhoSkip') === '1'; }catch(e){}
+  if(!skipped && staff.length) presOpenPick();
+}
+function presStart(){
+  presRender();
+  presBeat().then(presLoadSeen);
+  setInterval(presBeat, 4 * 60000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) presBeat(); });
+  document.addEventListener('click', e => {
+    const w = document.getElementById('presence');
+    if(w && !w.contains(e.target)) document.getElementById('presPop').classList.remove('open');
+  });
+}
 function initRealtime(){
   if(typeof supabase === 'undefined' || !supabase.createClient) return;
   try{
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     realtimeChannel = client
-      .channel('design-hub-sync')
+      .channel('design-hub-sync', { config: { presence: { key: PRES_KEY } } })
+      .on('presence', { event: 'sync' }, presRender)
       .on('postgres_changes', {event:'*', schema:'public', table:'jobs'}, handleJobRealtimeChange)
       .on('postgres_changes', {event:'*', schema:'public', table:'staff'}, handleStaffRealtimeChange)
       .on('postgres_changes', {event:'*', schema:'public', table:'workload'}, handleWorkloadRealtimeChange)
-      .subscribe(status => { realtimeConnected = (status === 'SUBSCRIBED'); });
+      .subscribe(status => {
+        realtimeConnected = (status === 'SUBSCRIBED');
+        if(realtimeConnected) presTrack();
+      });
   }catch(e){ console.warn('Realtime init failed', e); }
 }
 function handleJobRealtimeChange(payload){
@@ -5868,6 +6017,8 @@ window.addEventListener('resize', ()=>{ setStickyOffsets(); sizeKpiScroll(); });
 populateRegionFilters();
 initRealtime();
 loadAll(true).then(()=>{
+  presStart();
+  presMaybePrompt();
   setStickyOffsets();
   if(LOCKED_TAB) switchTab(LOCKED_TAB);
   else if(!READ_ONLY) renderDashboard();

@@ -69,6 +69,27 @@ body.job-view .app{min-width:0;}
 .brand p{margin:2px 0 0;color:var(--ink-soft);font-size:12.5px;}
 
 .sync{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-faint);}
+.plan-wrap{display:flex;align-items:flex-start;gap:2px;}
+.plan-wrap .cell-rich,.plan-wrap .cell-rich-view{flex:1;min-width:0;}
+.plan-flag{display:inline-flex;align-items:center;justify-content:center;flex:none;width:17px;height:17px;margin:9px 0 0 8px;border-radius:50%;background:#FCEBC4;border:1px solid #D9A441;color:#8A5A00;font-family:'Open Sans',sans-serif;font-size:11px;font-weight:800;line-height:1;cursor:help;}
+.jp-textblock .plan-flag{margin:0 4px 0 0;vertical-align:1px;}
+.plan-flag-opt{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--ink-soft);cursor:pointer;}
+.plan-flag-opt .plan-flag{margin:0;cursor:inherit;}
+.dash-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px;}
+.dash-kpi{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;min-height:96px;}
+.dash-kpi.clickable{cursor:pointer;transition:background .15s;}
+.dash-kpi.clickable:hover{background:var(--blue-soft);}
+.dash-kpi-label{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;}
+.dash-kpi-row{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;}
+.dash-kpi-num{font-family:'DM Serif Display',serif;font-size:34px;line-height:1;color:var(--ink);}
+.dash-kpi-badge{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);white-space:nowrap;}
+.dash-kpi-badge.sky{background:#E6F1F8;border-color:#BBD8EA;color:#1F5C7F;}
+.dash-kpi-badge.purple{background:#F0EAF7;border-color:#D3C3E8;color:#5B3A87;}
+.dash-kpi-badge.amber{background:#FCEBC4;border-color:#E8CC8A;color:#8A5A00;}
+.dash-kpi-badge.green{background:#E3F1E8;border-color:#BAD9C5;color:#2F6B49;}
+.dash-kpi-badge.red{background:#F8E1DE;border-color:#E6B7B1;color:#9A3A2F;}
+@media (max-width:1100px){.dash-kpis{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:620px){.dash-kpis{grid-template-columns:repeat(2,1fr);}}
 .sync-col{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
 .presence{display:none;position:relative;}
 .presence-btn{background:none;border:none;padding:2px 0;font-size:11.5px;color:var(--ink-faint);display:flex;align-items:center;gap:6px;cursor:pointer;}
@@ -805,21 +826,13 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
   </div>
 
   <div class="view active" id="view-dashboard">
+    <div class="dash-kpis" id="dashKpis"></div>
     <div class="dash-grid">
-      <div class="dash-card dash-card-wide">
-        <div class="dash-card-title">Jobs by stage</div>
-        <div class="dash-stage-row" id="dashStageRow"></div>
-      </div>
       <div class="dash-card">
         <div class="dash-card-title">Upcoming jobs</div>
         <div id="dashUpcomingList"></div>
       </div>
       <div class="dash-card">
-        <div class="dash-card-title">Stale jobs</div>
-        <div class="dash-stat" id="dashStaleCount">0</div>
-        <div class="dash-stat-sub">No updates in 60+ days</div>
-      </div>
-      <div class="dash-card dash-card-wide">
         <div class="dash-card-title">Jobs per person</div>
         <div id="dashPeopleList"></div>
       </div>
@@ -1039,7 +1052,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <div><label class="f-label">Updates sent</label><input class="f-input" type="date" id="f-updatesSent"></div>
       <div class="full" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;">
         <div><label class="f-label">Task notes</label><textarea class="f-textarea" id="f-notes" placeholder="Free-text notes. Use **bold**, *italic*, ==highlight== for formatting…"></textarea></div>
-        <div><label class="f-label">Planning</label><textarea class="f-textarea" id="f-planning" placeholder="Use **bold**, *italic*, ==highlight== for formatting…"></textarea></div>
+        <div><label class="f-label">Planning</label><textarea class="f-textarea" id="f-planning" placeholder="Use **bold**, *italic*, ==highlight== for formatting…"></textarea><label class="plan-flag-opt"><input type="checkbox" id="f-planningFlag"> <span class="plan-flag">!</span> Flag this planning note</label></div>
         <div><label class="f-label">Engineer</label><textarea class="f-textarea" id="f-engineer"></textarea></div>
       </div>
      </div>
@@ -2042,6 +2055,7 @@ function jobToRow(j){
     lot_dp: j.lotDp || '',
     notes: j.notes || '',
     planning: j.planning || '',
+    planning_flag: !!j.planningFlag,
     updates_sent: j.updatesSent || null,
     engineer_date: j.engineer || null,
     archived: !!j.archived,
@@ -2067,6 +2081,7 @@ function rowToJob(r){
     lotDp: r.lot_dp || '',
     notes: r.notes || '',
     planning: r.planning || '',
+    planningFlag: !!r.planning_flag,
     updatesSent: r.updates_sent || '',
     engineer: r.engineer_date || '',
     updatedAt: r.updated_at || null,
@@ -2500,14 +2515,19 @@ function renderDashboard(){
   const stageCounts = {SP:0, PD:0, WD:0, 'On Site':0};
   active.forEach(j=>{ if(stageCounts.hasOwnProperty(j.stage)) stageCounts[j.stage]++; });
   const stageLabels = {SP:'SP — Concept', PD:'PD — Preliminary', WD:'WD — Working Dwgs', 'On Site':'On Site'};
-  document.getElementById('dashStageRow').innerHTML = STAGE_ORDER.map(s=>`
-    <div class="dash-stage-stat" onclick="goToJobsFiltered('${s}')">
-      <div class="dash-stage-num">${stageCounts[s]}</div>
-      <div class="dash-stage-label">${esc(stageLabels[s])}</div>
-    </div>`).join('');
-
+  const stageBadges = {SP:['Concept','sky'], PD:['Review','purple'], WD:['Doc prep','amber'], 'On Site':['Build','green']};
+  const rfiStates = ['RFI W/Services','RFI W/Consultant','RFI W/Region'];
+  const rfiCount = active.filter(j=>rfiStates.includes(j.status)).length;
   const staleCount = active.filter(j=>staleDaysAgo(j) > 0).length;
-  document.getElementById('dashStaleCount').textContent = staleCount;
+  const kpi = (label, num, badge, tone, click) => `
+    <div class="dash-kpi${click ? ' clickable' : ''}"${click ? ` onclick="${click}"` : ''}>
+      <div class="dash-kpi-label">${esc(label)}</div>
+      <div class="dash-kpi-row"><span class="dash-kpi-num">${num}</span><span class="dash-kpi-badge ${tone}">${esc(badge)}</span></div>
+    </div>`;
+  document.getElementById('dashKpis').innerHTML =
+    STAGE_ORDER.map(st => kpi(stageLabels[st], stageCounts[st], stageBadges[st][0], stageBadges[st][1], `goToJobsFiltered('${st}')`)).join('') +
+    kpi('Pending Council RFIs', rfiCount, rfiCount ? 'Action' : 'Clear', rfiCount ? 'purple' : 'green', "goToJobsFiltered('WD','RFI W/')") +
+    kpi('Stale Jobs', staleCount, staleCount ? 'Needs update' : 'Clear', staleCount ? 'red' : 'green', '');
 
   const upcoming = active.filter(j=>j.latestEstimatedCompletion && j.stage!=='On Site')
     .sort((a,b)=>a.latestEstimatedCompletion.localeCompare(b.latestEstimatedCompletion))
@@ -3181,7 +3201,7 @@ function jobPageHubHtml(j){
     </div>
     ${(notes || planning) ? `<div class="jp-card"><div class="jp-card-title">Notes</div>
       ${notes ? `<div class="jp-kv"><span>Task notes</span><div class="jp-textblock">${notes}</div></div>` : ''}
-      ${planning ? `<div class="jp-kv"><span>Planning</span><div class="jp-textblock">${planning}</div></div>` : ''}
+      ${planning ? `<div class="jp-kv"><span>Planning</span><div class="jp-textblock">${j.planningFlag ? '<span class="plan-flag">!</span> ' : ''}${planning}</div></div>` : ''}
     </div>` : ''}
   </div></div>`;
 }
@@ -4248,8 +4268,20 @@ function plainToRichHtml(text){
   s = s.replace(/==([\s\S]+?)==/g, '<mark>$1</mark>');
   return s;
 }
+function planFlagHtml(j){
+  if(!j.planningFlag) return '';
+  const tip = esc(richHtmlToPlain(j.planning || '') || 'Planning flagged');
+  return `<span class="plan-flag" title="${tip}" onclick="event.stopPropagation()">!</span>`;
+}
 function richTextCell(j, field){
   if(isColHidden(field)) return '<td class="col-collapsed"></td>';
+  if(field === 'planning' && j.planningFlag){
+    const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
+    const html = sanitizeRich(j[field]||'');
+    const isEmpty = !j[field];
+    if(READ_ONLY) return `<td class="td-notes ${divider}"><div class="plan-wrap">${planFlagHtml(j)}<div class="cell-rich-view${isEmpty ? ' cell-rich-view-empty' : ''}">${html}</div></div></td>`;
+    return `<td class="td-notes td-editable ${divider}"><div class="plan-wrap">${planFlagHtml(j)}<div class="cell-rich${isEmpty ? ' cell-rich-empty' : ''}" contenteditable="true" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" onblur="saveRichCell(this)" onkeydown="handleGridNavKey(event)">${html}</div></div></td>`;
+  }
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
   const html = sanitizeRich(j[field]||'');
   const isEmpty = !j[field];
@@ -4630,6 +4662,7 @@ function openJobModal(id){
   document.getElementById('f-engineer').value = j?.engineer || '';
   document.getElementById('f-notes').value = richHtmlToPlain(j?.notes || '');
   document.getElementById('f-planning').value = richHtmlToPlain(j?.planning || '');
+  document.getElementById('f-planningFlag').checked = !!j?.planningFlag;
   document.getElementById('jobOverlay').classList.add('open');
   if(!j){
     document.getElementById('f-stageStart').value = isoDate(new Date());
@@ -5124,6 +5157,7 @@ async function saveJob(){
     engineer: document.getElementById('f-engineer').value.trim(),
     notes: plainToRichHtml(document.getElementById('f-notes').value.trim()),
     planning: plainToRichHtml(document.getElementById('f-planning').value.trim()),
+    planningFlag: document.getElementById('f-planningFlag').checked,
     bcLodged: modalBc.lodged || '',
     bcRfis: modalBc.rfis.filter(r=>r.out).map(r=>({out:r.out, back:r.back||''})),
   };

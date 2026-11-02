@@ -69,12 +69,14 @@ body.job-view .app,body.dash-view .app{min-width:0;}
 .brand p{margin:2px 0 0;color:var(--ink-soft);font-size:12.5px;}
 
 .sync{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-faint);}
-.plan-wrap{display:flex;align-items:flex-start;gap:2px;}
-.plan-wrap .cell-rich,.plan-wrap .cell-rich-view{flex:1;min-width:0;}
-.plan-flag{display:inline-flex;align-items:center;justify-content:center;flex:none;width:17px;height:17px;margin:9px 0 0 8px;border-radius:50%;background:#FCEBC4;border:1px solid #D9A441;color:#8A5A00;font-family:'Open Sans',sans-serif;font-size:11px;font-weight:800;line-height:1;cursor:help;}
-.jp-textblock .plan-flag{margin:0 4px 0 0;vertical-align:1px;}
+.plan-wrap{display:flex;align-items:flex-start;}
+.plan-wrap.flagged{display:inline-flex;align-items:center;gap:6px;max-width:calc(100% - 16px);margin:5px 8px;padding:2px 8px;background:#FDECEA;border:1px solid #F2C4BE;border-radius:4px;color:#B3261E;font-weight:700;}
+.plan-wrap.flagged .cell-rich,.plan-wrap.flagged .cell-rich-view{min-height:0;padding:2px 0;color:inherit;font-size:12.5px;font-weight:700;background:none;flex:1;min-width:0;}
+.plan-wrap.flagged .cell-rich:focus{background:none;}
+.plan-flag{display:inline-flex;align-items:center;flex:none;color:#B3261E;cursor:help;line-height:1;}
+.jp-textblock .plan-flag{margin-right:5px;vertical-align:-2px;}
 .plan-flag-opt{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--ink-soft);cursor:pointer;}
-.plan-flag-opt .plan-flag{margin:0;cursor:inherit;}
+.plan-flag-opt .plan-flag{cursor:inherit;}
 .dash-regions{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
 .dash-region{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer;transition:background .15s;display:flex;flex-direction:column;gap:2px;}
 .dash-region:hover{background:var(--blue-soft);}
@@ -1077,7 +1079,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       <div><label class="f-label">Updates sent</label><input class="f-input" type="date" id="f-updatesSent"></div>
       <div class="full" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;">
         <div><label class="f-label">Task notes</label><textarea class="f-textarea" id="f-notes" placeholder="Free-text notes. Use **bold**, *italic*, ==highlight== for formatting…"></textarea></div>
-        <div><label class="f-label">Planning</label><textarea class="f-textarea" id="f-planning" placeholder="Use **bold**, *italic*, ==highlight== for formatting…"></textarea><label class="plan-flag-opt"><input type="checkbox" id="f-planningFlag"> <span class="plan-flag">!</span> Flag this planning note</label></div>
+        <div><label class="f-label">Planning</label><textarea class="f-textarea" id="f-planning" placeholder="Use **bold**, *italic*, ==highlight== for formatting…"></textarea><label class="plan-flag-opt"><input type="checkbox" id="f-planningFlag"> <span class="plan-flag"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span> Flag this planning note</label></div>
         <div><label class="f-label">Engineer</label><textarea class="f-textarea" id="f-engineer"></textarea></div>
       </div>
      </div>
@@ -3240,7 +3242,7 @@ function jobPageHubHtml(j){
     </div>
     ${(notes || planning) ? `<div class="jp-card"><div class="jp-card-title">Notes</div>
       ${notes ? `<div class="jp-kv"><span>Task notes</span><div class="jp-textblock">${notes}</div></div>` : ''}
-      ${planning ? `<div class="jp-kv"><span>Planning</span><div class="jp-textblock">${j.planningFlag ? '<span class="plan-flag">!</span> ' : ''}${planning}</div></div>` : ''}
+      ${planning ? `<div class="jp-kv"><span>Planning</span><div class="jp-textblock">${j.planningFlag ? '<span class="plan-flag" style="color:#B3261E;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><b style="color:#B3261E;">' : ''}${planning}${j.planningFlag ? '</b>' : ''}</div></div>` : ''}
     </div>` : ''}
   </div></div>`;
 }
@@ -4310,7 +4312,7 @@ function plainToRichHtml(text){
 function planFlagHtml(j){
   if(!j.planningFlag) return '';
   const tip = esc(richHtmlToPlain(j.planning || '') || 'Planning flagged');
-  return `<span class="plan-flag" title="${tip}" onclick="event.stopPropagation()">!</span>`;
+  return `<span class="plan-flag" title="${tip}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>`;
 }
 function richTextCell(j, field){
   if(isColHidden(field)) return '<td class="col-collapsed"></td>';
@@ -4318,8 +4320,8 @@ function richTextCell(j, field){
     const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
     const html = sanitizeRich(j[field]||'');
     const isEmpty = !j[field];
-    if(READ_ONLY) return `<td class="td-notes ${divider}"><div class="plan-wrap">${planFlagHtml(j)}<div class="cell-rich-view${isEmpty ? ' cell-rich-view-empty' : ''}">${html}</div></div></td>`;
-    return `<td class="td-notes td-editable ${divider}"><div class="plan-wrap">${planFlagHtml(j)}<div class="cell-rich${isEmpty ? ' cell-rich-empty' : ''}" contenteditable="true" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" onblur="saveRichCell(this)" onkeydown="handleGridNavKey(event)">${html}</div></div></td>`;
+    if(READ_ONLY) return `<td class="td-notes ${divider}"><div class="plan-wrap flagged">${planFlagHtml(j)}<div class="cell-rich-view${isEmpty ? ' cell-rich-view-empty' : ''}">${html}</div></div></td>`;
+    return `<td class="td-notes td-editable ${divider}"><div class="plan-wrap flagged">${planFlagHtml(j)}<div class="cell-rich${isEmpty ? ' cell-rich-empty' : ''}" contenteditable="true" data-id="${j.id}" data-field="${field}" onclick="event.stopPropagation()" onblur="saveRichCell(this)" onkeydown="handleGridNavKey(event)">${html}</div></div></td>`;
   }
   const divider = RIGHT_DIVIDER_KEYS.has(field) ? 'divider-right' : '';
   const html = sanitizeRich(j[field]||'');

@@ -856,6 +856,7 @@ th.day-cell{background:#1A3A5C;color:#F4F5F3;}
       </select>
       <label class="chk-label"><input type="checkbox" id="showCompleted" checked onchange="renderJobs()"> Show completed</label>
       <label class="chk-label"><input type="checkbox" id="showArchived" onchange="renderJobs()"> Show archived</label>
+      <button class="btn-ghost" id="clearJobViewBtn" onclick="clearJobBoardView()" title="Clear search, filters and sorting">✕ Clear</button>
       <div class="toggle-group" id="viewToggle">
         <button data-v="board" onclick="setJobView('board')">Board</button>
         <button class="active" data-v="table" onclick="setJobView('table')">Table</button>
@@ -4549,6 +4550,19 @@ function measureAndLockStaticColumnWidths(){
   table.style.width = originalWidth;
   cg.innerHTML = originalCg;
   renderColgroup();
+}
+function clearJobBoardView(){
+  document.getElementById('searchInput').value = '';
+  if(!LOCKED_REGION) document.getElementById('regionFilter').value = '';
+  document.getElementById('stageFilter').value = '';
+  document.getElementById('showCompleted').checked = true;
+  const arch = document.getElementById('showArchived');
+  if(arch) arch.checked = false;
+  sortCol = 'latestEstimatedCompletion';
+  sortDir = 1;
+  localStorage.setItem('jobTrackerSortCol', sortCol);
+  localStorage.setItem('jobTrackerSortDir', String(sortDir));
+  renderJobs();
 }
 function sortBy(col){
   if(sortCol===col) sortDir *= -1; else { sortCol=col; sortDir=1; }
